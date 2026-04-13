@@ -36,7 +36,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gray-100 px-6 py-10">
       <div className="max-w-5xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">Tournaments</h1>
+        <h1 className="text-3xl font-bold mb-6 text-black-600">Tournaments</h1>
 
         {/* Filter */}
         <div className="flex gap-2 mb-8">
