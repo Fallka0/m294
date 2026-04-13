@@ -2,11 +2,11 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import TournamentCard from '@/components/TournamentCard'
-import Link from 'next/link'
 
 export default function Home() {
   const [tournaments, setTournaments] = useState([])
   const [loading, setLoading] = useState(true)
+  const [filter, setFilter] = useState('all')
 
   useEffect(() => {
     const fetchTournaments = async () => {
@@ -22,22 +22,50 @@ export default function Home() {
     fetchTournaments()
   }, [])
 
+  const filtered = filter === 'all'
+    ? tournaments
+    : tournaments.filter(t => t.status === filter)
+
+  const filters = [
+    { key: 'all', label: 'All' },
+    { key: 'open', label: 'Open' },
+    { key: 'live', label: 'Live' },
+    { key: 'finished', label: 'Finished' },
+  ]
+
   return (
-    <main className="max-w-5xl mx-auto px-6 py-10">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Turniere</h1>
-      </div>
+    <main className="min-h-screen bg-gray-100 px-6 py-10">
+      <div className="max-w-5xl mx-auto">
+        <h1 className="text-3xl font-bold mb-6">Tournaments</h1>
 
-      {loading && <p className="text-gray-500">Laden...</p>}
+        {/* Filter */}
+        <div className="flex gap-2 mb-8">
+          {filters.map(f => (
+            <button
+              key={f.key}
+              onClick={() => setFilter(f.key)}
+              className={`px-4 py-2 rounded-full text-sm font-medium border transition
+                ${filter === f.key
+                  ? 'bg-gray-800 text-white border-gray-800'
+                  : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
 
-      {!loading && tournaments.length === 0 && (
-        <p className="text-gray-500">Noch keine Turniere vorhanden.</p>
-      )}
+        {loading && <p className="text-gray-400">Laden...</p>}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {tournaments.map((t) => (
-          <TournamentCard key={t.id} tournament={t} />
-        ))}
+        {!loading && filtered.length === 0 && (
+          <p className="text-gray-400">Keine Turniere gefunden.</p>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {filtered.map(t => (
+            <TournamentCard key={t.id} tournament={t} />
+          ))}
+        </div>
       </div>
     </main>
   )
