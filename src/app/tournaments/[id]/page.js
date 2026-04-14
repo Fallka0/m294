@@ -3,18 +3,22 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter, useParams } from 'next/navigation'
 
+// React Bits Imports (Pfade ggf. anpassen)
+import BlurText from '@/components/react-bits/BlurText'
+import FadeContent from '@/components/react-bits/FadeContent'
+import ShinyText from '@/components/react-bits/ShinyText'
 
 export default function TournamentDetail() {
   const { id } = useParams()
   const router = useRouter()
-  const [tournament, setTournament] = useState(null)
+  const[tournament, setTournament] = useState(null)
   const [participants, setParticipants] = useState([])
   const [newName, setNewName] = useState('')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetchData()
-  }, [])
+  },[])
 
   const fetchData = async () => {
     const { data: t } = await supabase
@@ -30,7 +34,7 @@ export default function TournamentDetail() {
       .order('created_at', { ascending: true })
 
     setTournament(t)
-    setParticipants(p || [])
+    setParticipants(p ||[])
     setLoading(false)
   }
 
@@ -64,7 +68,13 @@ export default function TournamentDetail() {
     router.push('/')
   }
 
-  if (loading) return <p className="p-10 text-gray-500">Laden...</p>
+  // TWEAK: Etwas schönerer Loading-State
+  if (loading) return (
+    <div className="flex justify-center items-center h-40">
+       <p className="animate-pulse text-gray-400">Turnier wird geladen...</p>
+    </div>
+  )
+  
   if (!tournament) return <p className="p-10 text-gray-500">Turnier nicht gefunden.</p>
 
   const statusLabel = { open: 'Offen', live: 'Live', finished: 'Abgeschlossen' }
@@ -76,89 +86,99 @@ export default function TournamentDetail() {
 
   return (
     <main className="max-w-2xl mx-auto px-6 py-10">
-
-      {/* Header */}
-      <div className="flex justify-between items-start mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">{tournament.name}</h1>
-          <p className="text-gray-500 mt-1">{tournament.sport} · {tournament.date}</p>
-          <p className="text-gray-500 text-sm">
-            Modus: {tournament.mode} · Max. {tournament.max_participants} Teilnehmer
-          </p>
-        </div>
-        <span className={`text-sm px-3 py-1 rounded-full font-medium ${statusColor[tournament.status]}`}>
-          {statusLabel[tournament.status]}
-        </span>
-      </div>
-
-{/* Aktionen */}
-<div className="flex gap-3 mb-8">
-  <button
-    onClick={() => router.push(`/tournaments/${id}/edit`)}
-    className="border rounded-lg px-4 py-2 text-sm hover:bg-gray-50"
-  >
-    Bearbeiten
-  </button>
-  <button
-    onClick={deleteTournament}
-    className="border border-red-300 text-red-600 rounded-lg px-4 py-2 text-sm hover:bg-red-50"
-  >
-    Löschen
-  </button>
-  {participants.length >= 2 && (
-    <button
-      onClick={() => router.push(`/tournaments/${id}/bracket`)}
-      className="bg-blue-700 text-white rounded-lg px-4 py-2 text-sm hover:bg-blue-800"
-    >
-      Spielplan anzeigen
-    </button>
-  )}
-</div>
-
-      {/* Teilnehmer */}
-      <div>
-        <h2 className="text-xl font-semibold mb-4">
-          Teilnehmer ({participants.length}/{tournament.max_participants})
-        </h2>
-
-        {participants.length === 0 && (
-          <p className="text-gray-400 text-sm mb-4">Noch keine Teilnehmer angemeldet.</p>
-        )}
-
-        <ul className="flex flex-col gap-2 mb-4">
-          {participants.map((p) => (
-            <li key={p.id} className="flex justify-between items-center border rounded-lg px-4 py-2">
-              <span>{p.name}</span>
-              <button
-                onClick={() => removeParticipant(p.id)}
-                className="text-red-400 hover:text-red-600 text-sm"
-              >
-                Entfernen
-              </button>
-            </li>
-          ))}
-        </ul>
-
-        {/* Teilnehmer hinzufügen */}
-        {participants.length < tournament.max_participants && (
-          <div className="flex gap-2">
-            <input
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && addParticipant()}
-              placeholder="Name des Teilnehmers"
-              className="flex-1 border rounded-lg px-3 py-2 text-sm"
+      
+      {/* TWEAK: FadeContent lässt die UI nach dem Laden sanft einfliegen */}
+      <FadeContent blur={true} duration={800} easing="ease-out" initialOpacity={0}>
+        
+        {/* Header */}
+        <div className="flex justify-between items-start mb-6">
+          <div>
+            {/* TWEAK: BlurText für eine moderne Titel-Animation */}
+            <BlurText 
+              text={tournament.name} 
+              delay={30} 
+              className="text-3xl font-bold" 
             />
-            <button
-              onClick={addParticipant}
-              className="bg-blue-700 text-white rounded-lg px-4 py-2 text-sm hover:bg-blue-800"
-            >
-              Hinzufügen
-            </button>
+            <p className="text-gray-500 mt-1">{tournament.sport} · {tournament.date}</p>
+            <p className="text-gray-500 text-sm">
+              Modus: {tournament.mode} · Max. {tournament.max_participants} Teilnehmer
+            </p>
           </div>
-        )}
-      </div>
+          <span className={`text-sm px-3 py-1 rounded-full font-medium ${statusColor[tournament.status]}`}>
+            {statusLabel[tournament.status]}
+          </span>
+        </div>
 
+        {/* Aktionen */}
+        <div className="flex gap-3 mb-8">
+          <button
+            onClick={() => router.push(`/tournaments/${id}/edit`)}
+            className="border rounded-lg px-4 py-2 text-sm hover:bg-gray-50 transition-colors"
+          >
+            Bearbeiten
+          </button>
+          <button
+            onClick={deleteTournament}
+            className="border border-red-300 text-red-600 rounded-lg px-4 py-2 text-sm hover:bg-red-50 transition-colors"
+          >
+            Löschen
+          </button>
+          {participants.length >= 2 && (
+            <button
+              onClick={() => router.push(`/tournaments/${id}/bracket`)}
+              className="bg-blue-700 text-white rounded-lg px-4 py-2 text-sm hover:bg-blue-800 transition-colors shadow-sm hover:shadow-md"
+            >
+              {/* TWEAK: ShinyText macht den Call-to-Action auffälliger */}
+              <ShinyText text="Spielplan anzeigen" disabled={false} speed={3} className="font-medium" />
+            </button>
+          )}
+        </div>
+
+        {/* Teilnehmer */}
+        <div>
+          <h2 className="text-xl font-semibold mb-4">
+            Teilnehmer ({participants.length}/{tournament.max_participants})
+          </h2>
+
+          {participants.length === 0 && (
+            <p className="text-gray-400 text-sm mb-4">Noch keine Teilnehmer angemeldet.</p>
+          )}
+
+          <ul className="flex flex-col gap-2 mb-4">
+            {participants.map((p) => (
+              <li key={p.id} className="flex justify-between items-center border rounded-lg px-4 py-2 hover:bg-gray-50 transition-colors">
+                <span>{p.name}</span>
+                <button
+                  onClick={() => removeParticipant(p.id)}
+                  className="text-red-400 hover:text-red-600 text-sm transition-colors"
+                >
+                  Entfernen
+                </button>
+              </li>
+            ))}
+          </ul>
+
+          {/* Teilnehmer hinzufügen */}
+          {participants.length < tournament.max_participants && (
+            <div className="flex gap-2">
+              <input
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && addParticipant()}
+                placeholder="Name des Teilnehmers"
+                className="flex-1 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              />
+              <button
+                onClick={addParticipant}
+                className="bg-blue-700 text-white rounded-lg px-4 py-2 text-sm hover:bg-blue-800 transition-colors"
+              >
+                Hinzufügen
+              </button>
+            </div>
+          )}
+        </div>
+
+      </FadeContent>
     </main>
   )
 }
