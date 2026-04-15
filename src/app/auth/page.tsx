@@ -8,7 +8,7 @@ import Link from 'next/link'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { supabase } from '@/lib/supabase'
 import { setRememberPreference } from '@/lib/auth-storage'
-import { APP_REDIRECT_URL, OAUTH_REDIRECT_URL, redirectLocalCallbackToApp, redirectToApp } from '@/lib/auth-urls'
+import { OAUTH_REDIRECT_URL, redirectLocalAuthPageToApp, redirectLocalCallbackToApp, redirectToApp } from '@/lib/auth-urls'
 
 type AuthMode = 'login' | 'signup'
 
@@ -41,6 +41,7 @@ export default function AuthPage() {
   }
 
   useEffect(() => {
+    if (redirectLocalAuthPageToApp()) return
     if (redirectLocalCallbackToApp()) return
 
     if (!authLoading && isAuthenticated) {

@@ -1,5 +1,10 @@
 export const APP_REDIRECT_URL = 'https://m294-d5ns.vercel.app'
-export const OAUTH_REDIRECT_URL = `${APP_REDIRECT_URL}/auth`
+export const OAUTH_REDIRECT_URL = `https://m294-d5ns.vercel.app/auth`
+
+export function isLocalhost() {
+  if (typeof window === 'undefined') return false
+  return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+}
 
 export function redirectToApp(path = '') {
   if (typeof window === 'undefined') return
@@ -10,8 +15,7 @@ export function redirectToApp(path = '') {
 export function redirectLocalCallbackToApp() {
   if (typeof window === 'undefined') return false
 
-  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-  if (!isLocalhost) return false
+  if (!isLocalhost()) return false
 
   const hasAuthPayload =
     window.location.search.includes('code=') ||
@@ -21,6 +25,13 @@ export function redirectLocalCallbackToApp() {
     window.location.hash.includes('error=')
 
   if (!hasAuthPayload) return false
+
+  window.location.replace(`${OAUTH_REDIRECT_URL}${window.location.search}${window.location.hash}`)
+  return true
+}
+
+export function redirectLocalAuthPageToApp() {
+  if (!isLocalhost()) return false
 
   window.location.replace(`${OAUTH_REDIRECT_URL}${window.location.search}${window.location.hash}`)
   return true
