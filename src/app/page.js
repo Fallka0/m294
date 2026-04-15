@@ -1,68 +1,14 @@
 'use client'
-import Image from 'next/image'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import Link from 'next/link'
-import SpotlightCard from '@/components/SpotlightCard'
+import HomeHero from '@/components/home/HomeHero'
+import HomeTournamentCard from '@/components/home/HomeTournamentCard'
 import { motion, AnimatePresence } from 'framer-motion'
-
-const statusConfig = {
-  open: { label: 'Open', className: 'bg-green-500 text-white' },
-  live: { label: 'Live', className: 'bg-cyan-400 text-white' },
-  finished: { label: 'Finished', className: 'bg-gray-200 text-gray-500' },
-}
-
-const modeLabel = {
-  knockout: 'Knockout',
-  group: 'Group Phase',
-  both: 'Both',
-}
-
-function TournamentCard({ tournament, index }) {
-  const normalizedStatus = tournament.status ?? 'open'
-  const status = statusConfig[normalizedStatus] ?? statusConfig.open
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      transition={{ duration: 0.3, delay: index * 0.05 }}
-    >
-      <Link href={`/tournaments/${tournament.id}`}>
-        <SpotlightCard className="p-5 cursor-pointer h-full">
-          <div className="flex justify-between items-start mb-3">
-            <h2 className="text-lg font-bold text-gray-900 leading-tight pr-2">
-              {tournament.name}
-            </h2>
-            <span className={`text-xs px-3 py-1 rounded-full font-semibold whitespace-nowrap ${status.className}`}>
-              {status.label}
-            </span>
-          </div>
-          <p className="text-sm font-semibold text-gray-700 mb-3">
-            {tournament.sport}
-            <span className="text-gray-400 font-normal"> - {modeLabel[tournament.mode]}</span>
-          </p>
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <Image src="/calendar.svg" alt="" width={18} height={18} className="h-[18px] w-[18px]" aria-hidden="true" />
-              <span>{new Date(tournament.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <Image src="/team.svg" alt="" width={18} height={18} className="h-[18px] w-[18px]" aria-hidden="true" />
-              <span>{tournament.max_participants} participants max</span>
-            </div>
-          </div>
-        </SpotlightCard>
-      </Link>
-    </motion.div>
-  )
-}
 
 export default function Home() {
   const [tournaments, setTournaments] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
-  const [titleVisible, setTitleVisible] = useState(false)
 
   useEffect(() => {
     const fetchTournaments = async () => {
@@ -79,7 +25,6 @@ export default function Home() {
       setLoading(false)
     }
     fetchTournaments()
-    setTimeout(() => setTitleVisible(true), 100)
   }, [])
 
   const filtered = filter === 'all' ? tournaments : tournaments.filter((tournament) => tournament.status === filter)
@@ -91,45 +36,44 @@ export default function Home() {
     { key: 'finished', label: 'Finished' },
   ]
 
-  const titleWords = 'Tournaments'.split('')
-
   return (
-    <main className="min-h-screen bg-gray-100 px-6 py-10">
-      <div className="max-w-5xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6 flex overflow-hidden">
-          {titleWords.map((char, i) => (
-            <motion.span
-              key={i}
-              initial={{ filter: 'blur(10px)', opacity: 0, y: 10 }}
-              animate={titleVisible ? { filter: 'blur(0px)', opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.4, delay: i * 0.04 }}
-            >
-              {char === ' ' ? '\u00A0' : char}
-            </motion.span>
-          ))}
-        </h1>
+    <main className="min-h-screen bg-[linear-gradient(180deg,#050505_0px,#050505_88px,#f5f5f5_88px,#f5f5f5_100%)] px-6 py-10">
+      <div className="mx-auto max-w-6xl">
+        <HomeHero tournaments={tournaments} />
 
-        <div className="flex gap-2 mb-8">
-          {filters.map(f => (
-            <motion.button
-              key={f.key}
-              onClick={() => setFilter(f.key)}
-              whileTap={{ scale: 0.95 }}
-              className={`px-4 py-2 rounded-full text-sm font-medium border cursor-pointer transition duration-200 hover:-translate-y-0.5 hover:shadow-sm
-                ${filter === f.key
-                  ? 'bg-gray-800 text-white border-gray-800'
-                  : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
-                }`}
-            >
-              {f.label}
-            </motion.button>
-          ))}
+        <div className="mt-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-400">Browse</p>
+            <div className="mt-2 flex items-center gap-3">
+              <h2 className="text-2xl font-semibold tracking-tight text-gray-950">Tournaments</h2>
+              <span className="rounded-full border border-black/10 bg-white px-3 py-1 text-xs font-medium text-gray-500 shadow-sm">
+                {filtered.length} shown
+              </span>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {filters.map((f) => (
+              <motion.button
+                key={f.key}
+                onClick={() => setFilter(f.key)}
+                whileTap={{ scale: 0.95 }}
+                className={`rounded-full border px-4 py-2 text-sm font-medium cursor-pointer transition duration-200 hover:-translate-y-0.5 hover:shadow-sm
+                  ${filter === f.key
+                    ? 'border-gray-950 bg-gray-950 text-white'
+                    : 'border-black/10 bg-white/90 text-gray-600 hover:bg-white'
+                  }`}
+              >
+                {f.label}
+              </motion.button>
+            ))}
+          </div>
         </div>
 
         {loading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="bg-white rounded-2xl p-5 h-36 animate-pulse border border-gray-100" />
+              <div key={i} className="h-44 animate-pulse rounded-[28px] border border-black/5 bg-white shadow-[0_8px_30px_rgba(15,23,42,0.04)]" />
             ))}
           </div>
         )}
@@ -138,16 +82,24 @@ export default function Home() {
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-gray-400"
+            className="mt-8 rounded-3xl border border-dashed border-black/10 bg-white/70 px-6 py-8 text-center text-gray-400"
           >
             Keine Turniere gefunden.
           </motion.p>
         )}
 
-        <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <motion.div layout className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
           <AnimatePresence mode="popLayout">
             {filtered.map((t, i) => (
-              <TournamentCard key={t.id} tournament={t} index={i} />
+              <motion.div
+                key={t.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3, delay: i * 0.05 }}
+              >
+                <HomeTournamentCard tournament={t} />
+              </motion.div>
             ))}
           </AnimatePresence>
         </motion.div>
