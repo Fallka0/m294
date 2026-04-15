@@ -14,6 +14,7 @@ export default function EditTournament() {
   const { user, isAuthenticated, loading: authLoading } = useAuth()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [message, setMessage] = useState('')
   const [form, setForm] = useState<TournamentFormValues>({
     name: '',
     sport: '',
@@ -68,17 +69,19 @@ export default function EditTournament() {
     const nextValue =
       name === 'is_public' ? value === 'true' : name === 'max_participants' ? Number(value) : value
 
+    setMessage('')
     setForm((current) => ({ ...current, [name]: nextValue }))
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setSaving(true)
+    setMessage('')
 
     const { error } = await supabase.from('tournaments').update(form).eq('id', id)
 
     if (error) {
-      alert(`Fehler: ${error.message}`)
+      setMessage(error.message)
     } else {
       router.push(`/tournaments/${id}`)
     }
@@ -108,6 +111,8 @@ export default function EditTournament() {
       submitLabel="Save Changes"
       submitLoadingLabel="Saving..."
       showStatus
+      feedbackMessage={message}
+      feedbackTone="error"
     />
   )
 }

@@ -44,13 +44,13 @@ export default function OrganizerPublicPage() {
 
         <OrganizerProfileCard profile={profile} />
 
-        <section className="rounded-[32px] border border-black/5 bg-white p-8 shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
+        <section className="app-card rounded-[32px] p-8">
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-400">Organizer feed</p>
               <h2 className="mt-2 text-2xl font-semibold tracking-tight text-gray-950">Public tournaments</h2>
             </div>
-            <span className="rounded-full border border-black/10 bg-gray-50 px-3 py-1 text-xs font-medium text-gray-500">
+            <span className="app-muted-panel rounded-full px-3 py-1 text-xs font-medium text-gray-500">
               {tournaments.length} listed
             </span>
           </div>
@@ -60,7 +60,7 @@ export default function OrganizerPublicPage() {
               <Link
                 key={tournament.id}
                 href={`/tournaments/${tournament.id}`}
-                className="rounded-2xl border border-black/5 bg-white px-5 py-4 transition duration-200 hover:-translate-y-0.5 hover:shadow-sm"
+                className="app-card-elevated block rounded-2xl px-5 py-4 transition duration-200 hover:-translate-y-0.5 hover:shadow-sm"
               >
                 <p className="text-lg font-semibold text-gray-950">{tournament.name}</p>
                 <p className="mt-2 text-sm text-gray-500">
@@ -69,7 +69,7 @@ export default function OrganizerPublicPage() {
               </Link>
             ))}
             {tournaments.length === 0 && (
-              <div className="rounded-2xl border border-dashed border-black/10 px-5 py-8 text-sm text-gray-400">
+              <div className="app-empty-state rounded-2xl px-5 py-8 text-sm">
                 No public tournaments yet.
               </div>
             )}

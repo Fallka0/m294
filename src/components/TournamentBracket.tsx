@@ -104,7 +104,7 @@ export default function TournamentBracket({
       <div style={wrapperStyle} className={locked ? 'pointer-events-none grayscale opacity-50' : ''}>
         <svg style={svgStyle}>
           {lines.map(({ x1, y1, x2, y2, midX, key }) => (
-            <path key={key} d={`M ${x1} ${y1} H ${midX} V ${y2} H ${x2}`} fill="none" stroke="#e5e7eb" strokeWidth="1.5" />
+            <path key={key} d={`M ${x1} ${y1} H ${midX} V ${y2} H ${x2}`} fill="none" stroke="var(--bracket-line)" strokeWidth="1.5" />
           ))}
         </svg>
 
@@ -119,7 +119,7 @@ export default function TournamentBracket({
               textAlign: 'center',
               fontSize: '13px',
               fontWeight: 600,
-              color: '#374151',
+              color: 'var(--bracket-label)',
             }}
           >
             {roundLabel(round)}
@@ -136,7 +136,7 @@ export default function TournamentBracket({
 
             const handleMouseEnter = (event: MouseEvent<HTMLDivElement>) => {
               if (isClickable) {
-                event.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)'
+                event.currentTarget.style.boxShadow = 'var(--shadow-card-soft)'
               }
             }
 
@@ -161,10 +161,10 @@ export default function TournamentBracket({
                   width: MATCH_WIDTH,
                   height: MATCH_HEIGHT,
                   borderRadius: '12px',
-                  border: isSkeleton ? '1px solid #f3f4f6' : '1px solid #e5e7eb',
+                  border: isSkeleton ? '1px solid var(--bracket-card-divider)' : '1px solid var(--bracket-card-border)',
                   overflow: 'hidden',
                   cursor: isClickable ? 'pointer' : 'default',
-                  background: 'white',
+                  background: 'var(--bracket-card-bg)',
                   transition: 'box-shadow 0.15s',
                 }}
               >
@@ -175,15 +175,15 @@ export default function TournamentBracket({
                     alignItems: 'center',
                     padding: '0 12px',
                     height: '50%',
-                    background: match.winner === match.participant_a && match.participant_a ? '#eff6ff' : 'white',
-                    borderBottom: '1px solid #f3f4f6',
+                    background: match.winner === match.participant_a && match.participant_a ? 'var(--bracket-card-bg-active)' : 'var(--bracket-card-bg)',
+                    borderBottom: '1px solid var(--bracket-card-divider)',
                   }}
                 >
                   <span
                     style={{
                       fontSize: '13px',
                       fontWeight: match.winner === match.participant_a && match.participant_a ? 700 : 400,
-                      color: isSkeleton || !match.participant_a ? '#d1d5db' : match.winner === match.participant_a ? '#111827' : '#6b7280',
+                      color: isSkeleton || !match.participant_a ? 'var(--bracket-card-muted)' : match.winner === match.participant_a ? 'var(--bracket-card-text)' : 'var(--bracket-card-subtext)',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       whiteSpace: 'nowrap',
@@ -198,7 +198,7 @@ export default function TournamentBracket({
                       style={{
                         fontSize: '13px',
                         fontWeight: 700,
-                        color: match.winner === match.participant_a ? '#22d3ee' : '#d1d5db',
+                        color: match.winner === match.participant_a ? 'var(--bracket-card-score)' : 'var(--bracket-card-muted)',
                         marginLeft: '8px',
                       }}
                     >
@@ -214,14 +214,14 @@ export default function TournamentBracket({
                     alignItems: 'center',
                     padding: '0 12px',
                     height: '50%',
-                    background: match.winner === match.participant_b && match.participant_b ? '#eff6ff' : 'white',
+                    background: match.winner === match.participant_b && match.participant_b ? 'var(--bracket-card-bg-active)' : 'var(--bracket-card-bg)',
                   }}
                 >
                   <span
                     style={{
                       fontSize: '13px',
                       fontWeight: match.winner === match.participant_b && match.participant_b ? 700 : 400,
-                      color: isSkeleton || !match.participant_b ? '#d1d5db' : match.winner === match.participant_b ? '#111827' : '#6b7280',
+                      color: isSkeleton || !match.participant_b ? 'var(--bracket-card-muted)' : match.winner === match.participant_b ? 'var(--bracket-card-text)' : 'var(--bracket-card-subtext)',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       whiteSpace: 'nowrap',
@@ -236,7 +236,7 @@ export default function TournamentBracket({
                       style={{
                         fontSize: '13px',
                         fontWeight: 700,
-                        color: match.winner === match.participant_b ? '#22d3ee' : '#d1d5db',
+                        color: match.winner === match.participant_b ? 'var(--bracket-card-score)' : 'var(--bracket-card-muted)',
                         marginLeft: '8px',
                       }}
                     >

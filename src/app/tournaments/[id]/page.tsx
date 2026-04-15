@@ -45,7 +45,23 @@ export default function TournamentDetail() {
       .order('round', { ascending: true })
       .order('created_at', { ascending: true })
 
-    setTournament((tournamentData as Tournament | null) ?? null)
+    const baseTournament = (tournamentData as Tournament | null) ?? null
+    let ownerName = baseTournament?.owner_name ?? null
+
+    if (baseTournament?.owner_id) {
+      const { data: ownerProfile } = await supabase
+        .from('profiles')
+        .select('username, full_name')
+        .eq('id', baseTournament.owner_id)
+        .maybeSingle()
+
+      ownerName =
+        (ownerProfile as { username?: string | null; full_name?: string | null } | null)?.full_name ||
+        (ownerProfile as { username?: string | null; full_name?: string | null } | null)?.username ||
+        ownerName
+    }
+
+    setTournament(baseTournament ? { ...baseTournament, owner_name: ownerName ?? 'Community organizer' } : null)
     setParticipants((participantData as Participant[] | null) ?? [])
     setMatches((matchData as Match[] | null) ?? [])
     setLoading(false)
@@ -224,6 +240,20 @@ export default function TournamentDetail() {
                   {banner.label}
                 </div>
                 <BlurText text={tournament.name} delay={25} className="mt-5 text-4xl font-semibold tracking-tight text-white md:text-5xl" />
+                <div className="mt-4">
+                  {tournament.owner_id ? (
+                    <Link
+                      href={isOwner ? '/profile' : `/organizers/${tournament.owner_id}`}
+                      className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/80 transition duration-200 hover:bg-white/10 hover:text-white"
+                    >
+                      Created by {isOwner ? 'you' : tournament.owner_name || 'Community organizer'}
+                    </Link>
+                  ) : (
+                    <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/80">
+                      Created by Community organizer
+                    </span>
+                  )}
+                </div>
                 <div className="mt-4 flex flex-wrap gap-3 text-sm text-white/65">
                   <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">{tournament.sport}</span>
                   <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">{modeLabel[tournament.mode]}</span>
@@ -265,7 +295,7 @@ export default function TournamentDetail() {
         </div>
 
         <div className="mx-auto mt-6 grid max-w-6xl grid-cols-1 gap-6 px-6 pb-10 lg:grid-cols-3">
-          <div className="rounded-[28px] border border-black/5 bg-white/95 p-6 text-gray-900 shadow-[0_16px_50px_rgba(15,23,42,0.08)]">
+          <div className="app-card-strong rounded-[28px] p-6 text-gray-900">
             <div className="mb-5 flex items-start justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-400">Overview</p>
@@ -275,7 +305,7 @@ export default function TournamentDetail() {
               {isOwner && (
                 <button
                   onClick={() => router.push(`/tournaments/${id}/edit`)}
-                  className="cursor-pointer rounded-full border border-black/10 bg-white p-2 text-gray-400 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:text-gray-600"
+                  className="app-button-secondary cursor-pointer rounded-full p-2 text-gray-400 transition duration-200 hover:-translate-y-0.5 hover:text-gray-600"
                 >
                   <Image src="/edit.svg" alt="" width={18} height={18} className="h-[18px] w-[18px]" aria-hidden="true" />
                 </button>
@@ -298,6 +328,19 @@ export default function TournamentDetail() {
                   {participants.length}/{tournament.max_participants}
                 </p>
               </div>
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-gray-400">Creator</p>
+                {tournament.owner_id ? (
+                  <Link
+                    href={isOwner ? '/profile' : `/organizers/${tournament.owner_id}`}
+                    className="font-semibold text-gray-900 transition duration-200 hover:text-cyan-600"
+                  >
+                    {isOwner ? 'You' : tournament.owner_name || 'Community organizer'}
+                  </Link>
+                ) : (
+                  <p className="font-semibold text-gray-900">Community organizer</p>
+                )}
+              </div>
             </div>
 
             <div className="mb-3 inline-flex items-center gap-2">
@@ -307,7 +350,7 @@ export default function TournamentDetail() {
 
             <ul className="mb-4 flex flex-col gap-2">
               {participants.map((participant, index) => (
-                <li key={participant.id} className="flex justify-between rounded-2xl border border-cyan-100 bg-cyan-50/70 px-4 py-3">
+                <li key={participant.id} className="app-accent-panel flex justify-between rounded-2xl px-4 py-3">
                   <span className="text-gray-900">
                     {index + 1}. {participant.name}
                   </span>
@@ -333,7 +376,7 @@ export default function TournamentDetail() {
                       void addParticipant()
                     }
                   }}
-                  className="flex-1 rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                  className="app-input flex-1 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400"
                   placeholder="Add participant"
                 />
                 <button
@@ -372,7 +415,7 @@ export default function TournamentDetail() {
                 {!isAuthenticated && tournament.is_public !== false && (
                   <Link
                     href="/auth"
-                    className="block rounded-xl border border-gray-200 px-4 py-3 text-center text-sm font-semibold text-gray-700 transition duration-200 hover:-translate-y-0.5 hover:bg-gray-50 hover:shadow-sm"
+                    className="app-button-secondary block rounded-xl px-4 py-3 text-center text-sm font-semibold transition duration-200 hover:-translate-y-0.5"
                   >
                     Sign in to join
                   </Link>
@@ -390,7 +433,7 @@ export default function TournamentDetail() {
             )}
           </div>
 
-          <div className="lg:col-span-2 rounded-[28px] border border-black/5 bg-white/95 p-6 text-gray-900 shadow-[0_16px_50px_rgba(15,23,42,0.08)]">
+          <div className="app-card-strong lg:col-span-2 rounded-[28px] p-6 text-gray-900">
             <div className="mb-6 flex items-center justify-between gap-4">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-400">Bracket</p>
@@ -416,7 +459,7 @@ export default function TournamentDetail() {
                 locked={!isOwner}
               />
             ) : (
-              <div className="rounded-[24px] border border-dashed border-black/10 bg-gray-50 px-6 py-10 text-center text-gray-400">
+              <div className="app-empty-state rounded-[24px] px-6 py-10 text-center">
                 Add at least 2 participants, then generate the bracket.
               </div>
             )}
@@ -426,7 +469,7 @@ export default function TournamentDetail() {
 
       {editMatch && isOwner && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-sm rounded-2xl border border-gray-100 bg-white p-8 text-gray-900 shadow-xl">
+          <div className="app-card w-full max-w-sm rounded-2xl p-8 text-gray-900 shadow-xl">
             <h2 className="mb-2 text-xl font-bold text-gray-900">Enter Result</h2>
             <p className="mb-4 text-sm text-gray-500">
               {getName(editMatch.participant_a)} vs {getName(editMatch.participant_b)}
@@ -437,20 +480,20 @@ export default function TournamentDetail() {
                 type="number"
                 value={scores.score_a}
                 onChange={(event) => setScores((current) => ({ ...current, score_a: event.target.value }))}
-                className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-lg font-semibold text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                className="app-input w-full rounded-lg px-4 py-3 text-lg font-semibold text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400"
               />
               <input
                 type="number"
                 value={scores.score_b}
                 onChange={(event) => setScores((current) => ({ ...current, score_b: event.target.value }))}
-                className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-lg font-semibold text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                className="app-input w-full rounded-lg px-4 py-3 text-lg font-semibold text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400"
               />
             </div>
 
             <div className="flex gap-2">
               <button
                 onClick={() => setEditMatch(null)}
-                className="flex-1 cursor-pointer rounded-lg border border-gray-200 py-3 font-medium text-gray-700 transition duration-200 hover:-translate-y-0.5 hover:bg-gray-50 hover:shadow-sm"
+                className="app-button-secondary flex-1 cursor-pointer rounded-lg py-3 font-medium transition duration-200 hover:-translate-y-0.5"
               >
                 Cancel
               </button>

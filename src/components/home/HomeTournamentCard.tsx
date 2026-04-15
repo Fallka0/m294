@@ -20,7 +20,7 @@ export default function HomeTournamentCard({
   return (
     <Link href={`/tournaments/${tournament.id}`}>
       <SpotlightCard
-        className="home-tournament-card h-full cursor-pointer border border-black/5 bg-white/90 p-5 shadow-[0_8px_30px_rgba(15,23,42,0.06)] transition duration-200 hover:-translate-y-1"
+        className="home-tournament-card app-card-elevated h-full cursor-pointer p-5 transition duration-200 hover:-translate-y-1"
         spotlightColor="rgba(8, 145, 178, 0.12)"
       >
         <div className="mb-3 flex items-start justify-between">
@@ -32,7 +32,7 @@ export default function HomeTournamentCard({
               <span className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${status.className}`}>
                 {status.label}
               </span>
-              <span className="rounded-full border border-black/10 px-3 py-1 text-xs font-medium text-gray-500">
+              <span className="rounded-full border border-[color:var(--border-subtle)] px-3 py-1 text-xs font-medium text-gray-500">
                 {tournament.is_public ? 'Public' : 'Private'}
               </span>
               {isOwner && (
@@ -52,6 +52,10 @@ export default function HomeTournamentCard({
         <p className="mb-3 text-sm font-semibold text-gray-700">
           {tournament.sport}
           <span className="font-normal text-gray-400"> - {modeLabel[tournament.mode]}</span>
+        </p>
+
+        <p className="mb-4 text-sm text-gray-500">
+          Created by <span className="font-medium text-gray-700">{isOwner ? 'you' : tournament.owner_name || 'Community organizer'}</span>
         </p>
 
         <div className="flex flex-col gap-2">

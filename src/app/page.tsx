@@ -1,16 +1,17 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useDeferredValue, useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import HomeHero from '@/components/home/HomeHero'
 import HomeTournamentCard from '@/components/home/HomeTournamentCard'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { supabase } from '@/lib/supabase'
-import { normalizeTournament } from '@/lib/tournaments'
+import { normalizeTournament, sports } from '@/lib/tournaments'
 import type { Participant, Tournament, TournamentStatus } from '@/lib/types'
 
 type Scope = 'explore' | 'my' | 'joined'
 type Filter = 'all' | TournamentStatus
+type SortKey = 'newest' | 'soonest' | 'popular' | 'capacity'
 
 const EMPTY_UUID = '00000000-0000-0000-0000-000000000000'
 
@@ -20,7 +21,11 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<Filter>('all')
   const [scope, setScope] = useState<Scope>('explore')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [sportFilter, setSportFilter] = useState('all')
+  const [sortBy, setSortBy] = useState<SortKey>('newest')
   const [joinedTournamentIds, setJoinedTournamentIds] = useState<string[]>([])
+  const deferredSearchQuery = useDeferredValue(searchQuery.trim().toLowerCase())
 
   useEffect(() => {
     if (authLoading) return
@@ -45,13 +50,18 @@ export default function Home() {
       }
 
       const safeTournaments = ((data ?? []) as Tournament[]).map(normalizeTournament)
-      setTournaments(safeTournaments)
-
       const tournamentIds = safeTournaments.map((tournament) => tournament.id)
-      const { data: participantData, error: participantError } = await supabase
-        .from('participants')
-        .select('tournament_id, user_id')
-        .in('tournament_id', tournamentIds.length > 0 ? tournamentIds : [EMPTY_UUID])
+      const ownerIds = [...new Set(safeTournaments.map((tournament) => tournament.owner_id).filter(Boolean))] as string[]
+
+      const [{ data: participantData, error: participantError }, { data: profileData, error: profileError }] = await Promise.all([
+        supabase
+          .from('participants')
+          .select('tournament_id, user_id')
+          .in('tournament_id', tournamentIds.length > 0 ? tournamentIds : [EMPTY_UUID]),
+        ownerIds.length > 0
+          ? supabase.from('profiles').select('id, username, full_name').in('id', ownerIds)
+          : Promise.resolve({ data: [], error: null }),
+      ])
 
       if (participantError) {
         console.error('fetch participants error:', participantError)
@@ -59,8 +69,18 @@ export default function Home() {
         return
       }
 
+      if (profileError) {
+        console.error('fetch owner profiles error:', profileError)
+      }
+
       const counts: Record<string, number> = {}
       const joinedIds: string[] = []
+      const ownerNames = new Map(
+        ((profileData ?? []) as Array<{ id: string; username: string | null; full_name: string | null }>).map((profile) => [
+          profile.id,
+          profile.full_name || profile.username || 'Organizer',
+        ]),
+      )
 
       ;((participantData ?? []) as Pick<Participant, 'tournament_id' | 'user_id'>[]).forEach((participant) => {
         counts[participant.tournament_id] = (counts[participant.tournament_id] ?? 0) + 1
@@ -75,6 +95,7 @@ export default function Home() {
         safeTournaments.map((tournament) => ({
           ...tournament,
           current_participants: counts[tournament.id] ?? 0,
+          owner_name: tournament.owner_id ? ownerNames.get(tournament.owner_id) ?? tournament.owner_name ?? 'Organizer' : 'Community organizer',
         })),
       )
       setLoading(false)
@@ -89,8 +110,47 @@ export default function Home() {
     return true
   })
 
-  const filteredTournaments =
+  const statusFilteredTournaments =
     filter === 'all' ? scopedTournaments : scopedTournaments.filter((tournament) => tournament.status === filter)
+
+  const searchedTournaments = statusFilteredTournaments.filter((tournament) => {
+    const matchesSport = sportFilter === 'all' || tournament.sport === sportFilter
+    const matchesQuery =
+      deferredSearchQuery.length === 0 ||
+      [tournament.name, tournament.sport, tournament.description ?? '']
+        .join(' ')
+        .toLowerCase()
+        .includes(deferredSearchQuery)
+
+    return matchesSport && matchesQuery
+  })
+
+  const visibleTournaments = [...searchedTournaments].sort((left, right) => {
+    if (sortBy === 'soonest') return new Date(left.date).getTime() - new Date(right.date).getTime()
+    if (sortBy === 'popular') return (right.current_participants ?? 0) - (left.current_participants ?? 0)
+    if (sortBy === 'capacity') return Number(right.max_participants) - Number(left.max_participants)
+
+    return new Date(right.created_at ?? 0).getTime() - new Date(left.created_at ?? 0).getTime()
+  })
+
+  const activeFilterCount = [
+    scope !== 'explore',
+    filter !== 'all',
+    sportFilter !== 'all',
+    deferredSearchQuery.length > 0,
+  ].filter(Boolean).length
+
+  const resultsLabel = loading
+    ? 'Loading tournaments'
+    : `${visibleTournaments.length} shown${activeFilterCount > 0 ? ` • ${activeFilterCount} active filters` : ''}`
+
+  const clearFilters = () => {
+    setSearchQuery('')
+    setSportFilter('all')
+    setSortBy('newest')
+    setFilter('all')
+    setScope('explore')
+  }
 
   const filters: Array<{ key: Filter; label: string }> = [
     { key: 'all', label: 'All' },
@@ -119,8 +179,8 @@ export default function Home() {
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-400">Browse</p>
             <div className="mt-2 flex items-center gap-3">
               <h2 className="text-2xl font-semibold tracking-tight text-gray-950">Tournaments</h2>
-              <span className="rounded-full border border-black/10 bg-white px-3 py-1 text-xs font-medium text-gray-500 shadow-sm">
-                {filteredTournaments.length} shown
+              <span className="app-card-elevated rounded-full px-3 py-1 text-xs font-medium text-gray-500">
+                {resultsLabel}
               </span>
             </div>
           </div>
@@ -132,10 +192,10 @@ export default function Home() {
                   key={item.key}
                   type="button"
                   onClick={() => setScope(item.key)}
-                  className={`rounded-full border px-4 py-2 text-sm font-medium transition duration-200 hover:-translate-y-0.5 hover:shadow-sm ${
+                  className={`cursor-pointer rounded-full border px-4 py-2 text-sm font-medium transition duration-200 hover:-translate-y-0.5 hover:shadow-sm ${
                     scope === item.key
                       ? 'border-cyan-300 bg-cyan-50 text-cyan-700'
-                      : 'border-black/10 bg-white/90 text-gray-600 hover:bg-white'
+                      : 'app-button-secondary'
                   }`}
                 >
                   {item.label}
@@ -153,7 +213,7 @@ export default function Home() {
                   className={`cursor-pointer rounded-full border px-4 py-2 text-sm font-medium transition duration-200 hover:-translate-y-0.5 hover:shadow-sm ${
                     filter === item.key
                       ? 'border-gray-950 bg-gray-950 text-white'
-                      : 'border-black/10 bg-white/90 text-gray-600 hover:bg-white'
+                      : 'app-button-secondary'
                   }`}
                 >
                   {item.label}
@@ -163,30 +223,99 @@ export default function Home() {
           </div>
         </div>
 
+        <section className="app-card mt-6 rounded-[28px] p-5">
+          <div className="grid gap-4 lg:grid-cols-[1.4fr_0.8fr_0.8fr_auto]">
+            <label className="block">
+              <span className="mb-2 block text-sm font-semibold text-gray-700">Search</span>
+              <input
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Search by tournament, sport, or description"
+                className="app-input w-full rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400"
+              />
+            </label>
+
+            <label className="block">
+              <span className="mb-2 block text-sm font-semibold text-gray-700">Sport</span>
+              <select
+                value={sportFilter}
+                onChange={(event) => setSportFilter(event.target.value)}
+                className="app-input w-full rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400"
+              >
+                <option value="all">All sports</option>
+                {sports.map((sport) => (
+                  <option key={sport} value={sport}>
+                    {sport}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="block">
+              <span className="mb-2 block text-sm font-semibold text-gray-700">Sort</span>
+              <select
+                value={sortBy}
+                onChange={(event) => setSortBy(event.target.value as SortKey)}
+                className="app-input w-full rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400"
+              >
+                <option value="newest">Newest first</option>
+                <option value="soonest">Soonest date</option>
+                <option value="popular">Most joined</option>
+                <option value="capacity">Largest capacity</option>
+              </select>
+            </label>
+
+            <div className="flex items-end">
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="app-button-secondary w-full cursor-pointer rounded-xl px-4 py-3 text-sm font-semibold transition duration-200 hover:-translate-y-0.5"
+              >
+                Reset filters
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-gray-500">
+            <span className="rounded-full border border-[color:var(--border-subtle)] px-3 py-1">
+              Scope: {scopes.find((item) => item.key === scope)?.label ?? 'Explore'}
+            </span>
+            <span className="rounded-full border border-[color:var(--border-subtle)] px-3 py-1">
+              Status: {filters.find((item) => item.key === filter)?.label ?? 'All'}
+            </span>
+            <span className="rounded-full border border-[color:var(--border-subtle)] px-3 py-1">
+              Sport: {sportFilter === 'all' ? 'Any' : sportFilter}
+            </span>
+            <span className="rounded-full border border-[color:var(--border-subtle)] px-3 py-1">
+              Sort: {sortBy === 'newest' ? 'Newest' : sortBy === 'soonest' ? 'Soonest' : sortBy === 'popular' ? 'Most joined' : 'Largest'}
+            </span>
+          </div>
+        </section>
+
         {loading && (
           <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 3 }, (_, index) => (
               <div
                 key={index}
-                className="h-44 animate-pulse rounded-[28px] border border-black/5 bg-white shadow-[0_8px_30px_rgba(15,23,42,0.04)]"
+                className="app-card-strong h-44 animate-pulse rounded-[28px]"
               />
             ))}
           </div>
         )}
 
-        {!loading && filteredTournaments.length === 0 && (
+        {!loading && visibleTournaments.length === 0 && (
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="mt-8 rounded-3xl border border-dashed border-black/10 bg-white/70 px-6 py-8 text-center text-gray-400"
+            className="app-empty-state mt-8 rounded-3xl px-6 py-8 text-center"
           >
-            Keine Turniere gefunden.
+            No tournaments match the current filters. Try resetting filters or broadening your search.
           </motion.p>
         )}
 
         <motion.div layout className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
           <AnimatePresence mode="popLayout">
-            {filteredTournaments.map((tournament, index) => (
+            {visibleTournaments.map((tournament, index) => (
               <motion.div
                 key={tournament.id}
                 initial={{ opacity: 0, y: 20 }}

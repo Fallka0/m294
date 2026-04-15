@@ -1,5 +1,8 @@
+'use client'
+
 import BlurText from '@/components/react-bits/BlurText'
 import ShinyText from '@/components/react-bits/ShinyText'
+import { useTheme } from '@/components/theme/ThemeProvider'
 import { getDisplayTournamentStatus } from '@/lib/tournaments'
 import type { Tournament } from '@/lib/types'
 
@@ -8,6 +11,7 @@ interface HomeHeroProps {
 }
 
 export default function HomeHero({ tournaments }: HomeHeroProps) {
+  const { theme } = useTheme()
   const stats = [
     { label: 'Total', value: tournaments.length },
     { label: 'Open', value: tournaments.filter((tournament) => getDisplayTournamentStatus(tournament.status) === 'open').length },
@@ -37,15 +41,15 @@ export default function HomeHero({ tournaments }: HomeHeroProps) {
               text="Built for quick updates, smooth handovers, and less messy tournament admin."
               speed={3}
               className="text-sm"
-              color="#6b7280"
-              shineColor="#111827"
+              color={theme === 'dark' ? 'rgba(209, 196, 247, 0.72)' : '#6b7280'}
+              shineColor={theme === 'dark' ? '#f5f3ff' : '#111827'}
             />
           </div>
         </div>
 
         <div className="grid grid-cols-3 gap-3">
           {stats.map((stat) => (
-            <div key={stat.label} className="rounded-2xl border border-black/5 bg-white/90 px-4 py-5 text-center shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
+            <div key={stat.label} className="app-card-elevated rounded-2xl px-4 py-5 text-center">
               <p className="text-2xl font-semibold tracking-tight text-gray-950">{stat.value}</p>
               <p className="mt-1 text-xs uppercase tracking-[0.24em] text-gray-400">{stat.label}</p>
             </div>

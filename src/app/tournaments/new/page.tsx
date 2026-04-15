@@ -12,6 +12,7 @@ export default function NewTournament() {
   const router = useRouter()
   const { user, isAuthenticated, loading: authLoading } = useAuth()
   const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState('')
   const [form, setForm] = useState<TournamentFormValues>({
     name: '',
     sport: '',
@@ -34,6 +35,7 @@ export default function NewTournament() {
     const nextValue =
       name === 'is_public' ? value === 'true' : name === 'max_participants' ? Number(value) : value
 
+    setMessage('')
     setForm((current) => ({ ...current, [name]: nextValue }))
   }
 
@@ -45,6 +47,7 @@ export default function NewTournament() {
     }
 
     setLoading(true)
+    setMessage('')
 
     const { error } = await supabase.from('tournaments').insert([
       {
@@ -54,7 +57,7 @@ export default function NewTournament() {
     ])
 
     if (error) {
-      alert(`Fehler: ${error.message}`)
+      setMessage(error.message)
     } else {
       router.push('/')
     }
@@ -75,6 +78,8 @@ export default function NewTournament() {
       submitting={loading}
       submitLabel="Save Tournament"
       submitLoadingLabel="Saving..."
+      feedbackMessage={message}
+      feedbackTone="error"
     />
   )
 }
