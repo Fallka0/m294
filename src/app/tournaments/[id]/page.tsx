@@ -24,6 +24,8 @@ export default function TournamentDetail() {
   const [loading, setLoading] = useState(true)
   const [editMatch, setEditMatch] = useState<Match | null>(null)
   const [scores, setScores] = useState<ScoreFormValues>({ score_a: '', score_b: '' })
+  const [joining, setJoining] = useState(false)
+  const [joinMessage, setJoinMessage] = useState('')
 
   useEffect(() => {
     void fetchData()
@@ -52,7 +54,10 @@ export default function TournamentDetail() {
   const currentStatus = getDisplayTournamentStatus(tournament?.status ?? 'open')
   const isOwner = Boolean(user && tournament?.owner_id === user.id)
   const isJoined = Boolean(user && participants.some((participant) => participant.user_id === user.id))
-  const canJoin = Boolean(tournament && tournament.is_public !== false && currentStatus === 'open' && !isOwner && !isJoined)
+  const isFull = Boolean(tournament && participants.length >= tournament.max_participants)
+  const canJoin = Boolean(
+    tournament && tournament.is_public !== false && currentStatus === 'open' && !isOwner && !isJoined && !isFull,
+  )
   const rounds = useMemo(
     () => [...new Set(matches.map((match) => match.round))].sort((left, right) => left - right),
     [matches],
@@ -168,6 +173,7 @@ export default function TournamentDetail() {
 
   const joinTournament = async () => {
     if (!tournament) return
+    setJoinMessage('')
 
     if (!isAuthenticated) {
       router.push('/auth')
@@ -176,6 +182,7 @@ export default function TournamentDetail() {
 
     if (!canJoin || !user) return
 
+    setJoining(true)
     const displayName = profile?.username || profile?.full_name || user.email?.split('@')[0] || 'Player'
     const { error } = await supabase.from('participants').insert([
       {
@@ -187,7 +194,11 @@ export default function TournamentDetail() {
 
     if (!error) {
       await fetchData()
+      setJoinMessage('You joined the tournament.')
+    } else {
+      setJoinMessage(error.message)
     }
+    setJoining(false)
   }
 
   if (loading) return <p className="p-10 text-gray-500">Loading...</p>
@@ -328,14 +339,25 @@ export default function TournamentDetail() {
                 {canJoin && (
                   <button
                     onClick={joinTournament}
-                    className="w-full rounded-xl bg-cyan-400 px-4 py-3 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-cyan-500 hover:shadow-md"
+                    disabled={joining}
+                    className="w-full rounded-xl bg-cyan-400 px-4 py-3 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-cyan-500 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none"
                   >
-                    Join Tournament
+                    {joining ? 'Joining...' : 'Join Tournament'}
                   </button>
                 )}
                 {isJoined && (
                   <div className="rounded-2xl border border-green-100 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
                     You already joined this tournament.
+                  </div>
+                )}
+                {isFull && !isOwner && (
+                  <div className="rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-700">
+                    This tournament is already full.
+                  </div>
+                )}
+                {joinMessage && (
+                  <div className="rounded-2xl border border-cyan-100 bg-cyan-50 px-4 py-3 text-sm font-medium text-cyan-700">
+                    {joinMessage}
                   </div>
                 )}
                 {!isAuthenticated && tournament.is_public !== false && (

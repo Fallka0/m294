@@ -163,7 +163,7 @@ with check (
     where tournaments.id = participants.tournament_id
       and tournaments.is_public = true
       and coalesce(tournaments.status, 'open') = 'open'
-      and tournaments.owner_id <> auth.uid()
+      and (tournaments.owner_id is null or tournaments.owner_id <> auth.uid())
   )
 );
 

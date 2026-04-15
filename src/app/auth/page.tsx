@@ -5,6 +5,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { setRememberPreference } from '@/lib/auth-storage'
 
 type AuthMode = 'login' | 'signup'
 
@@ -23,6 +24,7 @@ export default function AuthPage() {
   const [mode, setMode] = useState<AuthMode>('login')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const [rememberMe, setRememberMe] = useState(true)
   const [form, setForm] = useState<AuthFormValues>({
     email: '',
     password: '',
@@ -41,6 +43,7 @@ export default function AuthPage() {
 
     try {
       if (mode === 'signup') {
+        setRememberPreference(true)
         const { data, error } = await supabase.auth.signUp({
           email: form.email,
           password: form.password,
@@ -67,6 +70,7 @@ export default function AuthPage() {
         return
       }
 
+      setRememberPreference(rememberMe)
       const { data, error } = await supabase.auth.signInWithPassword({
         email: form.email,
         password: form.password,
@@ -184,6 +188,20 @@ export default function AuthPage() {
                   placeholder="At least 6 characters"
                 />
               </div>
+
+              {mode === 'login' && (
+                <label className="flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm text-gray-600">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(event) => setRememberMe(event.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 text-cyan-500 focus:ring-cyan-400"
+                  />
+                  <span>
+                    Remember me
+                  </span>
+                </label>
+              )}
 
               {message && <p className="rounded-2xl border border-cyan-100 bg-cyan-50 px-4 py-3 text-sm text-cyan-700">{message}</p>}
 
