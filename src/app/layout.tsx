@@ -1,3 +1,5 @@
+import type { Metadata } from 'next'
+import type { ReactNode } from 'react'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import Header from '@/components/Header'
@@ -13,12 +15,16 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 })
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'TournamentHub',
   description: 'Turniere einfach verwalten',
 }
 
-export default function RootLayout({ children }) {
+interface RootLayoutProps {
+  children: ReactNode
+}
+
+export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="de">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 min-h-screen`}>

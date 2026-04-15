@@ -1,17 +1,20 @@
 'use client'
+
+import type { ChangeEvent, FormEvent } from 'react'
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
-import { useRouter, useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import TournamentForm from '@/components/tournaments/TournamentForm'
 import { useAuth } from '@/components/auth/AuthProvider'
+import { supabase } from '@/lib/supabase'
+import type { Tournament, TournamentFormValues } from '@/lib/types'
 
 export default function EditTournament() {
-  const { id } = useParams()
+  const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const { user, isAuthenticated, loading: authLoading } = useAuth()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<TournamentFormValues>({
     name: '',
     sport: '',
     mode: 'knockout',
@@ -30,55 +33,52 @@ export default function EditTournament() {
 
   useEffect(() => {
     if (!user || !isAuthenticated) return
+    const currentUser = user
 
-    const fetchTournament = async () => {
-      const { data } = await supabase
-        .from('tournaments')
-        .select('*')
-        .eq('id', id)
-        .single()
+    async function fetchTournament() {
+      const { data } = await supabase.from('tournaments').select('*').eq('id', id).single()
+      const tournament = data as Tournament | null
 
-      if (data?.owner_id && data.owner_id !== user.id) {
+      if (tournament?.owner_id && tournament.owner_id !== currentUser.id) {
         router.push(`/tournaments/${id}`)
         return
       }
 
-      if (data) {
+      if (tournament) {
         setForm({
-          name: data.name,
-          sport: data.sport,
-          mode: data.mode,
-          max_participants: data.max_participants,
-          date: data.date,
-          status: data.status ?? 'open',
-          description: data.description ?? '',
-          is_public: data.is_public ?? true,
+          name: tournament.name,
+          sport: tournament.sport,
+          mode: tournament.mode,
+          max_participants: tournament.max_participants,
+          date: tournament.date,
+          status: tournament.status ?? 'open',
+          description: tournament.description ?? '',
+          is_public: tournament.is_public ?? true,
         })
       }
 
       setLoading(false)
     }
 
-    fetchTournament()
-  }, [id, router, user])
+    void fetchTournament()
+  }, [id, isAuthenticated, router, user])
 
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    const nextValue = name === 'is_public' ? value === 'true' : value
-    setForm({ ...form, [name]: nextValue })
+  const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = event.target
+    const nextValue =
+      name === 'is_public' ? value === 'true' : name === 'max_participants' ? Number(value) : value
+
+    setForm((current) => ({ ...current, [name]: nextValue }))
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
     setSaving(true)
 
-    const { error } = await supabase
-      .from('tournaments')
-      .update(form)
-      .eq('id', id)
+    const { error } = await supabase.from('tournaments').update(form).eq('id', id)
 
     if (error) {
-      alert('Fehler: ' + error.message)
+      alert(`Fehler: ${error.message}`)
     } else {
       router.push(`/tournaments/${id}`)
     }

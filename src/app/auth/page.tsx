@@ -1,29 +1,40 @@
 'use client'
 
+import type { ChangeEvent, FormEvent } from 'react'
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
-const fieldClassName = 'w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400'
+type AuthMode = 'login' | 'signup'
+
+interface AuthFormValues {
+  email: string
+  password: string
+  username: string
+  full_name: string
+}
+
+const fieldClassName =
+  'w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400'
 
 export default function AuthPage() {
   const router = useRouter()
-  const [mode, setMode] = useState('login')
+  const [mode, setMode] = useState<AuthMode>('login')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<AuthFormValues>({
     email: '',
     password: '',
     username: '',
     full_name: '',
   })
 
-  const handleChange = (event) => {
-    setForm({ ...form, [event.target.name]: event.target.value })
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setForm((current) => ({ ...current, [event.target.name]: event.target.value }))
   }
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setLoading(true)
     setMessage('')
@@ -66,7 +77,7 @@ export default function AuthPage() {
         return
       }
 
-      if (!data?.session) {
+      if (!data.session) {
         setMessage('Sign-in completed, but no active session was found. Check your email if confirmation is required.')
         return
       }
@@ -74,7 +85,7 @@ export default function AuthPage() {
       router.push('/')
     } catch (error) {
       console.error('Auth submit error:', error)
-      setMessage(error?.message ?? 'Could not sign in. Please try again.')
+      setMessage(error instanceof Error ? error.message : 'Could not sign in. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -91,8 +102,8 @@ export default function AuthPage() {
             </div>
             <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">Create your player identity.</h1>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-white/65 md:text-base">
-              Sign in to manage your own tournaments, browse public ones from other organizers,
-              and join public events as a participant.
+              Sign in to manage your own tournaments, browse public ones from other organizers, and join public events
+              as a participant.
             </p>
           </div>
         </section>
@@ -174,11 +185,7 @@ export default function AuthPage() {
                 />
               </div>
 
-              {message && (
-                <p className="rounded-2xl border border-cyan-100 bg-cyan-50 px-4 py-3 text-sm text-cyan-700">
-                  {message}
-                </p>
-              )}
+              {message && <p className="rounded-2xl border border-cyan-100 bg-cyan-50 px-4 py-3 text-sm text-cyan-700">{message}</p>}
 
               <div className="flex gap-4">
                 <Link

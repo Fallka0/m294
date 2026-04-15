@@ -1,24 +1,26 @@
 'use client'
+
+import type { ChangeEvent, FormEvent } from 'react'
 import TournamentFormHero from '@/components/tournaments/TournamentFormHero'
+import { modeOptions, sports, statusOptions } from '@/lib/tournaments'
+import type { TournamentFormValues } from '@/lib/types'
 
-const sports = [
-  'Football', 'Basketball', 'Tennis', 'Volleyball',
-  'Cricket', 'Baseball', 'Hockey', 'Badminton', 'Table Tennis', 'Other',
-]
+const fieldClassName =
+  'w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400'
 
-const modeOptions = [
-  { value: 'group', label: 'Group Phase' },
-  { value: 'knockout', label: 'Knockout' },
-  { value: 'both', label: 'Both' },
-]
-
-const statusOptions = [
-  { value: 'open', label: 'Open' },
-  { value: 'live', label: 'Live' },
-  { value: 'finished', label: 'Finished' },
-]
-
-const fieldClassName = 'w-full border border-gray-200 rounded-xl px-4 py-3 text-gray-700 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400'
+interface TournamentFormProps {
+  title: string
+  subtitle: string
+  form: TournamentFormValues
+  onChange: (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void
+  onCancel: () => void
+  onDelete?: () => void
+  submitting: boolean
+  submitLabel: string
+  submitLoadingLabel: string
+  showStatus?: boolean
+}
 
 export default function TournamentForm({
   title,
@@ -32,7 +34,7 @@ export default function TournamentForm({
   submitLabel,
   submitLoadingLabel,
   showStatus = false,
-}) {
+}: TournamentFormProps) {
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,#050505_0px,#050505_104px,#f5f5f5_104px,#f5f5f5_100%)] px-6 py-10">
       <div className="mx-auto flex max-w-6xl flex-col gap-8">
@@ -42,7 +44,7 @@ export default function TournamentForm({
           <div className="rounded-[32px] border border-black/5 bg-white p-8 shadow-[0_18px_50px_rgba(15,23,42,0.08)] md:p-10">
             <form onSubmit={onSubmit} className="flex flex-col gap-6">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-semibold text-gray-700">
                   Tournament Name <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -57,40 +59,29 @@ export default function TournamentForm({
 
               <div className="grid gap-6 md:grid-cols-2">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="mb-2 block text-sm font-semibold text-gray-700">
                     Sport Type <span className="text-red-500">*</span>
                   </label>
-                  <select
-                    name="sport"
-                    required
-                    value={form.sport}
-                    onChange={onChange}
-                    className={fieldClassName}
-                  >
+                  <select name="sport" required value={form.sport} onChange={onChange} className={fieldClassName}>
                     <option value="">Select a sport</option>
                     {sports.map((sport) => (
-                      <option key={sport} value={sport}>{sport}</option>
+                      <option key={sport} value={sport}>
+                        {sport}
+                      </option>
                     ))}
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="mb-2 block text-sm font-semibold text-gray-700">
                     Date <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    name="date"
-                    type="date"
-                    required
-                    value={form.date}
-                    onChange={onChange}
-                    className={fieldClassName}
-                  />
+                  <input name="date" type="date" required value={form.date} onChange={onChange} className={fieldClassName} />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                <label className="mb-3 block text-sm font-semibold text-gray-700">
                   Mode <span className="text-red-500">*</span>
                 </label>
                 <div className="grid gap-3 sm:grid-cols-3">
@@ -118,9 +109,7 @@ export default function TournamentForm({
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Max Participants
-                </label>
+                <label className="mb-2 block text-sm font-semibold text-gray-700">Max Participants</label>
                 <input
                   name="max_participants"
                   type="number"
@@ -133,9 +122,7 @@ export default function TournamentForm({
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Description
-                </label>
+                <label className="mb-2 block text-sm font-semibold text-gray-700">Description</label>
                 <textarea
                   name="description"
                   rows={4}
@@ -147,13 +134,19 @@ export default function TournamentForm({
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Visibility
-                </label>
+                <label className="mb-3 block text-sm font-semibold text-gray-700">Visibility</label>
                 <div className="grid gap-3 sm:grid-cols-2">
                   {[
-                    { value: true, title: 'Public', description: 'Everyone can discover it and players can join if registration is open.' },
-                    { value: false, title: 'Private', description: 'Only you can manage it and it stays off the public feed.' },
+                    {
+                      value: true,
+                      title: 'Public',
+                      description: 'Everyone can discover it and players can join if registration is open.',
+                    },
+                    {
+                      value: false,
+                      title: 'Private',
+                      description: 'Only you can manage it and it stays off the public feed.',
+                    },
                   ].map((option) => (
                     <label
                       key={String(option.value)}
@@ -180,17 +173,12 @@ export default function TournamentForm({
 
               {showStatus && (
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Status
-                  </label>
-                  <select
-                    name="status"
-                    value={form.status}
-                    onChange={onChange}
-                    className={fieldClassName}
-                  >
+                  <label className="mb-2 block text-sm font-semibold text-gray-700">Status</label>
+                  <select name="status" value={form.status} onChange={onChange} className={fieldClassName}>
                     {statusOptions.map((option) => (
-                      <option key={option.value} value={option.value}>{option.label}</option>
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -200,14 +188,14 @@ export default function TournamentForm({
                 <button
                   type="button"
                   onClick={onCancel}
-                  className="flex-1 rounded-xl border border-gray-200 px-4 py-3 text-gray-700 font-semibold cursor-pointer transition duration-200 hover:bg-gray-50 hover:-translate-y-0.5 hover:shadow-sm"
+                  className="flex-1 rounded-xl border border-gray-200 px-4 py-3 font-semibold text-gray-700 transition duration-200 hover:-translate-y-0.5 hover:bg-gray-50 hover:shadow-sm"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex-1 rounded-xl bg-cyan-400 px-4 py-3 font-semibold text-white cursor-pointer transition duration-200 hover:bg-cyan-500 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                  className="flex-1 rounded-xl bg-cyan-400 px-4 py-3 font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-cyan-500 hover:shadow-md disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
                 >
                   {submitting ? submitLoadingLabel : submitLabel}
                 </button>
@@ -218,7 +206,7 @@ export default function TournamentForm({
                   <button
                     type="button"
                     onClick={onDelete}
-                    className="w-full rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-600 font-medium cursor-pointer transition duration-200 hover:bg-red-100 hover:border-red-300 hover:-translate-y-0.5 hover:shadow-sm"
+                    className="w-full rounded-xl border border-red-200 bg-red-50 px-4 py-3 font-medium text-red-600 transition duration-200 hover:-translate-y-0.5 hover:border-red-300 hover:bg-red-100 hover:shadow-sm"
                   >
                     Delete Tournament
                   </button>
@@ -240,10 +228,10 @@ export default function TournamentForm({
                     <p className="text-sm text-gray-400">Sport</p>
                     <p className="font-medium text-gray-900">{form.sport || 'Not selected'}</p>
                   </div>
-                <div>
-                  <p className="text-sm text-gray-400">Date</p>
-                  <p className="font-medium text-gray-900">{form.date || 'No date yet'}</p>
-                </div>
+                  <div>
+                    <p className="text-sm text-gray-400">Date</p>
+                    <p className="font-medium text-gray-900">{form.date || 'No date yet'}</p>
+                  </div>
                 </div>
                 <div>
                   <p className="text-sm text-gray-400">Visibility</p>
@@ -252,7 +240,9 @@ export default function TournamentForm({
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-400">Mode</p>
-                    <p className="font-medium text-gray-900">{modeOptions.find((option) => option.value === form.mode)?.label ?? 'Knockout'}</p>
+                    <p className="font-medium text-gray-900">
+                      {modeOptions.find((option) => option.value === form.mode)?.label ?? 'Knockout'}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-400">Capacity</p>

@@ -1,11 +1,17 @@
 import BlurText from '@/components/react-bits/BlurText'
 import ShinyText from '@/components/react-bits/ShinyText'
+import { getDisplayTournamentStatus } from '@/lib/tournaments'
+import type { Tournament } from '@/lib/types'
 
-export default function HomeHero({ tournaments }) {
+interface HomeHeroProps {
+  tournaments: Tournament[]
+}
+
+export default function HomeHero({ tournaments }: HomeHeroProps) {
   const stats = [
     { label: 'Total', value: tournaments.length },
-    { label: 'Open', value: tournaments.filter((tournament) => tournament.status === 'open').length },
-    { label: 'Live', value: tournaments.filter((tournament) => tournament.status === 'live').length },
+    { label: 'Open', value: tournaments.filter((tournament) => getDisplayTournamentStatus(tournament.status) === 'open').length },
+    { label: 'Live', value: tournaments.filter((tournament) => getDisplayTournamentStatus(tournament.status) === 'live').length },
   ]
 
   return (

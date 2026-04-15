@@ -1,0 +1,66 @@
+import type { Tournament, TournamentMode, TournamentStatus } from '@/lib/types'
+
+export const statusConfig: Record<TournamentStatus, { label: string; className: string }> = {
+  open: { label: 'Open', className: 'bg-green-500 text-white' },
+  live: { label: 'Live', className: 'bg-cyan-400 text-white' },
+  finished: { label: 'Finished', className: 'bg-gray-200 text-gray-500' },
+}
+
+export const detailStatusBanner: Record<TournamentStatus, { label: string; className: string }> = {
+  open: { label: 'Registration Open', className: 'bg-green-400 text-white' },
+  live: { label: 'Tournament in Progress', className: 'bg-cyan-500 text-white' },
+  finished: { label: 'Tournament Finished', className: 'bg-gray-300 text-gray-700' },
+}
+
+export const modeLabel: Record<TournamentMode, string> = {
+  knockout: 'Knockout',
+  group: 'Group Phase',
+  both: 'Both',
+}
+
+export const sports = [
+  'Football',
+  'Basketball',
+  'Tennis',
+  'Volleyball',
+  'Cricket',
+  'Baseball',
+  'Hockey',
+  'Badminton',
+  'Table Tennis',
+  'Other',
+] as const
+
+export const modeOptions: Array<{ value: TournamentMode; label: string }> = [
+  { value: 'group', label: 'Group Phase' },
+  { value: 'knockout', label: 'Knockout' },
+  { value: 'both', label: 'Both' },
+]
+
+export const statusOptions: Array<{ value: TournamentStatus; label: string }> = [
+  { value: 'open', label: 'Open' },
+  { value: 'live', label: 'Live' },
+  { value: 'finished', label: 'Finished' },
+]
+
+export function normalizeTournament(tournament: Tournament): Tournament {
+  return {
+    ...tournament,
+    status: tournament.status ?? 'open',
+    is_public: tournament.is_public ?? true,
+    current_participants: tournament.current_participants ?? 0,
+    description: tournament.description ?? '',
+  }
+}
+
+export function formatTournamentDate(date: string): string {
+  return new Date(date).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
+}
+
+export function getDisplayTournamentStatus(status: Tournament['status']): TournamentStatus {
+  return status ?? 'open'
+}

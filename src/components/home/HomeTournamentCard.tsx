@@ -1,21 +1,21 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import SpotlightCard from '@/components/SpotlightCard'
+import { formatTournamentDate, getDisplayTournamentStatus, modeLabel, statusConfig } from '@/lib/tournaments'
+import type { Tournament } from '@/lib/types'
 
-const statusConfig = {
-  open: { label: 'Open', className: 'bg-green-500 text-white' },
-  live: { label: 'Live', className: 'bg-cyan-400 text-white' },
-  finished: { label: 'Finished', className: 'bg-gray-200 text-gray-500' },
+interface HomeTournamentCardProps {
+  tournament: Tournament
+  isOwner?: boolean
+  isJoined?: boolean
 }
 
-const modeLabel = {
-  knockout: 'Knockout',
-  group: 'Group Phase',
-  both: 'Both',
-}
-
-export default function HomeTournamentCard({ tournament, isOwner = false, isJoined = false }) {
-  const status = statusConfig[tournament.status ?? 'open'] ?? statusConfig.open
+export default function HomeTournamentCard({
+  tournament,
+  isOwner = false,
+  isJoined = false,
+}: HomeTournamentCardProps) {
+  const status = statusConfig[getDisplayTournamentStatus(tournament.status)]
 
   return (
     <Link href={`/tournaments/${tournament.id}`}>
@@ -57,7 +57,7 @@ export default function HomeTournamentCard({ tournament, isOwner = false, isJoin
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2 text-sm text-gray-500">
             <Image src="/calendar.svg" alt="" width={18} height={18} className="h-[18px] w-[18px]" aria-hidden="true" />
-            <span>{new Date(tournament.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+            <span>{formatTournamentDate(tournament.date)}</span>
           </div>
           <div className="flex items-center gap-2 text-sm text-gray-500">
             <Image src="/team.svg" alt="" width={18} height={18} className="h-[18px] w-[18px]" aria-hidden="true" />

@@ -1,11 +1,14 @@
 'use client'
 
+import type { ReactNode } from 'react'
+import type { Session, User } from '@supabase/supabase-js'
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import type { AuthContextValue, Profile } from '@/lib/types'
 
-const AuthContext = createContext(null)
+const AuthContext = createContext<AuthContextValue | null>(null)
 
-async function loadProfile(userId) {
+async function loadProfile(userId: string): Promise<Profile | null> {
   if (!userId) return null
 
   const { data } = await supabase
@@ -17,10 +20,14 @@ async function loadProfile(userId) {
   return data ?? null
 }
 
-export function AuthProvider({ children }) {
-  const [session, setSession] = useState(null)
-  const [user, setUser] = useState(null)
-  const [profile, setProfile] = useState(null)
+interface AuthProviderProps {
+  children: ReactNode
+}
+
+export function AuthProvider({ children }: AuthProviderProps) {
+  const [session, setSession] = useState<Session | null>(null)
+  const [user, setUser] = useState<User | null>(null)
+  const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -50,7 +57,7 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
-  const value = useMemo(() => ({
+  const value = useMemo<AuthContextValue>(() => ({
     session,
     user,
     profile,

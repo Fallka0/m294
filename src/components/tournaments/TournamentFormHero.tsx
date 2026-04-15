@@ -1,8 +1,14 @@
+interface TournamentFormHeroProps {
+  title: string
+  subtitle?: string
+  showStatus?: boolean
+}
+
 export default function TournamentFormHero({
   title,
   subtitle,
   showStatus = false,
-}) {
+}: TournamentFormHeroProps) {
   const highlights = [
     'Clean tournament setup',
     showStatus ? 'Status control included' : 'Ready to publish as open',
