@@ -110,7 +110,7 @@ export default function Home() {
   ]
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(180deg,#050505_0px,#050505_88px,#f5f5f5_88px,#f5f5f5_100%)] px-6 py-10">
+    <main className="page-shell min-h-screen px-6 py-10 transition-colors duration-300">
       <div className="mx-auto max-w-6xl">
         <HomeHero tournaments={tournaments} />
 

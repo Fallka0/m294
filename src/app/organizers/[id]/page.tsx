@@ -36,7 +36,7 @@ export default function OrganizerPublicPage() {
   if (!profile) return <p className="p-10 text-gray-500">Organizer not found.</p>
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(180deg,#050505_0px,#050505_104px,#f5f5f5_104px,#f5f5f5_100%)] px-6 py-10">
+    <main className="page-shell min-h-screen px-6 py-10 transition-colors duration-300">
       <div className="mx-auto flex max-w-6xl flex-col gap-8">
         <Link href="/" className="text-sm text-white/60 transition duration-200 hover:text-white">
           Back to Dashboard

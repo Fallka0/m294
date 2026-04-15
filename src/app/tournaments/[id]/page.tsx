@@ -207,7 +207,7 @@ export default function TournamentDetail() {
   const banner = detailStatusBanner[currentStatus]
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(180deg,#050505_0px,#050505_104px,#f5f5f5_104px,#f5f5f5_100%)]">
+    <main className="page-shell min-h-screen transition-colors duration-300">
       <FadeContent initialOpacity={0} duration={0.6} ease="ease-out">
         <div className="mx-auto max-w-6xl px-6 pt-6">
           <Link href="/" className="inline-flex items-center gap-2 text-sm text-white/60 transition duration-200 hover:text-white">

@@ -36,7 +36,7 @@ export default function TournamentForm({
   showStatus = false,
 }: TournamentFormProps) {
   return (
-    <main className="min-h-screen bg-[linear-gradient(180deg,#050505_0px,#050505_104px,#f5f5f5_104px,#f5f5f5_100%)] px-6 py-10">
+    <main className="page-shell min-h-screen px-6 py-10 transition-colors duration-300">
       <div className="mx-auto flex max-w-6xl flex-col gap-8">
         <TournamentFormHero title={title} subtitle={subtitle} showStatus={showStatus} />
 
