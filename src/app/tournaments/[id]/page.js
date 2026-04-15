@@ -1,11 +1,10 @@
 'use client'
+import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import TournamentBracket from '@/components/TournamentBracket'
-
-// TWEAK COMPONENTS
 import FadeContent from '@/components/react-bits/FadeContent'
 import BlurText from '@/components/react-bits/BlurText'
 import ShinyText from '@/components/react-bits/ShinyText'
@@ -168,24 +167,20 @@ export default function TournamentDetail() {
 
       <FadeContent initialOpacity={0} duration={0.6} easing="ease-out">
 
-        {/* Back */}
         <div className="max-w-6xl mx-auto px-6 pt-4">
           <Link href="/" className="flex items-center gap-2 text-gray-500 hover:text-gray-700 text-sm">
             ← Back to Dashboard
           </Link>
         </div>
 
-        {/* Status Banner */}
         <div className="max-w-6xl mx-auto px-6 mt-3">
           <div className={`${banner.className} rounded-2xl py-4 text-center text-white font-semibold text-lg`}>
             {banner.label}
           </div>
         </div>
 
-        {/* Content */}
         <div className="max-w-6xl mx-auto px-6 mt-5 pb-10 grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-          {/* LEFT */}
           <div className="bg-white rounded-2xl p-6 border border-gray-100">
 
             <div className="flex justify-between items-start mb-5">
@@ -200,7 +195,7 @@ export default function TournamentDetail() {
                 onClick={() => router.push(`/tournaments/${id}/edit`)}
                 className="text-gray-400 hover:text-gray-600"
               >
-                ✏️
+                <Image src="/pencil.svg" alt="" width={18} height={18} className="h-[18px] w-[18px]" aria-hidden="true" />
               </button>
             </div>
 
@@ -215,17 +210,20 @@ export default function TournamentDetail() {
               </div>
               <div>
                 <p className="text-xs text-gray-400">Participants</p>
-                <p>👥 {participants.length}/{tournament.max_participants}</p>
+                <p className="inline-flex items-center gap-2"><Image src="/team.svg" alt="" width={18} height={18} className="h-[18px] w-[18px]" aria-hidden="true" />{participants.length}/{tournament.max_participants}</p>
               </div>
             </div>
 
-            <h2 className="font-bold mb-3">🏆 Participants</h2>
+            <h2 className="font-bold mb-3 inline-flex items-center gap-2">
+              <Image src="/trophy.svg" alt="" width={18} height={18} className="h-[18px] w-[18px]" aria-hidden="true" />
+              <span>Participants</span>
+            </h2>
 
             <ul className="flex flex-col gap-2 mb-4">
               {participants.map((p, i) => (
                 <li key={p.id} className="flex justify-between bg-blue-50 px-3 py-2 rounded-lg">
                   <span>{i + 1}. {p.name}</span>
-                  <button onClick={() => removeParticipant(p.id)}>✕</button>
+                  <button onClick={() => removeParticipant(p.id)}>×</button>
                 </li>
               ))}
             </ul>
@@ -251,14 +249,19 @@ export default function TournamentDetail() {
             </button>
           </div>
 
-          {/* RIGHT */}
-          <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-gray-100"> <div className="flex justify-between items-center mb-6"> 
-            <BlurText
+          <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-gray-100">
+            <div className="flex justify-between items-center mb-6">
+              <BlurText
                 text="Tournament Bracket"
                 delay={25}
                 className="text-2xl font-bold text-gray-900"
               />
-            {participants.length >= 2 && ( <button onClick={generateBracket} className="bg-cyan-400 text-white rounded-xl px-4 py-2 text-sm font-semibold hover:bg-cyan-500 transition"> {matches.length > 0 ? 'Regenerate' : 'Generate Bracket'} </button> )} </div>
+              {participants.length >= 2 && (
+                <button onClick={generateBracket} className="bg-cyan-400 text-white rounded-xl px-4 py-2 text-sm font-semibold hover:bg-cyan-500 transition">
+                  {matches.length > 0 ? 'Regenerate' : 'Generate Bracket'}
+                </button>
+              )}
+            </div>
 
             {matches.length > 0 && (
               <TournamentBracket
@@ -273,7 +276,6 @@ export default function TournamentDetail() {
         </div>
       </FadeContent>
 
-      {/* MODAL unchanged */}
       {editMatch && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-8 w-full max-w-sm shadow-xl">

@@ -1,4 +1,5 @@
 'use client'
+import Image from 'next/image'
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
@@ -38,15 +39,15 @@ function TournamentCard({ tournament, index }) {
           </div>
           <p className="text-sm font-semibold text-gray-700 mb-3">
             {tournament.sport}
-            <span className="text-gray-400 font-normal"> • {modeLabel[tournament.mode]}</span>
+            <span className="text-gray-400 font-normal"> - {modeLabel[tournament.mode]}</span>
           </p>
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2 text-sm text-gray-500">
-              <span>📅</span>
+              <Image src="/calendar.svg" alt="" width={18} height={18} className="h-[18px] w-[18px]" aria-hidden="true" />
               <span>{new Date(tournament.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-500">
-              <span>👥</span>
+              <Image src="/team.svg" alt="" width={18} height={18} className="h-[18px] w-[18px]" aria-hidden="true" />
               <span>{tournament.max_participants} participants max</span>
             </div>
           </div>
@@ -90,7 +91,6 @@ export default function Home() {
     <main className="min-h-screen bg-gray-100 px-6 py-10">
       <div className="max-w-5xl mx-auto">
 
-        {/* Blur Text Title */}
         <h1 className="text-3xl font-bold text-gray-900 mb-6 flex overflow-hidden">
           {titleWords.map((char, i) => (
             <motion.span
@@ -104,7 +104,6 @@ export default function Home() {
           ))}
         </h1>
 
-        {/* Filter Buttons */}
         <div className="flex gap-2 mb-8">
           {filters.map(f => (
             <motion.button
@@ -140,7 +139,6 @@ export default function Home() {
           </motion.p>
         )}
 
-        {/* Animated List */}
         <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           <AnimatePresence mode="popLayout">
             {filtered.map((t, i) => (
