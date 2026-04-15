@@ -193,7 +193,7 @@ export default function TournamentDetail() {
 
               <button
                 onClick={() => router.push(`/tournaments/${id}/edit`)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 cursor-pointer"
               >
                 <Image src="/edit.svg" alt="" width={18} height={18} className="h-[18px] w-[18px]" aria-hidden="true" />
               </button>
