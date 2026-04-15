@@ -23,7 +23,7 @@ const fieldClassName =
   'w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400'
 
 const modeToggleBaseClassName =
-  'rounded-full border px-4 py-2 text-sm font-medium transition duration-200 hover:-translate-y-0.5 hover:shadow-sm'
+  'cursor-pointer rounded-full border px-4 py-2 text-sm font-medium transition duration-200 hover:-translate-y-0.5 hover:shadow-sm'
 
 export default function AuthPage() {
   const { isAuthenticated, loading: authLoading } = useAuth()
@@ -178,7 +178,7 @@ export default function AuthPage() {
                 type="button"
                 onClick={() => void handleOAuthSignIn('google')}
                 disabled={Boolean(oauthLoading) || loading}
-                className="flex items-center justify-center gap-3 rounded-xl border border-gray-200 px-4 py-3 text-sm font-semibold text-gray-700 transition duration-200 hover:-translate-y-0.5 hover:bg-gray-50 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                className="flex cursor-pointer items-center justify-center gap-3 rounded-xl border border-gray-200 px-4 py-3 text-sm font-semibold text-gray-700 transition duration-200 hover:-translate-y-0.5 hover:bg-gray-50 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none"
               >
                 <Image src="/google.svg" alt="" width={18} height={18} className="h-[18px] w-[18px]" aria-hidden="true" />
                 {oauthLoading === 'google' ? 'Redirecting...' : 'Continue with Google'}
@@ -187,9 +187,9 @@ export default function AuthPage() {
                 type="button"
                 onClick={() => void handleOAuthSignIn('github')}
                 disabled={Boolean(oauthLoading) || loading}
-                className="flex items-center justify-center gap-3 rounded-xl border border-gray-200 px-4 py-3 text-sm font-semibold text-gray-700 transition duration-200 hover:-translate-y-0.5 hover:bg-gray-50 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                className="flex cursor-pointer items-center justify-center gap-3 rounded-xl border border-gray-200 px-4 py-3 text-sm font-semibold text-gray-700 transition duration-200 hover:-translate-y-0.5 hover:bg-gray-50 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none"
               >
-                <Image src="/github.svg" alt="" width={18} height={18} className="h-[18px] w-[18px]" aria-hidden="true" />
+                <Image src="/github.svg" alt="" width={18} height={18} className="theme-icon h-[18px] w-[18px]" aria-hidden="true" />
                 {oauthLoading === 'github' ? 'Redirecting...' : 'Continue with GitHub'}
               </button>
             </div>
@@ -282,7 +282,7 @@ export default function AuthPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 rounded-xl bg-cyan-400 px-4 py-3 font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-cyan-500 hover:shadow-md disabled:opacity-60"
+                  className="flex-1 cursor-pointer rounded-xl bg-cyan-400 px-4 py-3 font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-cyan-500 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {loading ? 'Working...' : mode === 'signup' ? 'Create account' : 'Sign in'}
                 </button>
