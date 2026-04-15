@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { supabase } from '@/lib/supabase'
 import { setRememberPreference } from '@/lib/auth-storage'
+import { APP_REDIRECT_URL, OAUTH_REDIRECT_URL, redirectLocalCallbackToApp, redirectToApp } from '@/lib/auth-urls'
 
 type AuthMode = 'login' | 'signup'
 
@@ -18,17 +19,8 @@ interface AuthFormValues {
   full_name: string
 }
 
-const APP_REDIRECT_URL = 'https://m294-d5ns.vercel.app'
-const OAUTH_REDIRECT_URL = `${APP_REDIRECT_URL}/auth`
-
 const fieldClassName =
   'w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400'
-
-function redirectToApp() {
-  if (typeof window !== 'undefined') {
-    window.location.replace(APP_REDIRECT_URL)
-  }
-}
 
 export default function AuthPage() {
   const { isAuthenticated, loading: authLoading } = useAuth()
@@ -49,6 +41,8 @@ export default function AuthPage() {
   }
 
   useEffect(() => {
+    if (redirectLocalCallbackToApp()) return
+
     if (!authLoading && isAuthenticated) {
       redirectToApp()
     }
