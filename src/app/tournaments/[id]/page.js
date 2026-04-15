@@ -58,13 +58,13 @@ export default function TournamentDetail() {
   }
 
   const deleteTournament = async () => {
-    if (!confirm('Turnier wirklich löschen?')) return
+    if (!confirm('Turnier wirklich lÃ¶schen?')) return
     await supabase.from('tournaments').delete().eq('id', id)
     router.push('/')
   }
 
   const generateBracket = async () => {
-    if (!confirm('Spielplan generieren? Bestehende Matches werden gelöscht.')) return
+    if (!confirm('Spielplan generieren? Bestehende Matches werden gelÃ¶scht.')) return
 
     await supabase.from('matches').delete().eq('tournament_id', id)
 
@@ -169,7 +169,7 @@ export default function TournamentDetail() {
 
         <div className="max-w-6xl mx-auto px-6 pt-4">
           <Link href="/" className="flex items-center gap-2 text-gray-500 hover:text-gray-700 text-sm">
-            ← Back to Dashboard
+            â† Back to Dashboard
           </Link>
         </div>
 
@@ -195,7 +195,7 @@ export default function TournamentDetail() {
                 onClick={() => router.push(`/tournaments/${id}/edit`)}
                 className="text-gray-400 hover:text-gray-600"
               >
-                <Image src="/pencil.svg" alt="" width={18} height={18} className="h-[18px] w-[18px]" aria-hidden="true" />
+                <Image src="/edit.svg" alt="" width={18} height={18} className="h-[18px] w-[18px]" aria-hidden="true" />
               </button>
             </div>
 
@@ -223,7 +223,7 @@ export default function TournamentDetail() {
               {participants.map((p, i) => (
                 <li key={p.id} className="flex justify-between bg-blue-50 px-3 py-2 rounded-lg">
                   <span>{i + 1}. {p.name}</span>
-                  <button onClick={() => removeParticipant(p.id)}>×</button>
+                  <button onClick={() => removeParticipant(p.id)}>Ã—</button>
                 </li>
               ))}
             </ul>
