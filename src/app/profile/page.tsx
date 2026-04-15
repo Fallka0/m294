@@ -22,6 +22,15 @@ interface ProfileFormValues {
 const fieldClassName =
   'w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400'
 
+async function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result))
+    reader.onerror = () => reject(new Error('Could not read file'))
+    reader.readAsDataURL(file)
+  })
+}
+
 export default function ProfilePage() {
   const router = useRouter()
   const { user, profile, isAuthenticated, loading: authLoading, refreshProfile } = useAuth()
@@ -74,6 +83,21 @@ export default function ProfilePage() {
     setForm((current) => ({ ...current, [name]: value }))
   }
 
+  const handleImageUpload =
+    (field: 'avatar_url' | 'banner_url') => async (event: ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0]
+      if (!file) return
+
+      try {
+        const dataUrl = await fileToDataUrl(file)
+        setForm((current) => ({ ...current, [field]: dataUrl }))
+        setMessage('')
+      } catch (error) {
+        console.error('image upload error:', error)
+        setMessage('Could not load the selected image.')
+      }
+    }
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!user) return
@@ -118,14 +142,14 @@ export default function ProfilePage() {
   return (
     <main className="page-shell min-h-screen px-6 py-10 transition-colors duration-300">
       <div className="mx-auto flex max-w-6xl flex-col gap-8">
-        <section className="overflow-hidden rounded-[32px] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.18),transparent_34%),linear-gradient(180deg,rgba(17,24,39,0.98)_0%,rgba(8,8,8,0.98)_100%)] px-7 py-8 text-white shadow-[0_24px_80px_rgba(2,8,23,0.35)]">
+        <section className="overflow-hidden rounded-[32px] border border-black/5 bg-[radial-gradient(circle_at_top,rgba(8,145,178,0.12),transparent_34%),linear-gradient(180deg,#ffffff_0%,#f7f7f7_100%)] px-7 py-8 text-gray-950 shadow-[0_24px_80px_rgba(15,23,42,0.08)]">
           <div className="max-w-2xl">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-white/80">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-black/10 bg-black px-3 py-1 text-xs font-medium text-white">
               <span className="h-2 w-2 rounded-full bg-cyan-400" />
               Organizer identity
             </div>
             <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">Customize your organizer profile.</h1>
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-white/65 md:text-base">
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-gray-500 md:text-base">
               Add a banner, profile image, bio, and social links so players recognize your tournaments immediately.
             </p>
           </div>
@@ -160,11 +184,34 @@ export default function ProfilePage() {
               <div className="grid gap-5 md:grid-cols-2">
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-gray-700">Avatar image URL</label>
-                  <input name="avatar_url" value={form.avatar_url} onChange={handleChange} className={fieldClassName} placeholder="https://..." />
+                  <input name="avatar_url" value={form.avatar_url} onChange={handleChange} className={fieldClassName} placeholder="https://... or use image upload below" />
                 </div>
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-gray-700">Banner image URL</label>
-                  <input name="banner_url" value={form.banner_url} onChange={handleChange} className={fieldClassName} placeholder="https://..." />
+                  <input name="banner_url" value={form.banner_url} onChange={handleChange} className={fieldClassName} placeholder="https://... or use image upload below" />
+                </div>
+              </div>
+
+              <div className="grid gap-5 md:grid-cols-2">
+                <div className="rounded-2xl border border-black/5 bg-gray-50 p-4">
+                  <label className="mb-2 block text-sm font-semibold text-gray-700">Upload avatar</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload('avatar_url')}
+                    className="block w-full cursor-pointer text-sm text-gray-500 file:mr-4 file:rounded-full file:border-0 file:bg-cyan-400 file:px-4 file:py-2 file:font-semibold file:text-white hover:file:bg-cyan-500"
+                  />
+                  <p className="mt-2 text-xs text-gray-400">Small square images work best.</p>
+                </div>
+                <div className="rounded-2xl border border-black/5 bg-gray-50 p-4">
+                  <label className="mb-2 block text-sm font-semibold text-gray-700">Upload banner</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload('banner_url')}
+                    className="block w-full cursor-pointer text-sm text-gray-500 file:mr-4 file:rounded-full file:border-0 file:bg-cyan-400 file:px-4 file:py-2 file:font-semibold file:text-white hover:file:bg-cyan-500"
+                  />
+                  <p className="mt-2 text-xs text-gray-400">Wide images with soft contrast look best.</p>
                 </div>
               </div>
 

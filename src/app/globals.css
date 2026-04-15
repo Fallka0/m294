@@ -19,6 +19,7 @@
   --header-text: #ffffff;
   --header-text-muted: rgba(255, 255, 255, 0.8);
   --header-subtext: rgba(255, 255, 255, 0.45);
+  --spotlight-card-base: rgba(255, 255, 255, 0.95);
 }
 
 @theme inline {
@@ -47,6 +48,7 @@
   --header-text: #f5f3ff;
   --header-text-muted: rgba(245, 243, 255, 0.82);
   --header-subtext: rgba(209, 196, 247, 0.6);
+  --spotlight-card-base: rgba(28, 19, 45, 0.96);
 }
 
 body {
@@ -147,4 +149,16 @@ body {
 
 [data-theme='dark'] .hero-title {
   color: #111827 !important;
+}
+
+[data-theme='dark'] .home-tournament-card {
+  box-shadow: 0 16px 44px rgba(6, 2, 17, 0.34), inset 0 1px 0 rgba(167, 139, 250, 0.04);
+}
+
+[data-theme='dark'] .home-tournament-card:hover {
+  box-shadow: 0 22px 54px rgba(76, 29, 149, 0.32), inset 0 1px 0 rgba(167, 139, 250, 0.06);
+}
+
+[data-theme='dark'] .theme-icon {
+  filter: brightness(0) saturate(100%) invert(97%) sepia(11%) saturate(655%) hue-rotate(205deg) brightness(102%) contrast(97%);
 }

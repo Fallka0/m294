@@ -27,7 +27,7 @@ export default function SpotlightCard({
 
   const style: CSSProperties = {
     background:
-      'radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), var(--spotlight-color, transparent) 0%, transparent 60%), white',
+      'radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), var(--spotlight-color, transparent) 0%, transparent 60%), var(--spotlight-card-base, white)',
   }
 
   return (

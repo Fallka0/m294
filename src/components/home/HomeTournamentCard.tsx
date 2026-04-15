@@ -20,7 +20,7 @@ export default function HomeTournamentCard({
   return (
     <Link href={`/tournaments/${tournament.id}`}>
       <SpotlightCard
-        className="h-full cursor-pointer border border-black/5 bg-white/90 p-5 shadow-[0_8px_30px_rgba(15,23,42,0.06)] transition duration-200 hover:-translate-y-1"
+        className="home-tournament-card h-full cursor-pointer border border-black/5 bg-white/90 p-5 shadow-[0_8px_30px_rgba(15,23,42,0.06)] transition duration-200 hover:-translate-y-1"
         spotlightColor="rgba(8, 145, 178, 0.12)"
       >
         <div className="mb-3 flex items-start justify-between">
@@ -56,11 +56,11 @@ export default function HomeTournamentCard({
 
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2 text-sm text-gray-500">
-            <Image src="/calendar.svg" alt="" width={18} height={18} className="h-[18px] w-[18px]" aria-hidden="true" />
+            <Image src="/calendar.svg" alt="" width={18} height={18} className="theme-icon h-[18px] w-[18px]" aria-hidden="true" />
             <span>{formatTournamentDate(tournament.date)}</span>
           </div>
           <div className="flex items-center gap-2 text-sm text-gray-500">
-            <Image src="/team.svg" alt="" width={18} height={18} className="h-[18px] w-[18px]" aria-hidden="true" />
+            <Image src="/team.svg" alt="" width={18} height={18} className="theme-icon h-[18px] w-[18px]" aria-hidden="true" />
             <span>{tournament.current_participants ?? 0} / {tournament.max_participants} participants</span>
           </div>
         </div>
