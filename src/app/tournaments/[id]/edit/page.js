@@ -32,7 +32,7 @@ export default function EditTournament() {
         mode: data.mode,
         max_participants: data.max_participants,
         date: data.date,
-        status: data.status,
+        status: data.status ?? 'open',
       })
 
       setLoading(false)

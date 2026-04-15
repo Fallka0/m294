@@ -19,7 +19,8 @@ const modeLabel = {
 }
 
 function TournamentCard({ tournament, index }) {
-  const status = statusConfig[tournament.status]
+  const normalizedStatus = tournament.status ?? 'open'
+  const status = statusConfig[normalizedStatus] ?? statusConfig.open
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -69,14 +70,19 @@ export default function Home() {
         .from('tournaments')
         .select('*')
         .order('created_at', { ascending: false })
-      if (!error) setTournaments(data)
+      if (!error) {
+        setTournaments((data || []).map((tournament) => ({
+          ...tournament,
+          status: tournament.status ?? 'open',
+        })))
+      }
       setLoading(false)
     }
     fetchTournaments()
     setTimeout(() => setTitleVisible(true), 100)
   }, [])
 
-  const filtered = filter === 'all' ? tournaments : tournaments.filter(t => t.status === filter)
+  const filtered = filter === 'all' ? tournaments : tournaments.filter((tournament) => tournament.status === filter)
 
   const filters = [
     { key: 'all', label: 'All' },

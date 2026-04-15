@@ -159,7 +159,8 @@ export default function TournamentDetail() {
   }
 
   const modeLabel = { knockout: 'Knockout', group: 'Group Phase', both: 'Both' }
-  const banner = statusBanner[tournament.status]
+  const currentStatus = tournament.status ?? 'open'
+  const banner = statusBanner[currentStatus] ?? statusBanner.open
   const rounds = [...new Set(matches.map(m => m.round))].sort()
 
   return (

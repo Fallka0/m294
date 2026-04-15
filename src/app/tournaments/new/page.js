@@ -13,6 +13,7 @@ export default function NewTournament() {
     mode: 'knockout',
     max_participants: 8,
     date: '',
+    status: 'open',
   })
 
   const handleChange = (e) => {
