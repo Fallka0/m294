@@ -1,9 +1,11 @@
 'use client'
 
 import type { ChangeEvent, FormEvent } from 'react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import type { Provider } from '@supabase/supabase-js'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useAuth } from '@/components/auth/AuthProvider'
 import { supabase } from '@/lib/supabase'
 import { setRememberPreference } from '@/lib/auth-storage'
 
@@ -21,8 +23,10 @@ const fieldClassName =
 
 export default function AuthPage() {
   const router = useRouter()
+  const { isAuthenticated, loading: authLoading } = useAuth()
   const [mode, setMode] = useState<AuthMode>('login')
   const [loading, setLoading] = useState(false)
+  const [oauthLoading, setOauthLoading] = useState<Provider | null>(null)
   const [message, setMessage] = useState('')
   const [rememberMe, setRememberMe] = useState(true)
   const [form, setForm] = useState<AuthFormValues>({
@@ -34,6 +38,32 @@ export default function AuthPage() {
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     setForm((current) => ({ ...current, [event.target.name]: event.target.value }))
+  }
+
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      router.replace('/')
+    }
+  }, [authLoading, isAuthenticated, router])
+
+  const handleOAuthSignIn = async (provider: Provider) => {
+    setMessage('')
+    setOauthLoading(provider)
+    setRememberPreference(rememberMe)
+
+    const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/auth` : undefined
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo,
+      },
+    })
+
+    if (error) {
+      setMessage(error.message)
+      setOauthLoading(null)
+    }
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -133,6 +163,33 @@ export default function AuthPage() {
               >
                 Create account
               </button>
+            </div>
+
+            <div className="mb-6 grid gap-3 md:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => void handleOAuthSignIn('google')}
+                disabled={Boolean(oauthLoading) || loading}
+                className="rounded-xl border border-gray-200 px-4 py-3 text-sm font-semibold text-gray-700 transition duration-200 hover:-translate-y-0.5 hover:bg-gray-50 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+              >
+                {oauthLoading === 'google' ? 'Redirecting...' : 'Continue with Google'}
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleOAuthSignIn('github')}
+                disabled={Boolean(oauthLoading) || loading}
+                className="rounded-xl border border-gray-200 px-4 py-3 text-sm font-semibold text-gray-700 transition duration-200 hover:-translate-y-0.5 hover:bg-gray-50 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+              >
+                {oauthLoading === 'github' ? 'Redirecting...' : 'Continue with GitHub'}
+              </button>
+            </div>
+
+            <div className="mb-6 flex items-center gap-3">
+              <div className="h-px flex-1 bg-gray-200" />
+              <span className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400">
+                Or use email
+              </span>
+              <div className="h-px flex-1 bg-gray-200" />
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">

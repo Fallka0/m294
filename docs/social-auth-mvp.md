@@ -13,6 +13,10 @@ This app now expects Supabase Auth and a few extra database fields for:
 1. Open the Supabase SQL editor for your project.
 2. Run [social-auth-mvp.sql](C:/Users/ampro/OneDrive/Documents/GitHub/m294/supabase/social-auth-mvp.sql).
 3. Make sure Email auth is enabled in Supabase Authentication.
+4. Enable the OAuth providers you want to use in Supabase Authentication.
+   The app now supports `Google` and `GitHub`.
+5. Add your local and deployed auth callback URLs in the Supabase provider settings.
+   For local dev, include `http://localhost:3000/auth`.
 
 ## What changes in the app
 
