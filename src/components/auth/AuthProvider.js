@@ -26,32 +26,22 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let isMounted = true
 
-    const bootstrap = async () => {
-      const { data } = await supabase.auth.getSession()
-      const currentSession = data.session ?? null
-      const currentUser = currentSession?.user ?? null
-      const currentProfile = currentUser ? await loadProfile(currentUser.id) : null
-
-      if (!isMounted) return
-
-      setSession(currentSession)
-      setUser(currentUser)
-      setProfile(currentProfile)
-      setLoading(false)
-    }
-
-    bootstrap()
-
     const { data: listener } = supabase.auth.onAuthStateChange(async (_event, nextSession) => {
-      const nextUser = nextSession?.user ?? null
-      const nextProfile = nextUser ? await loadProfile(nextUser.id) : null
+      try {
+        const nextUser = nextSession?.user ?? null
+        const nextProfile = nextUser ? await loadProfile(nextUser.id) : null
 
-      if (!isMounted) return
+        if (!isMounted) return
 
-      setSession(nextSession ?? null)
-      setUser(nextUser)
-      setProfile(nextProfile)
-      setLoading(false)
+        setSession(nextSession ?? null)
+        setUser(nextUser)
+        setProfile(nextProfile)
+      } catch (error) {
+        console.error('Auth state change error:', error)
+      } finally {
+        if (!isMounted) return
+        setLoading(false)
+      }
     })
 
     return () => {
@@ -68,9 +58,15 @@ export function AuthProvider({ children }) {
     isAuthenticated: Boolean(user),
     refreshProfile: async () => {
       if (!user) return null
-      const nextProfile = await loadProfile(user.id)
-      setProfile(nextProfile)
-      return nextProfile
+
+      try {
+        const nextProfile = await loadProfile(user.id)
+        setProfile(nextProfile)
+        return nextProfile
+      } catch (error) {
+        console.error('refreshProfile error:', error)
+        return null
+      }
     },
     signOut: async () => {
       await supabase.auth.signOut()

@@ -4,13 +4,11 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/components/auth/AuthProvider'
 
 const fieldClassName = 'w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400'
 
 export default function AuthPage() {
   const router = useRouter()
-  const { refreshProfile } = useAuth()
   const [mode, setMode] = useState('login')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
@@ -30,54 +28,56 @@ export default function AuthPage() {
     setLoading(true)
     setMessage('')
 
-    if (mode === 'signup') {
-      const { data, error } = await supabase.auth.signUp({
+    try {
+      if (mode === 'signup') {
+        const { data, error } = await supabase.auth.signUp({
+          email: form.email,
+          password: form.password,
+          options: {
+            data: {
+              username: form.username,
+              full_name: form.full_name,
+            },
+          },
+        })
+
+        if (error) {
+          setMessage(error.message)
+          return
+        }
+
+        if (data.user && !data.session) {
+          setMessage('Account created. Check your email to confirm your account before signing in.')
+          return
+        }
+
+        setMessage('Account created. You are now signed in.')
+        router.push('/')
+        return
+      }
+
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: form.email,
         password: form.password,
-        options: {
-          data: {
-            username: form.username,
-            full_name: form.full_name,
-          },
-        },
       })
 
       if (error) {
         setMessage(error.message)
-        setLoading(false)
         return
       }
 
-      if (data.user) {
-        await supabase.from('profiles').upsert({
-          id: data.user.id,
-          email: form.email,
-          username: form.username,
-          full_name: form.full_name,
-        })
+      if (!data?.session) {
+        setMessage('Sign-in completed, but no active session was found. Check your email if confirmation is required.')
+        return
       }
 
-      await refreshProfile()
-      setMessage('Account created. Check your email if confirmation is enabled.')
-      setLoading(false)
       router.push('/')
-      return
-    }
-
-    const { error } = await supabase.auth.signInWithPassword({
-      email: form.email,
-      password: form.password,
-    })
-
-    if (error) {
-      setMessage(error.message)
+    } catch (error) {
+      console.error('Auth submit error:', error)
+      setMessage(error?.message ?? 'Could not sign in. Please try again.')
+    } finally {
       setLoading(false)
-      return
     }
-
-    await refreshProfile()
-    setLoading(false)
-    router.push('/')
   }
 
   return (
