@@ -164,29 +164,29 @@ export default function BracketPage() {
       {/* Ergebnis Modal */}
       {editMatch && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-8 w-full max-w-sm shadow-xl">
-            <h2 className="text-xl font-bold mb-6 text-center">Ergebnis eintragen</h2>
+          <div className="bg-white rounded-2xl p-8 w-full max-w-sm shadow-xl border border-gray-100 text-gray-900">
+            <h2 className="text-xl font-bold mb-6 text-center text-gray-900">Ergebnis eintragen</h2>
 
             <div className="flex items-center gap-4 justify-center mb-6">
               <div className="text-center flex-1">
-                <p className="text-sm text-gray-500 mb-2">{getName(editMatch.participant_a)}</p>
+                <p className="text-sm font-medium text-gray-700 mb-2">{getName(editMatch.participant_a)}</p>
                 <input
                   type="number"
                   min={0}
                   value={scores.score_a}
                   onChange={(e) => setScores({ ...scores, score_a: e.target.value })}
-                    className="w-full border rounded-lg px-3 py-2 text-center text-xl font-bold text-gray-900"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-center text-xl font-bold text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400"
                 />
               </div>
               <span className="text-gray-400 font-bold">:</span>
               <div className="text-center flex-1">
-                <p className="text-sm text-gray-500 mb-2">{getName(editMatch.participant_b)}</p>
+                <p className="text-sm font-medium text-gray-700 mb-2">{getName(editMatch.participant_b)}</p>
                 <input
                   type="number"
                   min={0}
                   value={scores.score_b}
                   onChange={(e) => setScores({ ...scores, score_b: e.target.value })}
-                    className="w-full border rounded-lg px-3 py-2 text-center text-xl font-bold text-gray-900"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-center text-xl font-bold text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400"
                 />
               </div>
             </div>
@@ -194,7 +194,7 @@ export default function BracketPage() {
             <div className="flex gap-3">
               <button
                 onClick={() => setEditMatch(null)}
-                className="flex-1 border rounded-lg px-4 py-2 cursor-pointer transition duration-200 hover:bg-gray-50 hover:-translate-y-0.5 hover:shadow-sm"
+                className="flex-1 border rounded-lg px-4 py-2 text-gray-700 cursor-pointer transition duration-200 hover:bg-gray-50 hover:-translate-y-0.5 hover:shadow-sm"
               >
                 Abbrechen
               </button>
