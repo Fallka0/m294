@@ -22,6 +22,9 @@ interface AuthFormValues {
 const fieldClassName =
   'w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400'
 
+const modeToggleBaseClassName =
+  'rounded-full border px-4 py-2 text-sm font-medium transition duration-200 hover:-translate-y-0.5 hover:shadow-sm'
+
 export default function AuthPage() {
   const { isAuthenticated, loading: authLoading } = useAuth()
   const [mode, setMode] = useState<AuthMode>('login')
@@ -149,8 +152,10 @@ export default function AuthPage() {
               <button
                 type="button"
                 onClick={() => setMode('login')}
-                className={`rounded-full px-4 py-2 text-sm font-medium transition duration-200 ${
-                  mode === 'login' ? 'bg-gray-950 text-white' : 'border border-gray-200 text-gray-600'
+                className={`${modeToggleBaseClassName} ${
+                  mode === 'login'
+                    ? 'border-gray-950 bg-gray-950 text-white'
+                    : 'border-gray-200 text-gray-600 hover:bg-gray-50'
                 }`}
               >
                 Sign in
@@ -158,8 +163,10 @@ export default function AuthPage() {
               <button
                 type="button"
                 onClick={() => setMode('signup')}
-                className={`rounded-full px-4 py-2 text-sm font-medium transition duration-200 ${
-                  mode === 'signup' ? 'bg-gray-950 text-white' : 'border border-gray-200 text-gray-600'
+                className={`${modeToggleBaseClassName} ${
+                  mode === 'signup'
+                    ? 'border-gray-950 bg-gray-950 text-white'
+                    : 'border-gray-200 text-gray-600 hover:bg-gray-50'
                 }`}
               >
                 Create account
