@@ -11,7 +11,7 @@ export default function Header() {
         </Link>
         <Link
           href="/tournaments/new"
-          className="bg-cyan-400 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-cyan-500 transition"
+          className="bg-cyan-400 text-white px-5 py-2 rounded-lg text-sm font-semibold cursor-pointer transition duration-200 hover:bg-cyan-500 hover:-translate-y-0.5 hover:shadow-md"
         >
           Create Tournament
         </Link>

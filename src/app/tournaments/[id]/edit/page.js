@@ -154,25 +154,24 @@ export default function EditTournament() {
           <button
             type="button"
             onClick={() => router.push(`/tournaments/${id}`)}
-            className="flex-1 border rounded-lg px-4 py-2 hover:bg-gray-50"
+            className="flex-1 border rounded-lg px-4 py-2 cursor-pointer transition duration-200 hover:bg-gray-50 hover:-translate-y-0.5 hover:shadow-sm"
           >
             Abbrechen
           </button>
           <button
             type="submit"
             disabled={saving}
-            className="flex-1 bg-blue-700 text-white rounded-lg px-4 py-2 hover:bg-blue-800 disabled:opacity-50"
+            className="flex-1 bg-blue-700 text-white rounded-lg px-4 py-2 cursor-pointer transition duration-200 hover:bg-blue-800 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
           >
             {saving ? 'Speichern...' : 'Speichern'}
           </button>
         </div>
 
-        {/* Löschen */}
         <div className="border-t pt-5 mt-2">
           <button
             type="button"
             onClick={handleDelete}
-            className="w-full border border-red-300 text-red-600 rounded-lg px-4 py-2 hover:bg-red-50"
+            className="w-full rounded-lg px-4 py-2 bg-red-50 border border-red-200 text-red-600 font-medium cursor-pointer transition duration-200 hover:bg-red-100 hover:border-red-300 hover:-translate-y-0.5 hover:shadow-sm"
           >
             Turnier löschen
           </button>

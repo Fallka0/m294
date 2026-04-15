@@ -42,12 +42,12 @@ export default function BracketPage() {
   }
 
   const generateBracket = async () => {
-    if (!confirm('Spielplan generieren? Bestehende Matches werden gelöscht.')) return
+    if (!confirm('Spielplan generieren? Bestehende Matches werden gelÃ¶scht.')) return
 
-    // Bestehende Matches löschen
+    // Bestehende Matches lÃ¶schen
     await supabase.from('matches').delete().eq('tournament_id', id)
 
-    // Teilnehmer zufällig mischen
+    // Teilnehmer zufÃ¤llig mischen
     const shuffled = [...participants].sort(() => Math.random() - 0.5)
     const newMatches = []
 
@@ -106,14 +106,14 @@ export default function BracketPage() {
             onClick={() => router.push(`/tournaments/${id}`)}
             className="text-sm text-gray-400 hover:text-gray-600 mb-2 block"
           >
-            ← Zurück
+            â† ZurÃ¼ck
           </button>
           <h1 className="text-3xl font-bold">{tournament?.name}</h1>
           <p className="text-gray-500 text-sm">Spielplan</p>
         </div>
         <button
           onClick={generateBracket}
-          className="bg-blue-700 text-white rounded-lg px-4 py-2 text-sm hover:bg-blue-800"
+          className="bg-blue-700 text-white rounded-lg px-4 py-2 text-sm cursor-pointer transition duration-200 hover:bg-blue-800 hover:-translate-y-0.5 hover:shadow-md"
         >
           {matches.length > 0 ? 'Neu generieren' : 'Spielplan generieren'}
         </button>
@@ -150,7 +150,7 @@ export default function BracketPage() {
                   )}
                   <button
                     onClick={() => openEdit(match)}
-                    className="text-sm border rounded-lg px-3 py-1 hover:bg-gray-50"
+                    className="text-sm border rounded-lg px-3 py-1 cursor-pointer transition duration-200 hover:bg-gray-50 hover:-translate-y-0.5 hover:shadow-sm"
                   >
                     {match.winner ? 'Bearbeiten' : 'Ergebnis'}
                   </button>
@@ -194,13 +194,13 @@ export default function BracketPage() {
             <div className="flex gap-3">
               <button
                 onClick={() => setEditMatch(null)}
-                className="flex-1 border rounded-lg px-4 py-2 hover:bg-gray-50"
+                className="flex-1 border rounded-lg px-4 py-2 cursor-pointer transition duration-200 hover:bg-gray-50 hover:-translate-y-0.5 hover:shadow-sm"
               >
                 Abbrechen
               </button>
               <button
                 onClick={saveResult}
-                className="flex-1 bg-blue-700 text-white rounded-lg px-4 py-2 hover:bg-blue-800"
+                className="flex-1 bg-blue-700 text-white rounded-lg px-4 py-2 cursor-pointer transition duration-200 hover:bg-blue-800 hover:-translate-y-0.5 hover:shadow-md"
               >
                 Speichern
               </button>

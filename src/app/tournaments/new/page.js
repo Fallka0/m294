@@ -141,14 +141,14 @@ export default function NewTournament() {
             <button
               type="button"
               onClick={() => router.push('/')}
-              className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-gray-700 font-semibold hover:bg-gray-50 transition"
+              className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-gray-700 font-semibold cursor-pointer transition duration-200 hover:bg-gray-50 hover:-translate-y-0.5 hover:shadow-sm"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 bg-cyan-400 text-white rounded-xl px-4 py-3 font-semibold hover:bg-cyan-500 transition disabled:opacity-50"
+              className="flex-1 bg-cyan-400 text-white rounded-xl px-4 py-3 font-semibold cursor-pointer transition duration-200 hover:bg-cyan-500 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
             >
               {loading ? 'Saving...' : 'Save Tournament'}
             </button>

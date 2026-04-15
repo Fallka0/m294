@@ -58,13 +58,13 @@ export default function TournamentDetail() {
   }
 
   const deleteTournament = async () => {
-    if (!confirm('Turnier wirklich lÃ¶schen?')) return
+    if (!confirm('Turnier wirklich lÃƒÆ’Ã‚Â¶schen?')) return
     await supabase.from('tournaments').delete().eq('id', id)
     router.push('/')
   }
 
   const generateBracket = async () => {
-    if (!confirm('Spielplan generieren? Bestehende Matches werden gelÃ¶scht.')) return
+    if (!confirm('Spielplan generieren? Bestehende Matches werden gelÃƒÆ’Ã‚Â¶scht.')) return
 
     await supabase.from('matches').delete().eq('tournament_id', id)
 
@@ -164,12 +164,11 @@ export default function TournamentDetail() {
 
   return (
     <main className="min-h-screen bg-gray-100">
-
       <FadeContent initialOpacity={0} duration={0.6} easing="ease-out">
-
         <div className="max-w-6xl mx-auto px-6 pt-4">
           <Link href="/" className="flex items-center gap-2 text-gray-500 hover:text-gray-700 text-sm">
-            â† Back to Dashboard
+            <Image src="/arrow-left.svg" alt="" width={16} height={16} className="h-4 w-4" aria-hidden="true" />
+            <span>Back to Dashboard</span>
           </Link>
         </div>
 
@@ -180,11 +179,8 @@ export default function TournamentDetail() {
         </div>
 
         <div className="max-w-6xl mx-auto px-6 mt-5 pb-10 grid grid-cols-1 lg:grid-cols-3 gap-5">
-
           <div className="bg-white rounded-2xl p-6 border border-gray-100">
-
             <div className="flex justify-between items-start mb-5">
-
               <BlurText
                 text={tournament.name}
                 delay={25}
@@ -193,7 +189,7 @@ export default function TournamentDetail() {
 
               <button
                 onClick={() => router.push(`/tournaments/${id}/edit`)}
-                className="text-gray-400 hover:text-gray-600 cursor-pointer"
+                className="text-gray-400 hover:text-gray-600 cursor-pointer transition duration-200 hover:-translate-y-0.5"
               >
                 <Image src="/edit.svg" alt="" width={18} height={18} className="h-[18px] w-[18px]" aria-hidden="true" />
               </button>
@@ -223,7 +219,9 @@ export default function TournamentDetail() {
               {participants.map((p, i) => (
                 <li key={p.id} className="flex justify-between bg-blue-50 px-3 py-2 rounded-lg">
                   <span>{i + 1}. {p.name}</span>
-                  <button onClick={() => removeParticipant(p.id)}>Ã—</button>
+                                    <button onClick={() => removeParticipant(p.id)} className="cursor-pointer transition duration-200 hover:-translate-y-0.5 hover:opacity-80">
+                    <Image src="/cross.svg" alt="Remove participant" width={14} height={14} className="h-3.5 w-3.5" />
+                  </button>
                 </li>
               ))}
             </ul>
@@ -236,14 +234,14 @@ export default function TournamentDetail() {
                 className="flex-1 border rounded-lg px-3 py-2 text-sm"
                 placeholder="Add participant"
               />
-              <button onClick={addParticipant} className="bg-cyan-400 text-white px-3 rounded-lg">
+              <button onClick={addParticipant} className="bg-cyan-400 text-white px-3 rounded-lg cursor-pointer transition duration-200 hover:bg-cyan-500 hover:-translate-y-0.5 hover:shadow-md">
                 +
               </button>
             </div>
 
             <button
               onClick={deleteTournament}
-              className="w-full mt-6 text-red-400 text-sm"
+              className="w-full mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-500 text-sm font-medium cursor-pointer transition duration-200 hover:bg-red-100 hover:border-red-300 hover:-translate-y-0.5 hover:shadow-sm"
             >
               Delete Tournament
             </button>
@@ -257,7 +255,7 @@ export default function TournamentDetail() {
                 className="text-2xl font-bold text-gray-900"
               />
               {participants.length >= 2 && (
-                <button onClick={generateBracket} className="bg-cyan-400 text-white rounded-xl px-4 py-2 text-sm font-semibold hover:bg-cyan-500 transition">
+                <button onClick={generateBracket} className="bg-cyan-400 text-white rounded-xl px-4 py-2 text-sm font-semibold cursor-pointer transition duration-200 hover:bg-cyan-500 hover:-translate-y-0.5 hover:shadow-md">
                   {matches.length > 0 ? 'Regenerate' : 'Generate Bracket'}
                 </button>
               )}
@@ -271,7 +269,6 @@ export default function TournamentDetail() {
                 onMatchClick={openEdit}
               />
             )}
-
           </div>
         </div>
       </FadeContent>
@@ -279,7 +276,6 @@ export default function TournamentDetail() {
       {editMatch && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-8 w-full max-w-sm shadow-xl">
-
             <h2 className="text-xl font-bold mb-4">Enter Result</h2>
 
             <div className="flex gap-4 mb-6">
@@ -298,18 +294,16 @@ export default function TournamentDetail() {
             </div>
 
             <div className="flex gap-2">
-              <button onClick={() => setEditMatch(null)} className="flex-1 border rounded-lg py-2">
+              <button onClick={() => setEditMatch(null)} className="flex-1 border rounded-lg py-2 cursor-pointer transition duration-200 hover:bg-gray-50 hover:-translate-y-0.5 hover:shadow-sm">
                 Cancel
               </button>
-              <button onClick={saveResult} className="flex-1 bg-cyan-400 text-white rounded-lg">
+              <button onClick={saveResult} className="flex-1 bg-cyan-400 text-white rounded-lg cursor-pointer transition duration-200 hover:bg-cyan-500 hover:-translate-y-0.5 hover:shadow-md">
                 Save
               </button>
             </div>
-
           </div>
         </div>
       )}
-
     </main>
   )
 }

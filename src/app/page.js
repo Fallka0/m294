@@ -90,7 +90,6 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gray-100 px-6 py-10">
       <div className="max-w-5xl mx-auto">
-
         <h1 className="text-3xl font-bold text-gray-900 mb-6 flex overflow-hidden">
           {titleWords.map((char, i) => (
             <motion.span
@@ -110,7 +109,7 @@ export default function Home() {
               key={f.key}
               onClick={() => setFilter(f.key)}
               whileTap={{ scale: 0.95 }}
-              className={`px-4 py-2 rounded-full text-sm font-medium border transition
+              className={`px-4 py-2 rounded-full text-sm font-medium border cursor-pointer transition duration-200 hover:-translate-y-0.5 hover:shadow-sm
                 ${filter === f.key
                   ? 'bg-gray-800 text-white border-gray-800'
                   : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
@@ -146,7 +145,6 @@ export default function Home() {
             ))}
           </AnimatePresence>
         </motion.div>
-
       </div>
     </main>
   )
