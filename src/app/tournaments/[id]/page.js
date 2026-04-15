@@ -3,10 +3,6 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter, useParams } from 'next/navigation'
 
-// React Bits Imports (Pfade ggf. anpassen)
-import BlurText from '@/components/react-bits/BlurText'
-import FadeContent from '@/components/react-bits/FadeContent'
-import ShinyText from '@/components/react-bits/ShinyText'
 
 export default function TournamentDetail() {
   const { id } = useParams()
