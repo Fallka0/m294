@@ -248,7 +248,16 @@ export default function TournamentDetail() {
                 </div>
                 <div className="col-span-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-4 backdrop-blur-sm">
                   <p className="text-xs uppercase tracking-[0.24em] text-white/40">Organizer</p>
-                  <p className="mt-2 text-lg font-semibold text-white">{isOwner ? 'You' : tournament.owner_name || 'Community organizer'}</p>
+                  {tournament.owner_id ? (
+                    <Link
+                      href={isOwner ? '/profile' : `/organizers/${tournament.owner_id}`}
+                      className="mt-2 inline-flex text-lg font-semibold text-white transition duration-200 hover:text-cyan-300"
+                    >
+                      {isOwner ? 'You' : tournament.owner_name || 'Community organizer'}
+                    </Link>
+                  ) : (
+                    <p className="mt-2 text-lg font-semibold text-white">Community organizer</p>
+                  )}
                 </div>
               </div>
             </div>

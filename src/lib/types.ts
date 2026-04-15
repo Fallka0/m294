@@ -5,8 +5,15 @@ export type TournamentMode = 'group' | 'knockout' | 'both'
 
 export interface Profile {
   id: string
+  email?: string | null
   username: string | null
   full_name: string | null
+  bio?: string | null
+  avatar_url?: string | null
+  banner_url?: string | null
+  website_url?: string | null
+  x_url?: string | null
+  github_url?: string | null
   created_at?: string | null
 }
 

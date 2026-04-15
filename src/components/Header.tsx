@@ -23,6 +23,12 @@ export default function Header() {
           {isAuthenticated ? (
             <>
               <Link
+                href="/profile"
+                className="rounded-full border border-white/10 px-4 py-2 text-sm font-medium text-white/80 transition duration-200 hover:border-white/20 hover:bg-white/5"
+              >
+                Profile
+              </Link>
+              <Link
                 href="/tournaments/new"
                 className="rounded-full border border-white/15 bg-white px-5 py-2.5 text-sm font-semibold text-gray-950 cursor-pointer transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(255,255,255,0.16)]"
               >

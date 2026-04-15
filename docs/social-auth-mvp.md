@@ -17,6 +17,7 @@ This app now expects Supabase Auth and a few extra database fields for:
    The app now supports `Google` and `GitHub`.
 5. Add your local and deployed auth callback URLs in the Supabase provider settings.
    For local dev, include `http://localhost:3000/auth`.
+6. If you want organizer profile customization, also run [profile-customization.sql](C:/Users/ampro/OneDrive/Documents/GitHub/m294/supabase/profile-customization.sql).
 
 ## What changes in the app
 

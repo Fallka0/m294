@@ -10,8 +10,20 @@ create table if not exists public.profiles (
   username text unique,
   full_name text,
   bio text default '',
+  avatar_url text default '',
+  banner_url text default '',
+  website_url text default '',
+  x_url text default '',
+  github_url text default '',
   created_at timestamptz not null default timezone('utc', now())
 );
+
+alter table public.profiles
+  add column if not exists avatar_url text default '',
+  add column if not exists banner_url text default '',
+  add column if not exists website_url text default '',
+  add column if not exists x_url text default '',
+  add column if not exists github_url text default '';
 
 alter table public.tournaments
   add column if not exists owner_id uuid references auth.users(id) on delete set null,
