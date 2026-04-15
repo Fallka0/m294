@@ -6,6 +6,7 @@ import type { Provider } from '@supabase/supabase-js'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useAuth } from '@/components/auth/AuthProvider'
+import { useTheme } from '@/components/theme/ThemeProvider'
 import { supabase } from '@/lib/supabase'
 import { setRememberPreference } from '@/lib/auth-storage'
 import { OAUTH_REDIRECT_URL, redirectLocalAuthPageToApp, redirectLocalCallbackToApp, redirectToApp } from '@/lib/auth-urls'
@@ -23,10 +24,11 @@ const fieldClassName =
   'w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400'
 
 const modeToggleBaseClassName =
-  'cursor-pointer rounded-full border px-4 py-2 text-sm font-medium transition duration-200 hover:-translate-y-0.5 hover:shadow-sm'
+  'rounded-full border px-4 py-2 text-sm font-medium transition duration-200 hover:-translate-y-0.5 hover:shadow-sm'
 
 export default function AuthPage() {
   const { isAuthenticated, loading: authLoading } = useAuth()
+  const { theme } = useTheme()
   const [mode, setMode] = useState<AuthMode>('login')
   const [loading, setLoading] = useState(false)
   const [oauthLoading, setOauthLoading] = useState<Provider | null>(null)
@@ -129,6 +131,10 @@ export default function AuthPage() {
     }
   }
 
+  const buttonCursorStyle = { cursor: 'pointer' as const }
+  const disabledCursorStyle = { cursor: 'not-allowed' as const }
+  const githubIconColor = theme === 'dark' ? '#f5f3ff' : '#111827'
+
   return (
     <main className="page-shell min-h-screen px-6 py-10 transition-colors duration-300">
       <div className="mx-auto flex max-w-6xl flex-col gap-8">
@@ -152,6 +158,7 @@ export default function AuthPage() {
               <button
                 type="button"
                 onClick={() => setMode('login')}
+                style={buttonCursorStyle}
                 className={`${modeToggleBaseClassName} ${
                   mode === 'login'
                     ? 'border-gray-950 bg-gray-950 text-white'
@@ -163,6 +170,7 @@ export default function AuthPage() {
               <button
                 type="button"
                 onClick={() => setMode('signup')}
+                style={buttonCursorStyle}
                 className={`${modeToggleBaseClassName} ${
                   mode === 'signup'
                     ? 'border-gray-950 bg-gray-950 text-white'
@@ -178,7 +186,8 @@ export default function AuthPage() {
                 type="button"
                 onClick={() => void handleOAuthSignIn('google')}
                 disabled={Boolean(oauthLoading) || loading}
-                className="flex cursor-pointer items-center justify-center gap-3 rounded-xl border border-gray-200 px-4 py-3 text-sm font-semibold text-gray-700 transition duration-200 hover:-translate-y-0.5 hover:bg-gray-50 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                style={Boolean(oauthLoading) || loading ? disabledCursorStyle : buttonCursorStyle}
+                className="flex items-center justify-center gap-3 rounded-xl border border-gray-200 px-4 py-3 text-sm font-semibold text-gray-700 transition duration-200 hover:-translate-y-0.5 hover:bg-gray-50 hover:shadow-sm disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none"
               >
                 <Image src="/google.svg" alt="" width={18} height={18} className="h-[18px] w-[18px]" aria-hidden="true" />
                 {oauthLoading === 'google' ? 'Redirecting...' : 'Continue with Google'}
@@ -187,9 +196,12 @@ export default function AuthPage() {
                 type="button"
                 onClick={() => void handleOAuthSignIn('github')}
                 disabled={Boolean(oauthLoading) || loading}
-                className="flex cursor-pointer items-center justify-center gap-3 rounded-xl border border-gray-200 px-4 py-3 text-sm font-semibold text-gray-700 transition duration-200 hover:-translate-y-0.5 hover:bg-gray-50 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                style={Boolean(oauthLoading) || loading ? disabledCursorStyle : buttonCursorStyle}
+                className="flex items-center justify-center gap-3 rounded-xl border border-gray-200 px-4 py-3 text-sm font-semibold text-gray-700 transition duration-200 hover:-translate-y-0.5 hover:bg-gray-50 hover:shadow-sm disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none"
               >
-                <Image src="/github.svg" alt="" width={18} height={18} className="theme-icon h-[18px] w-[18px]" aria-hidden="true" />
+                <svg viewBox="0 0 24 24" aria-hidden="true" className="h-[18px] w-[18px]" fill={githubIconColor}>
+                  <path d="M12 1.8a10.2 10.2 0 0 0-3.224 19.878c.51.094.695-.221.695-.49 0-.243-.009-.887-.014-1.742-2.828.615-3.425-1.363-3.425-1.363-.463-1.176-1.13-1.489-1.13-1.489-.924-.632.07-.62.07-.62 1.022.072 1.56 1.05 1.56 1.05.908 1.557 2.383 1.107 2.964.847.092-.658.356-1.108.648-1.362-2.257-.257-4.63-1.128-4.63-5.02 0-1.11.397-2.02 1.048-2.732-.105-.257-.454-1.293.099-2.695 0 0 .854-.274 2.8 1.043A9.73 9.73 0 0 1 12 6.726c.86.004 1.726.116 2.534.34 1.944-1.317 2.797-1.043 2.797-1.043.555 1.402.206 2.438.101 2.695.653.712 1.046 1.621 1.046 2.732 0 3.902-2.377 4.76-4.642 5.012.366.315.692.937.692 1.888 0 1.362-.013 2.46-.013 2.794 0 .271.183.589.701.489A10.2 10.2 0 0 0 12 1.8Z" />
+                </svg>
                 {oauthLoading === 'github' ? 'Redirecting...' : 'Continue with GitHub'}
               </button>
             </div>
@@ -282,7 +294,8 @@ export default function AuthPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 cursor-pointer rounded-xl bg-cyan-400 px-4 py-3 font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-cyan-500 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
+                  style={loading ? disabledCursorStyle : buttonCursorStyle}
+                  className="flex-1 rounded-xl bg-cyan-400 px-4 py-3 font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-cyan-500 hover:shadow-md disabled:opacity-60"
                 >
                   {loading ? 'Working...' : mode === 'signup' ? 'Create account' : 'Sign in'}
                 </button>
