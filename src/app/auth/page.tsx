@@ -3,8 +3,8 @@
 import type { ChangeEvent, FormEvent } from 'react'
 import { useEffect, useState } from 'react'
 import type { Provider } from '@supabase/supabase-js'
+import Image from 'next/image'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { supabase } from '@/lib/supabase'
 import { setRememberPreference } from '@/lib/auth-storage'
@@ -18,11 +18,19 @@ interface AuthFormValues {
   full_name: string
 }
 
+const APP_REDIRECT_URL = 'https://m294-d5ns.vercel.app'
+const OAUTH_REDIRECT_URL = `${APP_REDIRECT_URL}/auth`
+
 const fieldClassName =
   'w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400'
 
+function redirectToApp() {
+  if (typeof window !== 'undefined') {
+    window.location.replace(APP_REDIRECT_URL)
+  }
+}
+
 export default function AuthPage() {
-  const router = useRouter()
   const { isAuthenticated, loading: authLoading } = useAuth()
   const [mode, setMode] = useState<AuthMode>('login')
   const [loading, setLoading] = useState(false)
@@ -42,21 +50,19 @@ export default function AuthPage() {
 
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
-      router.replace('/')
+      redirectToApp()
     }
-  }, [authLoading, isAuthenticated, router])
+  }, [authLoading, isAuthenticated])
 
   const handleOAuthSignIn = async (provider: Provider) => {
     setMessage('')
     setOauthLoading(provider)
     setRememberPreference(rememberMe)
 
-    const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/auth` : undefined
-
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo,
+        redirectTo: OAUTH_REDIRECT_URL,
       },
     })
 
@@ -96,7 +102,7 @@ export default function AuthPage() {
         }
 
         setMessage('Account created. You are now signed in.')
-        router.push('/')
+        redirectToApp()
         return
       }
 
@@ -116,7 +122,7 @@ export default function AuthPage() {
         return
       }
 
-      router.push('/')
+      redirectToApp()
     } catch (error) {
       console.error('Auth submit error:', error)
       setMessage(error instanceof Error ? error.message : 'Could not sign in. Please try again.')
@@ -170,16 +176,18 @@ export default function AuthPage() {
                 type="button"
                 onClick={() => void handleOAuthSignIn('google')}
                 disabled={Boolean(oauthLoading) || loading}
-                className="rounded-xl border border-gray-200 px-4 py-3 text-sm font-semibold text-gray-700 transition duration-200 hover:-translate-y-0.5 hover:bg-gray-50 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                className="flex items-center justify-center gap-3 rounded-xl border border-gray-200 px-4 py-3 text-sm font-semibold text-gray-700 transition duration-200 hover:-translate-y-0.5 hover:bg-gray-50 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none"
               >
+                <Image src="/google.svg" alt="" width={18} height={18} className="h-[18px] w-[18px]" aria-hidden="true" />
                 {oauthLoading === 'google' ? 'Redirecting...' : 'Continue with Google'}
               </button>
               <button
                 type="button"
                 onClick={() => void handleOAuthSignIn('github')}
                 disabled={Boolean(oauthLoading) || loading}
-                className="rounded-xl border border-gray-200 px-4 py-3 text-sm font-semibold text-gray-700 transition duration-200 hover:-translate-y-0.5 hover:bg-gray-50 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                className="flex items-center justify-center gap-3 rounded-xl border border-gray-200 px-4 py-3 text-sm font-semibold text-gray-700 transition duration-200 hover:-translate-y-0.5 hover:bg-gray-50 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none"
               >
+                <Image src="/github.svg" alt="" width={18} height={18} className="h-[18px] w-[18px]" aria-hidden="true" />
                 {oauthLoading === 'github' ? 'Redirecting...' : 'Continue with GitHub'}
               </button>
             </div>
