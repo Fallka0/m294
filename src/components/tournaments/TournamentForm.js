@@ -132,6 +132,52 @@ export default function TournamentForm({
                 />
               </div>
 
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Description
+                </label>
+                <textarea
+                  name="description"
+                  rows={4}
+                  value={form.description}
+                  onChange={onChange}
+                  placeholder="What kind of tournament is this?"
+                  className={`${fieldClassName} resize-none`}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                  Visibility
+                </label>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {[
+                    { value: true, title: 'Public', description: 'Everyone can discover it and players can join if registration is open.' },
+                    { value: false, title: 'Private', description: 'Only you can manage it and it stays off the public feed.' },
+                  ].map((option) => (
+                    <label
+                      key={String(option.value)}
+                      className={`cursor-pointer rounded-2xl border px-4 py-4 transition duration-200 ${
+                        form.is_public === option.value
+                          ? 'border-cyan-300 bg-cyan-50 shadow-sm'
+                          : 'border-gray-200 bg-white hover:border-gray-300'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="is_public"
+                        value={String(option.value)}
+                        checked={form.is_public === option.value}
+                        onChange={onChange}
+                        className="sr-only"
+                      />
+                      <span className="block text-sm font-semibold text-gray-900">{option.title}</span>
+                      <span className="mt-2 block text-sm leading-6 text-gray-500">{option.description}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
               {showStatus && (
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -194,10 +240,14 @@ export default function TournamentForm({
                     <p className="text-sm text-gray-400">Sport</p>
                     <p className="font-medium text-gray-900">{form.sport || 'Not selected'}</p>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-400">Date</p>
-                    <p className="font-medium text-gray-900">{form.date || 'No date yet'}</p>
-                  </div>
+                <div>
+                  <p className="text-sm text-gray-400">Date</p>
+                  <p className="font-medium text-gray-900">{form.date || 'No date yet'}</p>
+                </div>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-400">Visibility</p>
+                  <p className="font-medium text-gray-900">{form.is_public ? 'Public' : 'Private'}</p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -208,6 +258,10 @@ export default function TournamentForm({
                     <p className="text-sm text-gray-400">Capacity</p>
                     <p className="font-medium text-gray-900">{form.max_participants || 0} players</p>
                   </div>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-400">Description</p>
+                  <p className="font-medium text-gray-900">{form.description || 'No description yet'}</p>
                 </div>
               </div>
             </div>

@@ -7,10 +7,12 @@ import Link from 'next/link'
 import TournamentBracket from '@/components/TournamentBracket'
 import FadeContent from '@/components/react-bits/FadeContent'
 import BlurText from '@/components/react-bits/BlurText'
+import { useAuth } from '@/components/auth/AuthProvider'
 
 export default function TournamentDetail() {
   const { id } = useParams()
   const router = useRouter()
+  const { user, profile, isAuthenticated } = useAuth()
   const [tournament, setTournament] = useState(null)
   const [participants, setParticipants] = useState([])
   const [matches, setMatches] = useState([])
@@ -35,6 +37,7 @@ export default function TournamentDetail() {
   }
 
   const addParticipant = async () => {
+    if (!isOwner) return
     if (!newName.trim()) return
     if (participants.length >= tournament.max_participants) {
       alert('Maximale Teilnehmerzahl erreicht.')
@@ -52,17 +55,20 @@ export default function TournamentDetail() {
   }
 
   const removeParticipant = async (participantId) => {
+    if (!isOwner) return
     await supabase.from('participants').delete().eq('id', participantId)
     fetchData()
   }
 
   const deleteTournament = async () => {
+    if (!isOwner) return
     if (!confirm('Turnier wirklich loeschen?')) return
     await supabase.from('tournaments').delete().eq('id', id)
     router.push('/')
   }
 
   const generateBracket = async () => {
+    if (!isOwner) return
     if (!confirm('Spielplan generieren? Bestehende Matches werden geloescht.')) return
 
     await supabase.from('matches').delete().eq('tournament_id', id)
@@ -92,6 +98,7 @@ export default function TournamentDetail() {
   }
 
   const saveResult = async () => {
+    if (!isOwner) return
     const score_a = parseInt(scores.score_a)
     const score_b = parseInt(scores.score_b)
 
@@ -148,6 +155,26 @@ export default function TournamentDetail() {
     return participants.find((participant) => participant.id === participantId)?.name || '?'
   }
 
+  const joinTournament = async () => {
+    if (!isAuthenticated) {
+      router.push('/auth')
+      return
+    }
+
+    if (!tournament?.is_public || isOwner || isJoined) return
+
+    const displayName = profile?.username || profile?.full_name || user?.email?.split('@')[0] || 'Player'
+    const { error } = await supabase.from('participants').insert([{
+      tournament_id: id,
+      name: displayName,
+      user_id: user.id,
+    }])
+
+    if (!error) {
+      fetchData()
+    }
+  }
+
   if (loading) return <p className="p-10 text-gray-500">Laden...</p>
   if (!tournament) return <p className="p-10 text-gray-500">Turnier nicht gefunden.</p>
 
@@ -161,6 +188,9 @@ export default function TournamentDetail() {
   const currentStatus = tournament.status ?? 'open'
   const banner = statusBanner[currentStatus] ?? statusBanner.open
   const rounds = [...new Set(matches.map((match) => match.round))].sort()
+  const isOwner = Boolean(user && tournament.owner_id === user.id)
+  const isJoined = Boolean(user && participants.some((participant) => participant.user_id === user.id))
+  const canJoin = tournament.is_public !== false && currentStatus === 'open' && !isOwner && !isJoined
 
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,#050505_0px,#050505_104px,#f5f5f5_104px,#f5f5f5_100%)]">
@@ -188,7 +218,11 @@ export default function TournamentDetail() {
                   <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">{tournament.sport}</span>
                   <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">{modeLabel[tournament.mode]}</span>
                   <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">{participants.length}/{tournament.max_participants} participants</span>
+                  <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">{tournament.is_public === false ? 'Private' : 'Public'}</span>
                 </div>
+                {tournament.description && (
+                  <p className="mt-5 max-w-2xl text-sm leading-7 text-white/65">{tournament.description}</p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3 lg:w-[320px]">
@@ -199,6 +233,12 @@ export default function TournamentDetail() {
                 <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 backdrop-blur-sm">
                   <p className="text-xs uppercase tracking-[0.24em] text-white/40">Matches</p>
                   <p className="mt-2 text-lg font-semibold text-white">{matches.length}</p>
+                </div>
+                <div className="col-span-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-4 backdrop-blur-sm">
+                  <p className="text-xs uppercase tracking-[0.24em] text-white/40">Organizer</p>
+                  <p className="mt-2 text-lg font-semibold text-white">
+                    {isOwner ? 'You' : (tournament.owner_name || 'Community organizer')}
+                  </p>
                 </div>
               </div>
             </div>
@@ -213,12 +253,14 @@ export default function TournamentDetail() {
                 <h2 className="mt-2 text-2xl font-semibold tracking-tight text-gray-950">{tournament.name}</h2>
               </div>
 
-              <button
-                onClick={() => router.push(`/tournaments/${id}/edit`)}
-                className="rounded-full border border-black/10 bg-white p-2 text-gray-400 shadow-sm cursor-pointer transition duration-200 hover:-translate-y-0.5 hover:text-gray-600"
-              >
-                <Image src="/edit.svg" alt="" width={18} height={18} className="h-[18px] w-[18px]" aria-hidden="true" />
-              </button>
+              {isOwner && (
+                <button
+                  onClick={() => router.push(`/tournaments/${id}/edit`)}
+                  className="rounded-full border border-black/10 bg-white p-2 text-gray-400 shadow-sm cursor-pointer transition duration-200 hover:-translate-y-0.5 hover:text-gray-600"
+                >
+                  <Image src="/edit.svg" alt="" width={18} height={18} className="h-[18px] w-[18px]" aria-hidden="true" />
+                </button>
+              )}
             </div>
 
             <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
@@ -248,32 +290,62 @@ export default function TournamentDetail() {
               {participants.map((participant, index) => (
                 <li key={participant.id} className="flex justify-between rounded-2xl border border-cyan-100 bg-cyan-50/70 px-4 py-3">
                   <span className="text-gray-900">{index + 1}. {participant.name}</span>
-                  <button onClick={() => removeParticipant(participant.id)} className="cursor-pointer transition duration-200 hover:-translate-y-0.5 hover:opacity-80">
-                    <Image src="/cross.svg" alt="Remove participant" width={14} height={14} className="h-3.5 w-3.5" />
-                  </button>
+                  {isOwner && (
+                    <button onClick={() => removeParticipant(participant.id)} className="cursor-pointer transition duration-200 hover:-translate-y-0.5 hover:opacity-80">
+                      <Image src="/cross.svg" alt="Remove participant" width={14} height={14} className="h-3.5 w-3.5" />
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>
 
-            <div className="flex gap-2">
-              <input
-                value={newName}
-                onChange={(event) => setNewName(event.target.value)}
-                onKeyDown={(event) => event.key === 'Enter' && addParticipant()}
-                className="flex-1 rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400"
-                placeholder="Add participant"
-              />
-              <button onClick={addParticipant} className="rounded-xl bg-cyan-400 px-4 text-white cursor-pointer transition duration-200 hover:bg-cyan-500 hover:-translate-y-0.5 hover:shadow-md">
-                +
-              </button>
-            </div>
+            {isOwner ? (
+              <div className="flex gap-2">
+                <input
+                  value={newName}
+                  onChange={(event) => setNewName(event.target.value)}
+                  onKeyDown={(event) => event.key === 'Enter' && addParticipant()}
+                  className="flex-1 rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                  placeholder="Add participant"
+                />
+                <button onClick={addParticipant} className="rounded-xl bg-cyan-400 px-4 text-white cursor-pointer transition duration-200 hover:bg-cyan-500 hover:-translate-y-0.5 hover:shadow-md">
+                  +
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {canJoin && (
+                  <button
+                    onClick={joinTournament}
+                    className="w-full rounded-xl bg-cyan-400 px-4 py-3 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-cyan-500 hover:shadow-md"
+                  >
+                    Join Tournament
+                  </button>
+                )}
+                {isJoined && (
+                  <div className="rounded-2xl border border-green-100 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
+                    You already joined this tournament.
+                  </div>
+                )}
+                {!isAuthenticated && tournament.is_public !== false && (
+                  <Link
+                    href="/auth"
+                    className="block rounded-xl border border-gray-200 px-4 py-3 text-center text-sm font-semibold text-gray-700 transition duration-200 hover:-translate-y-0.5 hover:bg-gray-50 hover:shadow-sm"
+                  >
+                    Sign in to join
+                  </Link>
+                )}
+              </div>
+            )}
 
-            <button
-              onClick={deleteTournament}
-              className="mt-6 w-full rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-500 cursor-pointer transition duration-200 hover:-translate-y-0.5 hover:border-red-300 hover:bg-red-100 hover:shadow-sm"
-            >
-              Delete Tournament
-            </button>
+            {isOwner && (
+              <button
+                onClick={deleteTournament}
+                className="mt-6 w-full rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-500 cursor-pointer transition duration-200 hover:-translate-y-0.5 hover:border-red-300 hover:bg-red-100 hover:shadow-sm"
+              >
+                Delete Tournament
+              </button>
+            )}
           </div>
 
           <div className="lg:col-span-2 rounded-[28px] border border-black/5 bg-white/95 p-6 text-gray-900 shadow-[0_16px_50px_rgba(15,23,42,0.08)]">
@@ -283,7 +355,7 @@ export default function TournamentDetail() {
                 <h2 className="mt-2 text-2xl font-semibold tracking-tight text-gray-950">Tournament Bracket</h2>
                 <p className="mt-2 text-sm text-gray-500">Generate matches and update results without leaving this page.</p>
               </div>
-              {participants.length >= 2 && (
+              {isOwner && participants.length >= 2 && (
                 <button onClick={generateBracket} className="rounded-xl bg-cyan-400 px-4 py-2 text-sm font-semibold text-white cursor-pointer transition duration-200 hover:-translate-y-0.5 hover:bg-cyan-500 hover:shadow-md">
                   {matches.length > 0 ? 'Regenerate' : 'Generate Bracket'}
                 </button>
@@ -295,7 +367,8 @@ export default function TournamentDetail() {
                 matches={matches}
                 participants={participants}
                 rounds={rounds}
-                onMatchClick={openEdit}
+                onMatchClick={isOwner ? openEdit : undefined}
+                locked={!isOwner}
               />
             )}
 
@@ -308,7 +381,7 @@ export default function TournamentDetail() {
         </div>
       </FadeContent>
 
-      {editMatch && (
+      {editMatch && isOwner && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="w-full max-w-sm rounded-2xl border border-gray-100 bg-white p-8 text-gray-900 shadow-xl">
             <h2 className="mb-2 text-xl font-bold text-gray-900">Enter Result</h2>

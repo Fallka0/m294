@@ -138,7 +138,7 @@ export default function TournamentBracket({
 
             const isSkeleton = match.isSkeleton
             const isClickable =
-              !isSkeleton && match.participant_a && match.participant_b
+              !isSkeleton && match.participant_a && match.participant_b && typeof onMatchClick === 'function'
 
             return (
               <div

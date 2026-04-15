@@ -14,7 +14,7 @@ const modeLabel = {
   both: 'Both',
 }
 
-export default function HomeTournamentCard({ tournament }) {
+export default function HomeTournamentCard({ tournament, isOwner = false, isJoined = false }) {
   const status = statusConfig[tournament.status ?? 'open'] ?? statusConfig.open
 
   return (
@@ -24,12 +24,29 @@ export default function HomeTournamentCard({ tournament }) {
         spotlightColor="rgba(8, 145, 178, 0.12)"
       >
         <div className="mb-3 flex items-start justify-between">
-          <h2 className="pr-2 text-lg font-bold leading-tight text-gray-900">
-            {tournament.name}
-          </h2>
-          <span className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${status.className}`}>
-            {status.label}
-          </span>
+          <div className="pr-2">
+            <h2 className="text-lg font-bold leading-tight text-gray-900">
+              {tournament.name}
+            </h2>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <span className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${status.className}`}>
+                {status.label}
+              </span>
+              <span className="rounded-full border border-black/10 px-3 py-1 text-xs font-medium text-gray-500">
+                {tournament.is_public ? 'Public' : 'Private'}
+              </span>
+              {isOwner && (
+                <span className="rounded-full border border-cyan-100 bg-cyan-50 px-3 py-1 text-xs font-medium text-cyan-700">
+                  Owner
+                </span>
+              )}
+              {isJoined && !isOwner && (
+                <span className="rounded-full border border-green-100 bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
+                  Joined
+                </span>
+              )}
+            </div>
+          </div>
         </div>
 
         <p className="mb-3 text-sm font-semibold text-gray-700">

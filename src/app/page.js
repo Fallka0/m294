@@ -4,36 +4,90 @@ import { supabase } from '@/lib/supabase'
 import HomeHero from '@/components/home/HomeHero'
 import HomeTournamentCard from '@/components/home/HomeTournamentCard'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useAuth } from '@/components/auth/AuthProvider'
 
 export default function Home() {
+  const { user, isAuthenticated, loading: authLoading } = useAuth()
   const [tournaments, setTournaments] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
+  const [scope, setScope] = useState('explore')
+  const [joinedTournamentIds, setJoinedTournamentIds] = useState([])
 
   useEffect(() => {
     const fetchTournaments = async () => {
-      const { data, error } = await supabase
+      setLoading(true)
+
+      let tournamentQuery = supabase
         .from('tournaments')
         .select('*')
         .order('created_at', { ascending: false })
+
+      if (user) {
+        tournamentQuery = tournamentQuery.or(`is_public.eq.true,owner_id.eq.${user.id}`)
+      } else {
+        tournamentQuery = tournamentQuery.eq('is_public', true)
+      }
+
+      const { data, error } = await tournamentQuery
+
       if (!error) {
-        setTournaments((data || []).map((tournament) => ({
+        const safeTournaments = (data || []).map((tournament) => ({
           ...tournament,
           status: tournament.status ?? 'open',
+          is_public: tournament.is_public ?? true,
+        }))
+
+        setTournaments(safeTournaments)
+
+        const tournamentIds = safeTournaments.map((tournament) => tournament.id)
+        const { data: participantData } = await supabase
+          .from('participants')
+          .select('tournament_id, user_id')
+          .in('tournament_id', tournamentIds.length ? tournamentIds : ['00000000-0000-0000-0000-000000000000'])
+
+        const counts = {}
+        const joinedIds = []
+
+        ;(participantData || []).forEach((participant) => {
+          counts[participant.tournament_id] = (counts[participant.tournament_id] || 0) + 1
+
+          if (user && participant.user_id === user.id) {
+            joinedIds.push(participant.tournament_id)
+          }
+        })
+
+        setJoinedTournamentIds(joinedIds)
+        setTournaments(safeTournaments.map((tournament) => ({
+          ...tournament,
+          current_participants: counts[tournament.id] || 0,
         })))
       }
       setLoading(false)
     }
-    fetchTournaments()
-  }, [])
+    if (!authLoading) {
+      fetchTournaments()
+    }
+  }, [authLoading, user])
 
-  const filtered = filter === 'all' ? tournaments : tournaments.filter((tournament) => tournament.status === filter)
+  const scoped = tournaments.filter((tournament) => {
+    if (scope === 'my') return user && tournament.owner_id === user.id
+    if (scope === 'joined') return joinedTournamentIds.includes(tournament.id)
+    return true
+  })
+
+  const filtered = filter === 'all' ? scoped : scoped.filter((tournament) => tournament.status === filter)
 
   const filters = [
     { key: 'all', label: 'All' },
     { key: 'open', label: 'Open' },
     { key: 'live', label: 'Live' },
     { key: 'finished', label: 'Finished' },
+  ]
+
+  const scopes = [
+    { key: 'explore', label: 'Explore' },
+    ...(isAuthenticated ? [{ key: 'my', label: 'My tournaments' }, { key: 'joined', label: 'Joined' }] : []),
   ]
 
   return (
@@ -52,7 +106,25 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-col gap-3 md:items-end">
+            <div className="flex flex-wrap gap-2">
+              {scopes.map((item) => (
+                <button
+                  key={item.key}
+                  type="button"
+                  onClick={() => setScope(item.key)}
+                  className={`rounded-full border px-4 py-2 text-sm font-medium transition duration-200 hover:-translate-y-0.5 hover:shadow-sm ${
+                    scope === item.key
+                      ? 'border-cyan-300 bg-cyan-50 text-cyan-700'
+                      : 'border-black/10 bg-white/90 text-gray-600 hover:bg-white'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap gap-2">
             {filters.map((f) => (
               <motion.button
                 key={f.key}
@@ -67,6 +139,7 @@ export default function Home() {
                 {f.label}
               </motion.button>
             ))}
+            </div>
           </div>
         </div>
 
@@ -98,7 +171,11 @@ export default function Home() {
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.3, delay: i * 0.05 }}
               >
-                <HomeTournamentCard tournament={t} />
+                <HomeTournamentCard
+                  tournament={t}
+                  isOwner={Boolean(user && t.owner_id === user.id)}
+                  isJoined={joinedTournamentIds.includes(t.id)}
+                />
               </motion.div>
             ))}
           </AnimatePresence>
