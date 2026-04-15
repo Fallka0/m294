@@ -138,3 +138,13 @@ body {
 [data-theme='dark'] [class*='hover:bg-cyan-400']:hover {
   background-color: var(--accent-strong) !important;
 }
+
+[data-theme='dark'] .hero-surface {
+  background:
+    radial-gradient(circle at top, rgba(124, 58, 237, 0.12), transparent 34%),
+    linear-gradient(180deg, #ffffff 0%, #f4f1ff 100%) !important;
+}
+
+[data-theme='dark'] .hero-title {
+  color: #111827 !important;
+}

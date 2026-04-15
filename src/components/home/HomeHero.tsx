@@ -15,7 +15,7 @@ export default function HomeHero({ tournaments }: HomeHeroProps) {
   ]
 
   return (
-    <section className="relative overflow-hidden rounded-[32px] border border-black/5 bg-[radial-gradient(circle_at_top,rgba(8,145,178,0.12),transparent_34%),linear-gradient(180deg,#ffffff_0%,#f7f7f7_100%)] px-7 py-8 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
+    <section className="hero-surface relative overflow-hidden rounded-[32px] border border-black/5 bg-[radial-gradient(circle_at_top,rgba(8,145,178,0.12),transparent_34%),linear-gradient(180deg,#ffffff_0%,#f7f7f7_100%)] px-7 py-8 shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
       <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-black/10 bg-black px-3 py-1 text-xs font-medium text-white">
         <span className="h-2 w-2 rounded-full bg-cyan-400" />
         Tournament overview
@@ -26,7 +26,7 @@ export default function HomeHero({ tournaments }: HomeHeroProps) {
           <BlurText
             text="Tournament control, without the chaos."
             delay={40}
-            className="text-4xl font-semibold tracking-tight text-gray-950 md:text-5xl"
+            className="hero-title text-4xl font-semibold tracking-tight text-gray-950 md:text-5xl"
           />
           <p className="mt-4 max-w-2xl text-base leading-7 text-gray-500">
             Keep your tournaments organized with a cleaner dashboard, clearer status tracking,
