@@ -275,29 +275,32 @@ export default function TournamentDetail() {
 
       {editMatch && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-8 w-full max-w-sm shadow-xl">
-            <h2 className="text-xl font-bold mb-4">Enter Result</h2>
+          <div className="bg-white rounded-2xl p-8 w-full max-w-sm shadow-xl border border-gray-100 text-gray-900">
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Enter Result</h2>
+            <p className="text-sm text-gray-500 mb-4">
+              {getName(editMatch.participant_a)} vs {getName(editMatch.participant_b)}
+            </p>
 
             <div className="flex gap-4 mb-6">
               <input
                 type="number"
                 value={scores.score_a}
                 onChange={(e) => setScores({ ...scores, score_a: e.target.value })}
-                className="w-full border rounded-lg p-2"
+                className="w-full border border-gray-200 rounded-lg px-4 py-3 text-lg font-semibold text-gray-900 bg-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400"
               />
               <input
                 type="number"
                 value={scores.score_b}
                 onChange={(e) => setScores({ ...scores, score_b: e.target.value })}
-                className="w-full border rounded-lg p-2"
+                className="w-full border border-gray-200 rounded-lg px-4 py-3 text-lg font-semibold text-gray-900 bg-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400"
               />
             </div>
 
             <div className="flex gap-2">
-              <button onClick={() => setEditMatch(null)} className="flex-1 border rounded-lg py-2 cursor-pointer transition duration-200 hover:bg-gray-50 hover:-translate-y-0.5 hover:shadow-sm">
+              <button onClick={() => setEditMatch(null)} className="flex-1 border border-gray-200 rounded-lg py-3 text-gray-700 font-medium cursor-pointer transition duration-200 hover:bg-gray-50 hover:-translate-y-0.5 hover:shadow-sm">
                 Cancel
               </button>
-              <button onClick={saveResult} className="flex-1 bg-cyan-400 text-white rounded-lg cursor-pointer transition duration-200 hover:bg-cyan-500 hover:-translate-y-0.5 hover:shadow-md">
+              <button onClick={saveResult} className="flex-1 bg-cyan-400 text-white rounded-lg py-3 font-semibold cursor-pointer transition duration-200 hover:bg-cyan-500 hover:-translate-y-0.5 hover:shadow-md">
                 Save
               </button>
             </div>
