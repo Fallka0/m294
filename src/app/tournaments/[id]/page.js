@@ -179,7 +179,7 @@ export default function TournamentDetail() {
         </div>
 
         <div className="max-w-6xl mx-auto px-6 mt-5 pb-10 grid grid-cols-1 lg:grid-cols-3 gap-5">
-          <div className="bg-white rounded-2xl p-6 border border-gray-100">
+          <div className="bg-white rounded-2xl p-6 border border-gray-100 text-gray-900">
             <div className="flex justify-between items-start mb-5">
               <BlurText
                 text={tournament.name}
@@ -198,15 +198,15 @@ export default function TournamentDetail() {
             <div className="flex flex-col gap-4 mb-6">
               <div>
                 <p className="text-xs text-gray-400">Sport</p>
-                <p className="font-semibold">{tournament.sport}</p>
+                <p className="font-semibold text-gray-900">{tournament.sport}</p>
               </div>
               <div>
                 <p className="text-xs text-gray-400">Mode</p>
-                <p>{modeLabel[tournament.mode]}</p>
+                <p className="text-gray-900">{modeLabel[tournament.mode]}</p>
               </div>
               <div>
                 <p className="text-xs text-gray-400">Participants</p>
-                <p className="inline-flex items-center gap-2"><Image src="/team.svg" alt="" width={18} height={18} className="h-[18px] w-[18px]" aria-hidden="true" />{participants.length}/{tournament.max_participants}</p>
+                <p className="inline-flex items-center gap-2 text-gray-900"><Image src="/team.svg" alt="" width={18} height={18} className="h-[18px] w-[18px]" aria-hidden="true" />{participants.length}/{tournament.max_participants}</p>
               </div>
             </div>
 
@@ -218,8 +218,8 @@ export default function TournamentDetail() {
             <ul className="flex flex-col gap-2 mb-4">
               {participants.map((p, i) => (
                 <li key={p.id} className="flex justify-between bg-blue-50 px-3 py-2 rounded-lg">
-                  <span>{i + 1}. {p.name}</span>
-                                    <button onClick={() => removeParticipant(p.id)} className="cursor-pointer transition duration-200 hover:-translate-y-0.5 hover:opacity-80">
+                  <span className="text-gray-900">{i + 1}. {p.name}</span>
+                  <button onClick={() => removeParticipant(p.id)} className="cursor-pointer transition duration-200 hover:-translate-y-0.5 hover:opacity-80">
                     <Image src="/cross.svg" alt="Remove participant" width={14} height={14} className="h-3.5 w-3.5" />
                   </button>
                 </li>
@@ -231,7 +231,7 @@ export default function TournamentDetail() {
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && addParticipant()}
-                className="flex-1 border rounded-lg px-3 py-2 text-sm"
+                className="flex-1 border rounded-lg px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400"
                 placeholder="Add participant"
               />
               <button onClick={addParticipant} className="bg-cyan-400 text-white px-3 rounded-lg cursor-pointer transition duration-200 hover:bg-cyan-500 hover:-translate-y-0.5 hover:shadow-md">
@@ -247,7 +247,7 @@ export default function TournamentDetail() {
             </button>
           </div>
 
-          <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-gray-100">
+          <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-gray-100 text-gray-900">
             <div className="flex justify-between items-center mb-6">
               <BlurText
                 text="Tournament Bracket"

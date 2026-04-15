@@ -99,7 +99,7 @@ export default function BracketPage() {
   const rounds = [...new Set(matches.map(m => m.round))].sort()
 
   return (
-    <main className="max-w-3xl mx-auto px-6 py-10">
+    <main className="max-w-3xl mx-auto px-6 py-10 text-gray-900">
       <div className="flex justify-between items-center mb-8">
         <div>
           <button
@@ -108,7 +108,7 @@ export default function BracketPage() {
           >
             â† ZurÃ¼ck
           </button>
-          <h1 className="text-3xl font-bold">{tournament?.name}</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{tournament?.name}</h1>
           <p className="text-gray-500 text-sm">Spielplan</p>
         </div>
         <button
@@ -125,14 +125,14 @@ export default function BracketPage() {
 
       {rounds.map(round => (
         <div key={round} className="mb-8">
-          <h2 className="text-lg font-semibold mb-3">Runde {round}</h2>
+          <h2 className="text-lg font-semibold mb-3 text-gray-900">Runde {round}</h2>
           <div className="flex flex-col gap-3">
             {matches.filter(m => m.round === round).map(match => (
               <div
                 key={match.id}
                 className="border rounded-xl px-5 py-4 flex justify-between items-center"
               >
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 text-gray-900">
                   <span className={`font-medium ${match.winner === match.participant_a ? 'text-blue-700' : ''}`}>
                     {getName(match.participant_a)}
                   </span>
@@ -175,7 +175,7 @@ export default function BracketPage() {
                   min={0}
                   value={scores.score_a}
                   onChange={(e) => setScores({ ...scores, score_a: e.target.value })}
-                  className="w-full border rounded-lg px-3 py-2 text-center text-xl font-bold"
+                    className="w-full border rounded-lg px-3 py-2 text-center text-xl font-bold text-gray-900"
                 />
               </div>
               <span className="text-gray-400 font-bold">:</span>
@@ -186,7 +186,7 @@ export default function BracketPage() {
                   min={0}
                   value={scores.score_b}
                   onChange={(e) => setScores({ ...scores, score_b: e.target.value })}
-                  className="w-full border rounded-lg px-3 py-2 text-center text-xl font-bold"
+                    className="w-full border rounded-lg px-3 py-2 text-center text-xl font-bold text-gray-900"
                 />
               </div>
             </div>
