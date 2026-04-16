@@ -12,6 +12,7 @@ interface ThemeContextValue {
 }
 
 const STORAGE_KEY = 'tournamenthub-theme'
+const EXPLICIT_CHOICE_KEY = 'tournamenthub-theme-explicit'
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 
@@ -19,11 +20,18 @@ function getPreferredTheme(): Theme {
   if (typeof window === 'undefined') return 'light'
 
   const stored = window.localStorage.getItem(STORAGE_KEY)
+  const hasExplicitChoice = window.localStorage.getItem(EXPLICIT_CHOICE_KEY) === 'true'
+  const isLocalhost = ['localhost', '127.0.0.1'].includes(window.location.hostname)
+
   if (stored === 'light' || stored === 'dark') {
+    if (!hasExplicitChoice && isLocalhost) {
+      return 'light'
+    }
+
     return stored
   }
 
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  return 'light'
 }
 
 interface ThemeProviderProps {
@@ -36,6 +44,12 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   useEffect(() => {
     const nextTheme = getPreferredTheme()
     setThemeState(nextTheme)
+    if (typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname)) {
+      const hasExplicitChoice = window.localStorage.getItem(EXPLICIT_CHOICE_KEY) === 'true'
+      if (!hasExplicitChoice) {
+        window.localStorage.setItem(STORAGE_KEY, nextTheme)
+      }
+    }
     document.documentElement.dataset.theme = nextTheme
   }, [])
 
@@ -43,6 +57,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     setThemeState(nextTheme)
     if (typeof window !== 'undefined') {
       window.localStorage.setItem(STORAGE_KEY, nextTheme)
+      window.localStorage.setItem(EXPLICIT_CHOICE_KEY, 'true')
     }
     document.documentElement.dataset.theme = nextTheme
   }
