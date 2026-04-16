@@ -133,8 +133,8 @@ describe('buildBracketProgressionChanges', () => {
     ])
   })
 
-  it('keeps downstream slot assignments stable even when fetched round order is scrambled', () => {
-    const matches = [
+  it('keeps downstream slot assignments stable after restoring the visible order', () => {
+    const visibleMatches = [
       createMatch({
         id: 'm1',
         participant_a: 'p1',
@@ -187,11 +187,14 @@ describe('buildBracketProgressionChanges', () => {
       }),
     ]
 
-    const reorderedRoundTwo = sortMatchesForBracket(matches).filter((match) => match.round === 2)
+    const savedOrder = buildBracketOrderMap(sortMatchesForBracket(visibleMatches))
+    const refetchedMatches = [visibleMatches[0], visibleMatches[1], visibleMatches[2], visibleMatches[3], visibleMatches[4], visibleMatches[5]]
+      .reverse()
+    const restoredMatches = applyBracketOrderMap(refetchedMatches, savedOrder)
 
-    expect(reorderedRoundTwo.map((match) => match.id)).toEqual(['z-top-slot', 'a-bottom-slot'])
+    expect(restoredMatches.filter((match) => match.round === 2).map((match) => match.id)).toEqual(['z-top-slot', 'a-bottom-slot'])
 
-    const updatedFirstMatch = matches.map((match) =>
+    const updatedFirstMatch = restoredMatches.map((match) =>
       match.id === 'm1'
         ? {
             ...match,
@@ -272,5 +275,67 @@ describe('buildBracketProgressionChanges', () => {
     const appliedMatches = applyBracketOrderMap(refetchedMatches, savedOrder)
 
     expect(appliedMatches.map((match) => match.id)).toEqual(['top-slot', 'bottom-slot'])
+  })
+
+  it('builds progression from the current visible match order', () => {
+    const matchesInVisibleOrder = [
+      createMatch({
+        id: 'visible-top-a',
+        participant_a: 'p5',
+        participant_b: 'p6',
+        score_a: 2,
+        score_b: 0,
+        winner: 'p5',
+        round: 1,
+        created_at: '2026-04-16T08:10:00.000Z',
+      }),
+      createMatch({
+        id: 'visible-top-b',
+        participant_a: 'p7',
+        participant_b: 'p8',
+        score_a: 0,
+        score_b: 2,
+        winner: 'p8',
+        round: 1,
+        created_at: '2026-04-16T08:15:00.000Z',
+      }),
+      createMatch({
+        id: 'visible-bottom-a',
+        participant_a: 'p1',
+        participant_b: 'p2',
+        score_a: 3,
+        score_b: 1,
+        winner: 'p1',
+        round: 1,
+        created_at: '2026-04-16T08:00:00.000Z',
+      }),
+      createMatch({
+        id: 'visible-bottom-b',
+        participant_a: 'p3',
+        participant_b: 'p4',
+        score_a: 2,
+        score_b: 0,
+        winner: 'p3',
+        round: 1,
+        created_at: '2026-04-16T08:05:00.000Z',
+      }),
+    ]
+
+    const { inserts } = buildBracketProgressionChanges('t-1', matchesInVisibleOrder)
+
+    expect(inserts).toEqual([
+      {
+        tournament_id: 't-1',
+        participant_a: 'p5',
+        participant_b: 'p8',
+        round: 2,
+      },
+      {
+        tournament_id: 't-1',
+        participant_a: 'p1',
+        participant_b: 'p3',
+        round: 2,
+      },
+    ])
   })
 })

@@ -136,7 +136,7 @@ export function mergeMatchesWithSavedBracketOrder(previousMatches: Match[], next
 }
 
 function buildRoundMap(matches: Match[]) {
-  return sortMatchesForBracket(matches).reduce<Map<number, Match[]>>((map, match) => {
+  return matches.reduce<Map<number, Match[]>>((map, match) => {
     const current = map.get(match.round) ?? []
     current.push(match)
     map.set(match.round, current)
@@ -179,7 +179,7 @@ export function getScoreValidationMessage(scoreA: string, scoreB: string) {
 }
 
 export function buildBracketProgressionChanges(tournamentId: string, matches: Match[]) {
-  const orderedMatches = sortMatchesForBracket(matches)
+  const orderedMatches = [...matches]
   const rounds = buildRoundMap(orderedMatches)
   const updates: MatchUpdate[] = []
   const inserts: MatchInsert[] = []
