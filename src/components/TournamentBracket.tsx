@@ -1,5 +1,4 @@
 import type { CSSProperties, MouseEvent } from 'react'
-import { sortMatchesForBracket } from '@/lib/bracket'
 import type { Match, MatchSlot, Participant } from '@/lib/types'
 
 interface TournamentBracketProps {
@@ -22,8 +21,6 @@ export default function TournamentBracket({
   onMatchClick,
   locked = false,
 }: TournamentBracketProps) {
-  const orderedMatches = sortMatchesForBracket(matches)
-
   const getName = (participantId: string | null) => {
     if (!participantId) return 'TBD'
     return participants.find((participant) => participant.id === participantId)?.name || 'TBD'
@@ -33,7 +30,7 @@ export default function TournamentBracket({
   const allRounds = Array.from({ length: totalRounds }, (_, index) => index + 1)
 
   const getMatchesForRound = (round: number): MatchSlot[] => {
-    const existing = orderedMatches.filter((match) => match.round === round)
+    const existing = matches.filter((match) => match.round === round)
     const expectedCount = Math.pow(2, totalRounds - round)
 
     return Array.from({ length: expectedCount }, (_, index) => {

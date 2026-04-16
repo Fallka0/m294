@@ -3,6 +3,7 @@ import {
   buildBracketProgressionChanges,
   createInitialBracketMatches,
   getScoreValidationMessage,
+  mergeMatchesWithSavedBracketOrder,
   sortMatchesForBracket,
 } from '@/lib/bracket'
 import type { Match } from '@/lib/types'
@@ -209,5 +210,48 @@ describe('buildBracketProgressionChanges', () => {
       score_b: null,
       winner: null,
     })
+  })
+
+  it('preserves visible round order for existing matches after a refetch', () => {
+    const previousMatches = [
+      createMatch({
+        id: 'top-slot',
+        participant_a: 'p1',
+        participant_b: 'p2',
+        round: 1,
+        created_at: '2026-04-16T08:00:00.000Z',
+      }),
+      createMatch({
+        id: 'bottom-slot',
+        participant_a: 'p3',
+        participant_b: 'p4',
+        round: 1,
+        created_at: '2026-04-16T08:05:00.000Z',
+      }),
+    ]
+
+    const refetchedMatches = [
+      createMatch({
+        id: 'bottom-slot',
+        participant_a: 'p3',
+        participant_b: 'p4',
+        round: 1,
+        score_a: 3,
+        score_b: 1,
+        winner: 'p3',
+        created_at: '2026-04-16T08:05:00.000Z',
+      }),
+      createMatch({
+        id: 'top-slot',
+        participant_a: 'p1',
+        participant_b: 'p2',
+        round: 1,
+        created_at: '2026-04-16T08:00:00.000Z',
+      }),
+    ]
+
+    const mergedMatches = mergeMatchesWithSavedBracketOrder(previousMatches, refetchedMatches)
+
+    expect(mergedMatches.map((match) => match.id)).toEqual(['top-slot', 'bottom-slot'])
   })
 })

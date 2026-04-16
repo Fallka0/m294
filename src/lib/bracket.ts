@@ -73,6 +73,54 @@ export function sortMatchesForBracket(matches: Match[]) {
   return orderedRounds.flatMap((round) => orderedMatchesByRound.get(round) ?? [])
 }
 
+export function mergeMatchesWithSavedBracketOrder(previousMatches: Match[], nextMatches: Match[]) {
+  if (previousMatches.length === 0) {
+    return sortMatchesForBracket(nextMatches)
+  }
+
+  const fallbackOrderedMatches = sortMatchesForBracket(nextMatches)
+  const previousRoundOrder = previousMatches.reduce<Map<number, string[]>>((map, match) => {
+    const current = map.get(match.round) ?? []
+    current.push(match.id)
+    map.set(match.round, current)
+    return map
+  }, new Map())
+  const nextMatchesByRound = fallbackOrderedMatches.reduce<Map<number, Match[]>>((map, match) => {
+    const current = map.get(match.round) ?? []
+    current.push(match)
+    map.set(match.round, current)
+    return map
+  }, new Map())
+  const orderedRounds = [...nextMatchesByRound.keys()].sort((left, right) => left - right)
+
+  return orderedRounds.flatMap((round) => {
+    const fallbackRoundMatches = nextMatchesByRound.get(round) ?? []
+    const savedOrder = previousRoundOrder.get(round)
+
+    if (!savedOrder || savedOrder.length === 0) {
+      return fallbackRoundMatches
+    }
+
+    const fallbackIndexById = new Map(fallbackRoundMatches.map((match, index) => [match.id, index]))
+
+    return [...fallbackRoundMatches].sort((left, right) => {
+      const savedLeftIndex = savedOrder.indexOf(left.id)
+      const savedRightIndex = savedOrder.indexOf(right.id)
+      const hasSavedLeftIndex = savedLeftIndex >= 0
+      const hasSavedRightIndex = savedRightIndex >= 0
+
+      if (hasSavedLeftIndex && hasSavedRightIndex) {
+        return savedLeftIndex - savedRightIndex
+      }
+
+      if (hasSavedLeftIndex) return -1
+      if (hasSavedRightIndex) return 1
+
+      return (fallbackIndexById.get(left.id) ?? Number.MAX_SAFE_INTEGER) - (fallbackIndexById.get(right.id) ?? Number.MAX_SAFE_INTEGER)
+    })
+  })
+}
+
 function buildRoundMap(matches: Match[]) {
   return sortMatchesForBracket(matches).reduce<Map<number, Match[]>>((map, match) => {
     const current = map.get(match.round) ?? []

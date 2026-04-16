@@ -13,7 +13,7 @@ import {
   buildBracketProgressionChanges,
   createInitialBracketMatches,
   getScoreValidationMessage,
-  sortMatchesForBracket,
+  mergeMatchesWithSavedBracketOrder,
 } from '@/lib/bracket'
 import { detailStatusBanner, getDisplayTournamentStatus, modeLabel } from '@/lib/tournaments'
 import type { Match, Participant, ScoreFormValues, Tournament } from '@/lib/types'
@@ -71,7 +71,7 @@ export default function TournamentDetail() {
 
     setTournament(baseTournament ? { ...baseTournament, owner_name: ownerName ?? 'Community organizer' } : null)
     setParticipants((participantData as Participant[] | null) ?? [])
-    setMatches(sortMatchesForBracket((matchData as Match[] | null) ?? []))
+    setMatches((current) => mergeMatchesWithSavedBracketOrder(current, (matchData as Match[] | null) ?? []))
     setLoading(false)
   }
 
@@ -189,7 +189,7 @@ export default function TournamentDetail() {
       .order('round', { ascending: true })
       .order('created_at', { ascending: true })
 
-    setMatches(sortMatchesForBracket((matchData as Match[] | null) ?? []))
+    setMatches((current) => mergeMatchesWithSavedBracketOrder(current, (matchData as Match[] | null) ?? []))
   }
 
   const getName = (participantId: string | null) => {
