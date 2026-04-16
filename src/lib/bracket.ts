@@ -72,6 +72,7 @@ function createRoundRobinRounds(participantIds: string[]) {
   if (participantIds.length <= 1) return [] as Array<Array<[string | null, string | null]>>
 
   const slots: Array<string | null> = [...participantIds]
+  // Add a bye slot for odd-sized groups so the round-robin rotation still works.
   if (slots.length % 2 !== 0) slots.push(null)
 
   const rounds: Array<Array<[string | null, string | null]>> = []
@@ -90,6 +91,7 @@ function createRoundRobinRounds(participantIds: string[]) {
 
     rounds.push(pairings)
 
+    // Keep the first slot fixed and rotate the rest to build the next round.
     const fixed = rotation[0]
     const moving = rotation.slice(1)
     moving.unshift(moving.pop() ?? null)
@@ -169,6 +171,8 @@ function buildConnectedGroups(participants: Participant[], matches: Match[]) {
   const visited = new Set<string>()
   const groups: string[][] = []
 
+  // Rebuild groups from the match graph so group-stage data stays usable even if
+  // we only persisted matches and participants.
   participants.forEach((participant) => {
     if (visited.has(participant.id)) return
 
@@ -410,6 +414,8 @@ function buildKnockoutProgressionChanges(tournamentId: string, matches: Match[],
       const expectedParticipantA = currentRoundMatches[index * 2]?.winner ?? null
       const expectedParticipantB = currentRoundMatches[index * 2 + 1]?.winner ?? null
       const hasBye = Boolean(expectedParticipantA && !expectedParticipantB)
+      // A downstream result only survives if the winner still belongs to the
+      // updated pairing after earlier rounds were edited.
       const currentWinnerStillValid = match.winner !== null && [expectedParticipantA, expectedParticipantB].includes(match.winner)
 
       const scoreA = hasBye ? 1 : currentWinnerStillValid ? match.score_a : null

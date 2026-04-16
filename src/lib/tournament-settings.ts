@@ -104,6 +104,8 @@ export function encodeTournamentDescription({
     team_size: sanitizeTeamSize(teamSize, entryType),
   }
 
+  // These format options are stored in the description block so older tournament
+  // rows stay readable without needing a schema change for every new setting.
   return `${SETTINGS_START}${JSON.stringify(payload)}${SETTINGS_END}\n${cleanDescription}`.trim()
 }
 
