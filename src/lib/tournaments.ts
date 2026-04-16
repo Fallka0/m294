@@ -1,15 +1,15 @@
 import type { Tournament, TournamentMode, TournamentStatus } from '@/lib/types'
 
 export const statusConfig: Record<TournamentStatus, { label: string; className: string }> = {
-  open: { label: 'Open', className: 'bg-green-500 text-white' },
-  live: { label: 'Live', className: 'bg-cyan-400 text-white' },
-  finished: { label: 'Finished', className: 'bg-gray-200 text-gray-500' },
+  open: { label: 'Open', className: 'app-status-open' },
+  live: { label: 'Live', className: 'app-status-live' },
+  finished: { label: 'Finished', className: 'app-status-finished' },
 }
 
 export const detailStatusBanner: Record<TournamentStatus, { label: string; className: string }> = {
-  open: { label: 'Registration Open', className: 'bg-green-400 text-white' },
-  live: { label: 'Tournament in Progress', className: 'bg-cyan-500 text-white' },
-  finished: { label: 'Tournament Finished', className: 'bg-gray-300 text-gray-700' },
+  open: { label: 'Registration Open', className: 'app-status-open' },
+  live: { label: 'Tournament in Progress', className: 'app-status-live' },
+  finished: { label: 'Tournament Finished', className: 'app-status-finished' },
 }
 
 export const modeLabel: Record<TournamentMode, string> = {

@@ -6,6 +6,8 @@ import type { Provider } from '@supabase/supabase-js'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useAuth } from '@/components/auth/AuthProvider'
+import PageHero from '@/components/layout/PageHero'
+import PageShell from '@/components/layout/PageShell'
 import { useTheme } from '@/components/theme/ThemeProvider'
 import { supabase } from '@/lib/supabase'
 import { setRememberPreference } from '@/lib/auth-storage'
@@ -23,7 +25,7 @@ interface AuthFormValues {
 }
 
 const fieldClassName =
-  'app-input w-full rounded-xl px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400'
+  'app-input w-full rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-cyan-400'
 
 const modeToggleBaseClassName =
   'rounded-full border px-4 py-2 text-sm font-medium transition duration-200 hover:-translate-y-0.5 hover:shadow-sm'
@@ -202,44 +204,36 @@ export default function AuthPage() {
   const getFieldClassName = (field: AuthFieldName) =>
     `${fieldClassName} ${((touched[field] || submitAttempted) && fieldErrors[field]) ? 'border-red-300 focus:ring-red-300' : ''}`
 
-  const buttonCursorStyle = { cursor: 'pointer' as const }
-  const disabledCursorStyle = { cursor: 'not-allowed' as const }
   const githubIconColor = theme === 'dark' ? '#f5f3ff' : '#111827'
   const messageClassName =
     messageTone === 'error'
-      ? 'border-red-200 bg-red-50 text-red-700'
+      ? 'app-banner-danger'
       : messageTone === 'success'
-        ? 'border-green-200 bg-green-50 text-green-700'
-        : 'border-cyan-100 bg-cyan-50 text-cyan-700'
+        ? 'app-banner-success'
+        : 'app-banner-info'
 
   return (
-    <main className="page-shell min-h-screen px-6 py-10 transition-colors duration-300">
-      <div className="mx-auto flex max-w-6xl flex-col gap-8">
-        <section className="overflow-hidden rounded-[32px] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.16),transparent_34%),linear-gradient(180deg,rgba(17,24,39,0.98)_0%,rgba(8,8,8,0.98)_100%)] px-7 py-8 text-white shadow-[0_24px_80px_rgba(2,8,23,0.35)]">
-          <div className="max-w-2xl">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-white/80">
-              <span className="h-2 w-2 rounded-full bg-cyan-400" />
-              Social tournament accounts
-            </div>
-            <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">Create your player identity.</h1>
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-white/65 md:text-base">
-              Sign in to manage your own tournaments, browse public ones from other organizers, and join public events
-              as a participant.
-            </p>
-          </div>
-        </section>
+    <PageShell>
+      <PageHero
+        variant="dark"
+        badge={
+          <>
+            <span className="h-2 w-2 rounded-full bg-cyan-400" />
+            Social tournament accounts
+          </>
+        }
+        title={<h1 className="text-4xl font-semibold tracking-tight md:text-5xl">Create your player identity.</h1>}
+        description="Sign in to manage your own tournaments, browse public ones from other organizers, and join public events as a participant."
+      />
 
-        <div className="grid gap-6 lg:grid-cols-[1fr_0.7fr]">
-          <section className="app-card rounded-[32px] p-8 md:p-10">
+      <div className="grid gap-6 lg:grid-cols-[1fr_0.7fr]">
+        <section className="app-card rounded-[32px] p-8 md:p-10">
             <div className="mb-6 flex gap-3">
               <button
                 type="button"
                 onClick={() => switchMode('login')}
-                style={buttonCursorStyle}
                 className={`${modeToggleBaseClassName} ${
-                  mode === 'login'
-                    ? 'border-gray-950 bg-gray-950 text-white'
-                    : 'app-button-secondary'
+                  mode === 'login' ? 'app-chip-selected' : 'app-button-secondary'
                 }`}
               >
                 Sign in
@@ -247,11 +241,8 @@ export default function AuthPage() {
               <button
                 type="button"
                 onClick={() => switchMode('signup')}
-                style={buttonCursorStyle}
                 className={`${modeToggleBaseClassName} ${
-                  mode === 'signup'
-                    ? 'border-gray-950 bg-gray-950 text-white'
-                    : 'app-button-secondary'
+                  mode === 'signup' ? 'app-chip-selected' : 'app-button-secondary'
                 }`}
               >
                 Create account
@@ -263,7 +254,6 @@ export default function AuthPage() {
                 type="button"
                 onClick={() => void handleOAuthSignIn('google')}
                 disabled={Boolean(oauthLoading) || loading}
-                style={Boolean(oauthLoading) || loading ? disabledCursorStyle : buttonCursorStyle}
                 className="app-button-secondary flex items-center justify-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition duration-200 hover:-translate-y-0.5 disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none"
               >
                 <Image src="/google.svg" alt="" width={18} height={18} className="h-[18px] w-[18px]" aria-hidden="true" />
@@ -273,7 +263,6 @@ export default function AuthPage() {
                 type="button"
                 onClick={() => void handleOAuthSignIn('github')}
                 disabled={Boolean(oauthLoading) || loading}
-                style={Boolean(oauthLoading) || loading ? disabledCursorStyle : buttonCursorStyle}
                 className="app-button-secondary flex items-center justify-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition duration-200 hover:-translate-y-0.5 disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none"
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true" className="h-[18px] w-[18px]" fill={githubIconColor}>
@@ -284,18 +273,18 @@ export default function AuthPage() {
             </div>
 
             <div className="mb-6 flex items-center gap-3">
-              <div className="h-px flex-1 bg-gray-200" />
-              <span className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400">
+              <div className="app-divider h-px flex-1" />
+              <span className="app-eyebrow tracking-[0.2em]">
                 Or use email
               </span>
-              <div className="h-px flex-1 bg-gray-200" />
+              <div className="app-divider h-px flex-1" />
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
               {mode === 'signup' && (
                 <div className="grid gap-5 md:grid-cols-2">
                   <div>
-                    <label className="mb-2 block text-sm font-semibold text-gray-700">Username</label>
+                    <label className="app-text-primary mb-2 block text-sm font-semibold">Username</label>
                     <input
                       name="username"
                       required
@@ -307,11 +296,11 @@ export default function AuthPage() {
                       autoComplete="username"
                     />
                     {(touched.username || submitAttempted) && fieldErrors.username && (
-                      <p className="mt-2 text-sm text-red-500">{fieldErrors.username}</p>
+                      <p className="app-banner-danger mt-2 rounded-xl px-3 py-2 text-sm">{fieldErrors.username}</p>
                     )}
                   </div>
                   <div>
-                    <label className="mb-2 block text-sm font-semibold text-gray-700">Full name</label>
+                    <label className="app-text-primary mb-2 block text-sm font-semibold">Full name</label>
                     <input
                       name="full_name"
                       required
@@ -323,14 +312,14 @@ export default function AuthPage() {
                       autoComplete="name"
                     />
                     {(touched.full_name || submitAttempted) && fieldErrors.full_name && (
-                      <p className="mt-2 text-sm text-red-500">{fieldErrors.full_name}</p>
+                      <p className="app-banner-danger mt-2 rounded-xl px-3 py-2 text-sm">{fieldErrors.full_name}</p>
                     )}
                   </div>
                 </div>
               )}
 
               <div>
-                <label className="mb-2 block text-sm font-semibold text-gray-700">Email</label>
+                <label className="app-text-primary mb-2 block text-sm font-semibold">Email</label>
                 <input
                   name="email"
                   type="email"
@@ -343,12 +332,12 @@ export default function AuthPage() {
                   autoComplete="email"
                 />
                 {(touched.email || submitAttempted) && fieldErrors.email && (
-                  <p className="mt-2 text-sm text-red-500">{fieldErrors.email}</p>
+                  <p className="app-banner-danger mt-2 rounded-xl px-3 py-2 text-sm">{fieldErrors.email}</p>
                 )}
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-semibold text-gray-700">Password</label>
+                <label className="app-text-primary mb-2 block text-sm font-semibold">Password</label>
                 <div className="relative">
                   <input
                     name="password"
@@ -364,28 +353,27 @@ export default function AuthPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword((current) => !current)}
-                    style={buttonCursorStyle}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-gray-500 transition duration-200 hover:text-gray-700"
+                    className="app-text-secondary absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium transition duration-200 hover:text-[var(--text-primary)]"
                   >
                     {showPassword ? 'Hide' : 'Show'}
                   </button>
                 </div>
                 {(touched.password || submitAttempted) && fieldErrors.password ? (
-                  <p className="mt-2 text-sm text-red-500">{fieldErrors.password}</p>
+                  <p className="app-banner-danger mt-2 rounded-xl px-3 py-2 text-sm">{fieldErrors.password}</p>
                 ) : (
-                  <p className="mt-2 text-sm text-gray-500">
+                  <p className="app-text-secondary mt-2 text-sm">
                     {mode === 'signup' ? 'Use at least 6 characters for your new account.' : 'Use the password tied to your account.'}
                   </p>
                 )}
               </div>
 
               {mode === 'login' && (
-                <label className="flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3 text-sm text-gray-600">
+                <label className="app-chip flex items-center gap-3 rounded-2xl px-4 py-3 text-sm">
                   <input
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(event) => setRememberMe(event.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 text-cyan-500 focus:ring-cyan-400"
+                    className="h-4 w-4 rounded border-[color:var(--border-subtle)] text-cyan-500 focus:ring-cyan-400"
                   />
                   <span>
                     Remember me
@@ -405,36 +393,34 @@ export default function AuthPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  style={loading ? disabledCursorStyle : buttonCursorStyle}
-                  className="flex-1 rounded-xl bg-cyan-400 px-4 py-3 font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-cyan-500 hover:shadow-md disabled:opacity-60"
+                  className="app-button-primary flex-1 rounded-xl px-4 py-3 font-semibold transition duration-200 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-60"
                 >
                   {loading ? 'Working...' : mode === 'signup' ? 'Create account' : 'Sign in'}
                 </button>
               </div>
             </form>
-          </section>
+        </section>
 
-          <aside className="space-y-4">
-            <div className="app-card-elevated rounded-[28px] p-6">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-400">What you unlock</p>
-              <ul className="mt-4 space-y-3 text-sm leading-6 text-gray-500">
-                <li>Create tournaments that are tied to your account.</li>
-                <li>Keep some tournaments public and others private.</li>
-                <li>Join public tournaments from other organizers.</li>
-                <li>See your own and joined tournaments separately on the dashboard.</li>
-              </ul>
-            </div>
-            <div className="app-muted-panel rounded-[28px] p-6">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-400">Quick checks</p>
-              <ul className="mt-4 space-y-3 text-sm leading-6 text-gray-500">
-                <li>Username is only required when creating a new account.</li>
-                <li>OAuth buttons use the same redirect flow as email sign-in.</li>
-                <li>Your password can stay visible while you verify it, then be hidden again.</li>
-              </ul>
-            </div>
-          </aside>
-        </div>
+        <aside className="space-y-4">
+          <div className="app-card-elevated rounded-[28px] p-6">
+            <p className="app-eyebrow">What you unlock</p>
+            <ul className="app-text-secondary mt-4 space-y-3 text-sm leading-6">
+              <li>Create tournaments that are tied to your account.</li>
+              <li>Keep some tournaments public and others private.</li>
+              <li>Join public tournaments from other organizers.</li>
+              <li>See your own and joined tournaments separately on the dashboard.</li>
+            </ul>
+          </div>
+          <div className="app-muted-panel rounded-[28px] p-6">
+            <p className="app-eyebrow">Quick checks</p>
+            <ul className="app-text-secondary mt-4 space-y-3 text-sm leading-6">
+              <li>Username is only required when creating a new account.</li>
+              <li>OAuth buttons use the same redirect flow as email sign-in.</li>
+              <li>Your password can stay visible while you verify it, then be hidden again.</li>
+            </ul>
+          </div>
+        </aside>
       </div>
-    </main>
+    </PageShell>
   )
 }

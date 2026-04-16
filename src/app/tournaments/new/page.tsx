@@ -65,7 +65,7 @@ export default function NewTournament() {
     setLoading(false)
   }
 
-  if (authLoading || !isAuthenticated) return <p className="p-10 text-gray-500">Loading...</p>
+  if (authLoading || !isAuthenticated) return <p className="app-text-secondary p-10">Loading...</p>
 
   return (
     <TournamentForm

@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
+import PageShell from '@/components/layout/PageShell'
 import OrganizerProfileCard from '@/components/profile/OrganizerProfileCard'
 import { supabase } from '@/lib/supabase'
 import { normalizeTournament } from '@/lib/tournaments'
@@ -32,50 +33,48 @@ export default function OrganizerPublicPage() {
     void fetchOrganizer()
   }, [id])
 
-  if (loading) return <p className="p-10 text-gray-500">Loading...</p>
-  if (!profile) return <p className="p-10 text-gray-500">Organizer not found.</p>
+  if (loading) return <p className="app-text-secondary p-10">Loading...</p>
+  if (!profile) return <p className="app-text-secondary p-10">Organizer not found.</p>
 
   return (
-    <main className="page-shell min-h-screen px-6 py-10 transition-colors duration-300">
-      <div className="mx-auto flex max-w-6xl flex-col gap-8">
-        <Link href="/" className="text-sm text-white/60 transition duration-200 hover:text-white">
-          Back to Dashboard
-        </Link>
+    <PageShell>
+      <Link href="/" className="app-link-muted text-sm transition duration-200">
+        Back to Dashboard
+      </Link>
 
-        <OrganizerProfileCard profile={profile} />
+      <OrganizerProfileCard profile={profile} />
 
-        <section className="app-card rounded-[32px] p-8">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-400">Organizer feed</p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-gray-950">Public tournaments</h2>
+      <section className="app-card rounded-[32px] p-8">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="app-eyebrow">Organizer feed</p>
+            <h2 className="app-text-primary mt-2 text-2xl font-semibold tracking-tight">Public tournaments</h2>
+          </div>
+          <span className="app-chip rounded-full px-3 py-1 text-xs font-medium">
+            {tournaments.length} listed
+          </span>
+        </div>
+
+        <div className="mt-6 grid gap-4 md:grid-cols-2">
+          {tournaments.map((tournament) => (
+            <Link
+              key={tournament.id}
+              href={`/tournaments/${tournament.id}`}
+              className="app-card-elevated block rounded-2xl px-5 py-4 transition duration-200 hover:-translate-y-0.5 hover:shadow-sm"
+            >
+              <p className="app-text-primary text-lg font-semibold">{tournament.name}</p>
+              <p className="app-text-secondary mt-2 text-sm">
+                {tournament.sport} • {tournament.date}
+              </p>
+            </Link>
+          ))}
+          {tournaments.length === 0 && (
+            <div className="app-empty-state rounded-2xl px-5 py-8 text-sm">
+              No public tournaments yet.
             </div>
-            <span className="app-muted-panel rounded-full px-3 py-1 text-xs font-medium text-gray-500">
-              {tournaments.length} listed
-            </span>
-          </div>
-
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
-            {tournaments.map((tournament) => (
-              <Link
-                key={tournament.id}
-                href={`/tournaments/${tournament.id}`}
-                className="app-card-elevated block rounded-2xl px-5 py-4 transition duration-200 hover:-translate-y-0.5 hover:shadow-sm"
-              >
-                <p className="text-lg font-semibold text-gray-950">{tournament.name}</p>
-                <p className="mt-2 text-sm text-gray-500">
-                  {tournament.sport} • {tournament.date}
-                </p>
-              </Link>
-            ))}
-            {tournaments.length === 0 && (
-              <div className="app-empty-state rounded-2xl px-5 py-8 text-sm">
-                No public tournaments yet.
-              </div>
-            )}
-          </div>
-        </section>
-      </div>
-    </main>
+          )}
+        </div>
+      </section>
+    </PageShell>
   )
 }

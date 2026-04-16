@@ -95,8 +95,8 @@ export default function EditTournament() {
     router.push('/')
   }
 
-  if (authLoading || !isAuthenticated) return <p className="p-10 text-gray-500">Loading...</p>
-  if (loading) return <p className="p-10 text-gray-500">Laden...</p>
+  if (authLoading || !isAuthenticated) return <p className="app-text-secondary p-10">Loading...</p>
+  if (loading) return <p className="app-text-secondary p-10">Laden...</p>
 
   return (
     <TournamentForm
