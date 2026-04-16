@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { Geist, Geist_Mono } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import './globals.css'
 import Header from '@/components/Header'
@@ -34,6 +35,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           <AuthProvider>
             <Header />
             {children}
+            <Analytics />
             <SpeedInsights />
           </AuthProvider>
         </ThemeProvider>
