@@ -1,4 +1,11 @@
 import type { Tournament, TournamentMode, TournamentStatus } from '@/lib/types'
+import { normalizeTournamentSettings } from '@/lib/tournament-settings'
+
+export const matchFormatLabel = {
+  bo1: 'Best of 1',
+  bo3: 'Best of 3',
+  bo5: 'Best of 5',
+} as const
 
 export const statusConfig: Record<TournamentStatus, { label: string; className: string }> = {
   open: { label: 'Open', className: 'app-status-open' },
@@ -44,13 +51,13 @@ export const statusOptions: Array<{ value: TournamentStatus; label: string }> = 
 ]
 
 export function normalizeTournament(tournament: Tournament): Tournament {
-  return {
+  return normalizeTournamentSettings({
     ...tournament,
     status: tournament.status ?? 'open',
     is_public: tournament.is_public ?? true,
     current_participants: tournament.current_participants ?? 0,
     description: tournament.description ?? '',
-  }
+  })
 }
 
 export function formatTournamentDate(date: string): string {

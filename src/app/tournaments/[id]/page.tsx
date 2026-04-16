@@ -4,13 +4,14 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import GroupStageOverview from '@/components/GroupStageOverview'
 import TournamentBracket from '@/components/TournamentBracket'
 import FadeContent from '@/components/react-bits/FadeContent'
 import BlurText from '@/components/react-bits/BlurText'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { supabase } from '@/lib/supabase'
-import { buildBracketProgressionChanges, createInitialBracketMatches, getScoreValidationMessage } from '@/lib/bracket'
-import { detailStatusBanner, getDisplayTournamentStatus, modeLabel } from '@/lib/tournaments'
+import { buildBracketProgressionChanges, createInitialBracketMatches, getScoreValidationMessage, getTournamentStructure } from '@/lib/bracket'
+import { detailStatusBanner, getDisplayTournamentStatus, matchFormatLabel, modeLabel, normalizeTournament } from '@/lib/tournaments'
 import type { Match, Participant, ScoreFormValues, Tournament } from '@/lib/types'
 
 export default function TournamentDetail() {
@@ -48,7 +49,7 @@ export default function TournamentDetail() {
       .order('round', { ascending: true })
       .order('created_at', { ascending: true })
 
-    const baseTournament = (tournamentData as Tournament | null) ?? null
+    const baseTournament = tournamentData ? normalizeTournament(tournamentData as Tournament) : null
     let ownerName = baseTournament?.owner_name ?? null
 
     if (baseTournament?.owner_id) {
@@ -77,10 +78,26 @@ export default function TournamentDetail() {
   const canJoin = Boolean(
     tournament && tournament.is_public !== false && currentStatus === 'open' && !isOwner && !isJoined && !isFull,
   )
-  const rounds = useMemo(
-    () => [...new Set(matches.map((match) => match.round))].sort((left, right) => left - right),
-    [matches],
+  const structure = useMemo(
+    () => (tournament ? getTournamentStructure(tournament.mode, tournament.group_count ?? 1, participants, matches) : null),
+    [matches, participants, tournament],
   )
+  const rounds = useMemo(
+    () =>
+      structure
+        ? [...new Set(structure.knockoutMatches.map((match) => match.round))].sort((left, right) => left - right)
+        : [],
+    [structure],
+  )
+  const knockoutParticipants = useMemo(() => {
+    if (!structure) return participants
+
+    const participantIds = new Set(
+      structure.knockoutMatches.flatMap((match) => [match.participant_a, match.participant_b]).filter(Boolean) as string[],
+    )
+
+    return participants.filter((participant) => participantIds.has(participant.id))
+  }, [participants, structure])
 
   const addParticipant = async () => {
     if (!tournament || !isOwner || !newName.trim()) return
@@ -111,7 +128,7 @@ export default function TournamentDetail() {
   }
 
   const generateBracket = async () => {
-    if (!isOwner) return
+    if (!tournament || !isOwner) return
     if (!confirm('Generate bracket? Existing matches will be deleted.')) return
 
     await supabase.from('matches').delete().eq('tournament_id', id)
@@ -119,6 +136,8 @@ export default function TournamentDetail() {
     const newMatches = createInitialBracketMatches(
       id,
       participants.map((participant) => participant.id),
+      tournament.mode,
+      tournament.group_count ?? 1,
     )
 
     if (newMatches.length > 0) {
@@ -137,9 +156,9 @@ export default function TournamentDetail() {
   }
 
   const saveResult = async () => {
-    if (!editMatch || !isOwner) return
+    if (!editMatch || !isOwner || !tournament) return
 
-    const validationMessage = getScoreValidationMessage(scores.score_a, scores.score_b)
+    const validationMessage = getScoreValidationMessage(scores.score_a, scores.score_b, tournament.match_format ?? 'bo1')
     if (validationMessage) {
       setScoreError(validationMessage)
       return
@@ -154,7 +173,13 @@ export default function TournamentDetail() {
     const updatedMatches = matches.map((match) =>
       match.id === editMatch.id ? { ...match, score_a: scoreA, score_b: scoreB, winner } : match,
     )
-    const { updates, inserts } = buildBracketProgressionChanges(id, updatedMatches)
+    const { updates, inserts } = buildBracketProgressionChanges(
+      id,
+      updatedMatches,
+      tournament.mode,
+      tournament.group_count ?? 1,
+      participants,
+    )
 
     await Promise.all(
       updates.map((match) =>
@@ -249,6 +274,12 @@ export default function TournamentDetail() {
   if (!tournament) return <p className="app-text-secondary p-10">Tournament not found.</p>
 
   const banner = detailStatusBanner[currentStatus]
+  const stageDescription =
+    tournament.mode === 'group'
+      ? 'Generate groups, report results, and track standings in one place.'
+      : tournament.mode === 'both'
+        ? 'Play the group stage first, then move qualified teams into the knockout bracket.'
+        : 'Generate matches and update results without leaving this page.'
 
   return (
     <main className="page-shell min-h-screen transition-colors duration-300">
@@ -285,6 +316,12 @@ export default function TournamentDetail() {
                 <div className="mt-4 flex flex-wrap gap-3 text-sm text-white/80">
                   <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">{tournament.sport}</span>
                   <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">{modeLabel[tournament.mode]}</span>
+                  <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">{matchFormatLabel[tournament.match_format ?? 'bo1']}</span>
+                  {(tournament.mode === 'group' || tournament.mode === 'both') && (
+                    <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">
+                      {tournament.group_count ?? 1} group{(tournament.group_count ?? 1) === 1 ? '' : 's'}
+                    </span>
+                  )}
                   <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">
                     {participants.length}/{tournament.max_participants} participants
                   </span>
@@ -350,15 +387,19 @@ export default function TournamentDetail() {
                 <p className="app-text-primary">{modeLabel[tournament.mode]}</p>
               </div>
               <div>
+                <p className="app-text-muted text-xs uppercase tracking-[0.2em]">Series</p>
+                <p className="app-text-primary">{matchFormatLabel[tournament.match_format ?? 'bo1']}</p>
+              </div>
+              <div>
                 <p className="app-text-muted text-xs uppercase tracking-[0.2em]">Participants</p>
                 <p className="app-text-primary inline-flex items-center gap-2">
                   <Image src="/team.svg" alt="" width={18} height={18} className="theme-icon h-[18px] w-[18px]" aria-hidden="true" />
                   {participants.length}/{tournament.max_participants}
                 </p>
               </div>
-              <div>
-                <p className="app-text-muted text-xs uppercase tracking-[0.2em]">Creator</p>
-                {tournament.owner_id ? (
+                <div>
+                  <p className="app-text-muted text-xs uppercase tracking-[0.2em]">Creator</p>
+                  {tournament.owner_id ? (
                   <Link
                     href={isOwner ? '/profile' : `/organizers/${tournament.owner_id}`}
                     className="app-text-primary font-semibold transition duration-200 hover:text-cyan-600"
@@ -369,6 +410,12 @@ export default function TournamentDetail() {
                   <p className="app-text-primary font-semibold">Community organizer</p>
                 )}
               </div>
+              {(tournament.mode === 'group' || tournament.mode === 'both') && (
+                <div>
+                  <p className="app-text-muted text-xs uppercase tracking-[0.2em]">Groups</p>
+                  <p className="app-text-primary">{tournament.group_count ?? 1}</p>
+                </div>
+              )}
             </div>
 
             <div className="mb-3 inline-flex items-center gap-2">
@@ -475,29 +522,74 @@ export default function TournamentDetail() {
               <div>
                 <p className="app-eyebrow">Bracket</p>
                 <h2 className="app-text-primary mt-2 text-2xl font-semibold tracking-tight">Tournament Bracket</h2>
-                <p className="app-text-secondary mt-2 text-sm">Generate matches and update results without leaving this page.</p>
+                <p className="app-text-secondary mt-2 text-sm">{stageDescription}</p>
               </div>
               {isOwner && participants.length >= 2 && (
                 <button
                   onClick={generateBracket}
                   className="app-button-primary rounded-xl px-4 py-2 text-sm font-semibold transition duration-200 hover:-translate-y-0.5 hover:shadow-md"
                 >
-                  {matches.length > 0 ? 'Regenerate' : 'Generate Bracket'}
+                  {matches.length > 0 ? 'Regenerate' : tournament.mode === 'knockout' ? 'Generate Bracket' : 'Generate Stage'}
                 </button>
               )}
             </div>
 
-            {matches.length > 0 ? (
-              <TournamentBracket
-                matches={matches}
-                participants={participants}
-                rounds={rounds}
-                onMatchClick={isOwner ? openEdit : undefined}
-                locked={!isOwner}
-              />
+            {matches.length > 0 && structure ? (
+              <div className="space-y-6">
+                {(tournament.mode === 'group' || tournament.mode === 'both') && (
+                  <div className="space-y-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <p className="app-eyebrow">Group Stage</p>
+                        <h3 className="app-text-primary mt-2 text-xl font-semibold tracking-tight">Standings and fixtures</h3>
+                      </div>
+                      <span className="app-chip rounded-full px-3 py-1 text-xs font-semibold">
+                        {matchFormatLabel[tournament.match_format ?? 'bo1']}
+                      </span>
+                    </div>
+                    <GroupStageOverview
+                      groups={structure.groups}
+                      matchFormatLabel={matchFormatLabel[tournament.match_format ?? 'bo1']}
+                      onMatchClick={isOwner ? openEdit : undefined}
+                      locked={!isOwner}
+                    />
+                  </div>
+                )}
+
+                {tournament.mode !== 'group' && (
+                  structure.knockoutMatches.length > 0 ? (
+                    <div className="space-y-4">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <p className="app-eyebrow">Knockout Stage</p>
+                          <h3 className="app-text-primary mt-2 text-xl font-semibold tracking-tight">Elimination bracket</h3>
+                        </div>
+                        {tournament.mode === 'both' && structure.isGroupStageComplete && (
+                          <span className="app-chip-info rounded-full px-3 py-1 text-xs font-semibold">
+                            {structure.qualifiedParticipantIds.length} teams qualified
+                          </span>
+                        )}
+                      </div>
+                      <TournamentBracket
+                        matches={structure.knockoutMatches}
+                        participants={knockoutParticipants}
+                        rounds={rounds}
+                        onMatchClick={isOwner ? openEdit : undefined}
+                        locked={!isOwner}
+                      />
+                    </div>
+                  ) : tournament.mode === 'both' ? (
+                    <div className="app-empty-state rounded-[24px] px-6 py-8 text-center">
+                      {structure.isGroupStageComplete
+                        ? 'Knockout matches will appear as soon as the group-stage results are saved.'
+                        : 'Finish the group-stage matches to unlock the knockout bracket.'}
+                    </div>
+                  ) : null
+                )}
+              </div>
             ) : (
               <div className="app-empty-state rounded-[24px] px-6 py-10 text-center">
-                Add at least 2 participants, then generate the bracket.
+                Add at least 2 participants, then generate the {tournament.mode === 'knockout' ? 'bracket' : 'tournament stage'}.
               </div>
             )}
           </div>
@@ -510,6 +602,9 @@ export default function TournamentDetail() {
             <h2 className="app-text-primary mb-2 text-xl font-bold">Enter Result</h2>
             <p className="app-text-secondary mb-4 text-sm">
               {getName(editMatch.participant_a)} vs {getName(editMatch.participant_b)}
+            </p>
+            <p className="app-text-muted mb-4 text-xs uppercase tracking-[0.22em]">
+              {matchFormatLabel[tournament.match_format ?? 'bo1']}
             </p>
 
             <div className="mb-6 flex gap-4">

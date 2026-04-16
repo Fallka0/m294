@@ -6,9 +6,10 @@ import { useRouter } from 'next/navigation'
 import TournamentForm from '@/components/tournaments/TournamentForm'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { supabase } from '@/lib/supabase'
+import { encodeTournamentDescription, sanitizeGroupCount } from '@/lib/tournament-settings'
 import type { TournamentFormValues } from '@/lib/types'
 
-type TournamentFormErrors = Partial<Record<'name' | 'sport' | 'mode' | 'max_participants' | 'date', string>>
+type TournamentFormErrors = Partial<Record<'name' | 'sport' | 'mode' | 'group_count' | 'max_participants' | 'date', string>>
 
 export default function NewTournament() {
   const router = useRouter()
@@ -20,6 +21,8 @@ export default function NewTournament() {
     name: '',
     sport: '',
     mode: 'knockout',
+    group_count: 2,
+    match_format: 'bo1',
     max_participants: 8,
     date: '',
     status: 'open',
@@ -36,7 +39,7 @@ export default function NewTournament() {
   const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = event.target
     const nextValue =
-      name === 'is_public' ? value === 'true' : name === 'max_participants' ? Number(value) : value
+      name === 'is_public' ? value === 'true' : name === 'max_participants' || name === 'group_count' ? Number(value) : value
 
     setMessage('')
     setErrors((current) => ({ ...current, [name]: undefined }))
@@ -52,6 +55,9 @@ export default function NewTournament() {
     if (!form.date) nextErrors.date = 'Tournament date is required.'
     if (!Number(form.max_participants) || Number(form.max_participants) < 2) {
       nextErrors.max_participants = 'Maximum participants must be at least 2.'
+    }
+    if ((form.mode === 'group' || form.mode === 'both') && Number(form.max_participants) / sanitizeGroupCount(form.group_count, form.mode, Number(form.max_participants)) < 2) {
+      nextErrors.group_count = 'Groups need at least 2 teams each with the current participant cap.'
     }
 
     setErrors(nextErrors)
@@ -73,12 +79,25 @@ export default function NewTournament() {
     setLoading(true)
     setMessage('')
 
-    const { error } = await supabase.from('tournaments').insert([
-      {
-        ...form,
-        owner_id: user.id,
-      },
-    ])
+    const tournamentPayload = {
+      name: form.name,
+      sport: form.sport,
+      mode: form.mode,
+      max_participants: Number(form.max_participants),
+      date: form.date,
+      status: form.status,
+      description: encodeTournamentDescription({
+        description: form.description,
+        mode: form.mode,
+        maxParticipants: Number(form.max_participants),
+        groupCount: form.group_count,
+        matchFormat: form.match_format,
+      }),
+      is_public: form.is_public,
+      owner_id: user.id,
+    }
+
+    const { error } = await supabase.from('tournaments').insert([tournamentPayload])
 
     if (error) {
       setMessage(error.message)
