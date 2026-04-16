@@ -344,7 +344,7 @@ export default function TournamentDetail() {
             </div>
 
             <div className="mb-3 inline-flex items-center gap-2">
-              <Image src="/trophy.svg" alt="" width={18} height={18} className="theme-icon h-[18px] w-[18px]" aria-hidden="true" />
+              <Image src="/team.svg" alt="" width={18} height={18} className="theme-icon h-[18px] w-[18px]" aria-hidden="true" />
               <span className="app-text-primary font-bold">Participants</span>
             </div>
 
