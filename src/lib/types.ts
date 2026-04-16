@@ -54,6 +54,8 @@ export interface Team {
   name: string
   tag?: string | null
   description?: string | null
+  avatar_url?: string | null
+  banner_url?: string | null
   member_names: string[]
   created_at?: string | null
 }
