@@ -93,7 +93,7 @@ export default function TournamentForm({
 
   return (
     <PageShell>
-        <TournamentFormHero title={title} subtitle={subtitle} showStatus={showStatus} />
+        <TournamentFormHero title={title} subtitle={subtitle} />
 
         <div className="grid gap-6 lg:grid-cols-[1.25fr_0.75fr]">
           <div className="app-card rounded-[32px] p-8 md:p-10">
