@@ -2,6 +2,8 @@ import type { Session, User } from '@supabase/supabase-js'
 
 export type TournamentStatus = 'open' | 'live' | 'finished'
 export type TournamentMode = 'group' | 'knockout' | 'both'
+export type MatchFormat = 'bo1' | 'bo3' | 'bo5'
+export type TournamentEntryType = 'solo' | 'team'
 
 export interface Profile {
   id: string
@@ -22,6 +24,10 @@ export interface Tournament {
   name: string
   sport: string
   mode: TournamentMode
+  group_count?: number | null
+  match_format?: MatchFormat | null
+  entry_type?: TournamentEntryType | null
+  team_size?: number | null
   max_participants: number
   date: string
   status: TournamentStatus | null
@@ -38,6 +44,17 @@ export interface Participant {
   tournament_id: string
   name: string
   user_id: string | null
+  team_id?: string | null
+  created_at?: string | null
+}
+
+export interface Team {
+  id: string
+  owner_id: string
+  name: string
+  tag?: string | null
+  description?: string | null
+  member_names: string[]
   created_at?: string | null
 }
 
@@ -61,6 +78,10 @@ export interface TournamentFormValues {
   name: string
   sport: string
   mode: TournamentMode
+  group_count: number | string
+  match_format: MatchFormat
+  entry_type: TournamentEntryType
+  team_size: number | string
   max_participants: number | string
   date: string
   status: TournamentStatus
