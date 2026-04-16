@@ -3,14 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import {
-  applyBracketOrderMap,
-  buildBracketProgressionChanges,
-  buildBracketOrderMap,
-  createInitialBracketMatches,
-  getScoreValidationMessage,
-} from '@/lib/bracket'
-import { clearBracketOrder, loadBracketOrder, saveBracketOrder } from '@/lib/bracket-storage'
+import { buildBracketProgressionChanges, createInitialBracketMatches, getScoreValidationMessage } from '@/lib/bracket'
 import type { Match, Participant, ScoreFormValues, Tournament } from '@/lib/types'
 
 export default function BracketPage() {
@@ -28,13 +21,6 @@ export default function BracketPage() {
     void fetchAll()
   }, [id])
 
-  const applyAndStoreBracketMatches = (incomingMatches: Match[]) => {
-    const orderedMatches = applyBracketOrderMap(incomingMatches, loadBracketOrder(id))
-    saveBracketOrder(id, buildBracketOrderMap(orderedMatches))
-    setMatches(orderedMatches)
-    return orderedMatches
-  }
-
   const fetchAll = async () => {
     const { data: tournamentData } = await supabase.from('tournaments').select('*').eq('id', id).single()
     const { data: participantData } = await supabase.from('participants').select('*').eq('tournament_id', id)
@@ -46,7 +32,7 @@ export default function BracketPage() {
 
     setTournament((tournamentData as Tournament | null) ?? null)
     setParticipants((participantData as Participant[] | null) ?? [])
-    applyAndStoreBracketMatches((matchData as Match[] | null) ?? [])
+    setMatches((matchData as Match[] | null) ?? [])
     setLoading(false)
   }
 
@@ -54,7 +40,6 @@ export default function BracketPage() {
     if (!confirm('Generate bracket? Existing matches will be deleted.')) return
 
     await supabase.from('matches').delete().eq('tournament_id', id)
-    clearBracketOrder(id)
 
     const newMatches = createInitialBracketMatches(
       id,
@@ -62,9 +47,7 @@ export default function BracketPage() {
     )
 
     if (newMatches.length > 0) {
-      const { data } = await supabase.from('matches').insert(newMatches).select('*')
-      applyAndStoreBracketMatches((data as Match[] | null) ?? [])
-      return
+      await supabase.from('matches').insert(newMatches)
     }
     await fetchAll()
   }
@@ -125,23 +108,13 @@ export default function BracketPage() {
       ),
     )
 
-    let insertedMatches: Match[] = []
     if (inserts.length > 0) {
-      const { data } = await supabase.from('matches').insert(inserts).select('*')
-      insertedMatches = (data as Match[] | null) ?? []
+      await supabase.from('matches').insert(inserts)
     }
-
-    const updatedMatchPatches = new Map(updates.map((match) => [match.id, match]))
-    const nextMatches = updatedMatches
-      .map((match) => {
-        const patch = updatedMatchPatches.get(match.id)
-        return patch ? { ...match, ...patch } : match
-      })
-      .concat(insertedMatches)
 
     setEditMatch(null)
     setScoreError('')
-    applyAndStoreBracketMatches(nextMatches)
+    await fetchAll()
   }
 
   if (loading) return <p className="app-text-secondary p-10">Laden...</p>
