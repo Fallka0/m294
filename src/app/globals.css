@@ -13,6 +13,9 @@
   --text-secondary: #4b5563;
   --text-muted: #9ca3af;
   --text-soft: #6b7280;
+  --svg-icon-filter: brightness(0) saturate(100%);
+  --svg-icon-color: #111827;
+  --svg-header-icon-filter: brightness(0) saturate(100%) invert(1);
   --accent-solid: #22d3ee;
   --accent-strong: #06b6d4;
   --accent-border: rgba(34, 211, 238, 0.3);
@@ -76,6 +79,8 @@
   --text-secondary: #d1c4f7;
   --text-muted: #a78bfa;
   --text-soft: rgba(209, 196, 247, 0.74);
+  --svg-icon-filter: brightness(0) saturate(100%) invert(1);
+  --svg-icon-color: #f5f3ff;
   --accent-solid: #8b5cf6;
   --accent-strong: #7c3aed;
   --accent-border: rgba(167, 139, 250, 0.34);
@@ -130,6 +135,11 @@ body {
     @apply bg-gray-100 text-gray-900;
   }
 
+  img[src$='.svg'],
+  img[src*='.svg?'] {
+    filter: var(--svg-icon-filter);
+  }
+
   button,
   input[type='button'],
   input[type='submit'],
@@ -148,6 +158,15 @@ body {
 }
 
 @layer components {
+  .app-header img[src$='.svg'],
+  .app-header img[src*='.svg?'] {
+    filter: var(--svg-header-icon-filter) !important;
+  }
+
+  .theme-inline-icon {
+    color: var(--svg-icon-color);
+  }
+
   .page-shell {
     background:
       linear-gradient(
@@ -499,6 +518,6 @@ body {
   box-shadow: var(--shadow-card-hover), inset 0 1px 0 rgba(167, 139, 250, 0.06);
 }
 
-[data-theme='dark'] .theme-icon {
-  filter: brightness(0) saturate(100%) invert(97%) sepia(11%) saturate(655%) hue-rotate(205deg) brightness(102%) contrast(97%);
+.theme-icon {
+  filter: var(--svg-icon-filter);
 }

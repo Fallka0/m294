@@ -24,7 +24,7 @@ export default function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[color:var(--header-border)] bg-[var(--header-bg)] backdrop-blur-xl transition-colors duration-300">
+    <header className="app-header sticky top-0 z-40 border-b border-[color:var(--header-border)] bg-[var(--header-bg)] backdrop-blur-xl transition-colors duration-300">
       <div className="max-w-6xl mx-auto px-4 py-4 sm:px-6 flex justify-between items-center">
         <Link href="/" className="flex items-center gap-3 text-[var(--header-text)]">
           <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--header-border)] bg-[var(--header-pill)] transition-colors duration-300">

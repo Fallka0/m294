@@ -8,7 +8,6 @@ import Link from 'next/link'
 import { useAuth } from '@/components/auth/AuthProvider'
 import PageHero from '@/components/layout/PageHero'
 import PageShell from '@/components/layout/PageShell'
-import { useTheme } from '@/components/theme/ThemeProvider'
 import { supabase } from '@/lib/supabase'
 import { setRememberPreference } from '@/lib/auth-storage'
 import { getOAuthRedirectUrl, redirectLocalAuthPageToApp, redirectLocalCallbackToApp, redirectToApp } from '@/lib/auth-urls'
@@ -63,7 +62,6 @@ function validateAuthForm(form: AuthFormValues, mode: AuthMode): Partial<Record<
 
 export default function AuthPage() {
   const { isAuthenticated, loading: authLoading } = useAuth()
-  const { theme } = useTheme()
   const [mode, setMode] = useState<AuthMode>('login')
   const [loading, setLoading] = useState(false)
   const [oauthLoading, setOauthLoading] = useState<Provider | null>(null)
@@ -204,7 +202,6 @@ export default function AuthPage() {
   const getFieldClassName = (field: AuthFieldName) =>
     `${fieldClassName} ${((touched[field] || submitAttempted) && fieldErrors[field]) ? 'border-red-300 focus:ring-red-300' : ''}`
 
-  const githubIconColor = theme === 'dark' ? '#f5f3ff' : '#111827'
   const messageClassName =
     messageTone === 'error'
       ? 'app-banner-danger'
@@ -265,7 +262,7 @@ export default function AuthPage() {
                 disabled={Boolean(oauthLoading) || loading}
                 className="app-button-secondary flex items-center justify-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition duration-200 hover:-translate-y-0.5 disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none"
               >
-                <svg viewBox="0 0 24 24" aria-hidden="true" className="h-[18px] w-[18px]" fill={githubIconColor}>
+                <svg viewBox="0 0 24 24" aria-hidden="true" className="theme-inline-icon h-[18px] w-[18px]" fill="currentColor">
                   <path d="M12 1.8a10.2 10.2 0 0 0-3.224 19.878c.51.094.695-.221.695-.49 0-.243-.009-.887-.014-1.742-2.828.615-3.425-1.363-3.425-1.363-.463-1.176-1.13-1.489-1.13-1.489-.924-.632.07-.62.07-.62 1.022.072 1.56 1.05 1.56 1.05.908 1.557 2.383 1.107 2.964.847.092-.658.356-1.108.648-1.362-2.257-.257-4.63-1.128-4.63-5.02 0-1.11.397-2.02 1.048-2.732-.105-.257-.454-1.293.099-2.695 0 0 .854-.274 2.8 1.043A9.73 9.73 0 0 1 12 6.726c.86.004 1.726.116 2.534.34 1.944-1.317 2.797-1.043 2.797-1.043.555 1.402.206 2.438.101 2.695.653.712 1.046 1.621 1.046 2.732 0 3.902-2.377 4.76-4.642 5.012.366.315.692.937.692 1.888 0 1.362-.013 2.46-.013 2.794 0 .271.183.589.701.489A10.2 10.2 0 0 0 12 1.8Z" />
                 </svg>
                 {oauthLoading === 'github' ? 'Redirecting...' : 'Continue with GitHub'}
