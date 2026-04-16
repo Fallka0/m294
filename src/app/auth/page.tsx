@@ -11,7 +11,7 @@ import PageShell from '@/components/layout/PageShell'
 import { useTheme } from '@/components/theme/ThemeProvider'
 import { supabase } from '@/lib/supabase'
 import { setRememberPreference } from '@/lib/auth-storage'
-import { OAUTH_REDIRECT_URL, redirectLocalAuthPageToApp, redirectLocalCallbackToApp, redirectToApp } from '@/lib/auth-urls'
+import { getOAuthRedirectUrl, redirectLocalAuthPageToApp, redirectLocalCallbackToApp, redirectToApp } from '@/lib/auth-urls'
 
 type AuthMode = 'login' | 'signup'
 type AuthFieldName = keyof AuthFormValues
@@ -104,7 +104,7 @@ export default function AuthPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: OAUTH_REDIRECT_URL,
+        redirectTo: getOAuthRedirectUrl(),
       },
     })
 
