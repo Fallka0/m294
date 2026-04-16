@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
+  applyBracketOrderMap,
+  buildBracketOrderMap,
   buildBracketProgressionChanges,
   createInitialBracketMatches,
   getScoreValidationMessage,
@@ -253,5 +255,22 @@ describe('buildBracketProgressionChanges', () => {
     const mergedMatches = mergeMatchesWithSavedBracketOrder(previousMatches, refetchedMatches)
 
     expect(mergedMatches.map((match) => match.id)).toEqual(['top-slot', 'bottom-slot'])
+  })
+
+  it('applies a persisted bracket order map across refetched matches', () => {
+    const visibleMatches = [
+      createMatch({ id: 'top-slot', round: 1, created_at: '2026-04-16T08:00:00.000Z' }),
+      createMatch({ id: 'bottom-slot', round: 1, created_at: '2026-04-16T08:05:00.000Z' }),
+    ]
+
+    const savedOrder = buildBracketOrderMap(visibleMatches)
+    const refetchedMatches = [
+      createMatch({ id: 'bottom-slot', round: 1, created_at: '2026-04-16T08:05:00.000Z' }),
+      createMatch({ id: 'top-slot', round: 1, created_at: '2026-04-16T08:00:00.000Z' }),
+    ]
+
+    const appliedMatches = applyBracketOrderMap(refetchedMatches, savedOrder)
+
+    expect(appliedMatches.map((match) => match.id)).toEqual(['top-slot', 'bottom-slot'])
   })
 })

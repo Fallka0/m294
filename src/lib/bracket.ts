@@ -2,6 +2,7 @@ import type { Match } from '@/lib/types'
 
 type MatchUpdate = Pick<Match, 'id' | 'participant_a' | 'participant_b' | 'score_a' | 'score_b' | 'winner'>
 type MatchInsert = Pick<Match, 'tournament_id' | 'participant_a' | 'participant_b' | 'round'>
+export type BracketOrderMap = Record<string, string[]>
 
 function compareMatchesByCreation(left: Match, right: Match) {
   if (left.created_at && right.created_at && left.created_at !== right.created_at) {
@@ -73,18 +74,23 @@ export function sortMatchesForBracket(matches: Match[]) {
   return orderedRounds.flatMap((round) => orderedMatchesByRound.get(round) ?? [])
 }
 
-export function mergeMatchesWithSavedBracketOrder(previousMatches: Match[], nextMatches: Match[]) {
-  if (previousMatches.length === 0) {
-    return sortMatchesForBracket(nextMatches)
+export function buildBracketOrderMap(matches: Match[]): BracketOrderMap {
+  return matches.reduce<BracketOrderMap>((map, match) => {
+    const roundKey = String(match.round)
+    const current = map[roundKey] ?? []
+    current.push(match.id)
+    map[roundKey] = current
+    return map
+  }, {})
+}
+
+export function applyBracketOrderMap(nextMatches: Match[], savedOrder: BracketOrderMap | null | undefined) {
+  const fallbackOrderedMatches = sortMatchesForBracket(nextMatches)
+
+  if (!savedOrder) {
+    return fallbackOrderedMatches
   }
 
-  const fallbackOrderedMatches = sortMatchesForBracket(nextMatches)
-  const previousRoundOrder = previousMatches.reduce<Map<number, string[]>>((map, match) => {
-    const current = map.get(match.round) ?? []
-    current.push(match.id)
-    map.set(match.round, current)
-    return map
-  }, new Map())
   const nextMatchesByRound = fallbackOrderedMatches.reduce<Map<number, Match[]>>((map, match) => {
     const current = map.get(match.round) ?? []
     current.push(match)
@@ -95,17 +101,17 @@ export function mergeMatchesWithSavedBracketOrder(previousMatches: Match[], next
 
   return orderedRounds.flatMap((round) => {
     const fallbackRoundMatches = nextMatchesByRound.get(round) ?? []
-    const savedOrder = previousRoundOrder.get(round)
+    const savedRoundOrder = savedOrder[String(round)]
 
-    if (!savedOrder || savedOrder.length === 0) {
+    if (!savedRoundOrder || savedRoundOrder.length === 0) {
       return fallbackRoundMatches
     }
 
     const fallbackIndexById = new Map(fallbackRoundMatches.map((match, index) => [match.id, index]))
 
     return [...fallbackRoundMatches].sort((left, right) => {
-      const savedLeftIndex = savedOrder.indexOf(left.id)
-      const savedRightIndex = savedOrder.indexOf(right.id)
+      const savedLeftIndex = savedRoundOrder.indexOf(left.id)
+      const savedRightIndex = savedRoundOrder.indexOf(right.id)
       const hasSavedLeftIndex = savedLeftIndex >= 0
       const hasSavedRightIndex = savedRightIndex >= 0
 
@@ -119,6 +125,14 @@ export function mergeMatchesWithSavedBracketOrder(previousMatches: Match[], next
       return (fallbackIndexById.get(left.id) ?? Number.MAX_SAFE_INTEGER) - (fallbackIndexById.get(right.id) ?? Number.MAX_SAFE_INTEGER)
     })
   })
+}
+
+export function mergeMatchesWithSavedBracketOrder(previousMatches: Match[], nextMatches: Match[]) {
+  if (previousMatches.length === 0) {
+    return sortMatchesForBracket(nextMatches)
+  }
+
+  return applyBracketOrderMap(nextMatches, buildBracketOrderMap(previousMatches))
 }
 
 function buildRoundMap(matches: Match[]) {

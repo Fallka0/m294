@@ -10,11 +10,13 @@ import BlurText from '@/components/react-bits/BlurText'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { supabase } from '@/lib/supabase'
 import {
+  applyBracketOrderMap,
   buildBracketProgressionChanges,
+  buildBracketOrderMap,
   createInitialBracketMatches,
   getScoreValidationMessage,
-  mergeMatchesWithSavedBracketOrder,
 } from '@/lib/bracket'
+import { clearBracketOrder, loadBracketOrder, saveBracketOrder } from '@/lib/bracket-storage'
 import { detailStatusBanner, getDisplayTournamentStatus, modeLabel } from '@/lib/tournaments'
 import type { Match, Participant, ScoreFormValues, Tournament } from '@/lib/types'
 
@@ -38,6 +40,13 @@ export default function TournamentDetail() {
   useEffect(() => {
     void fetchData()
   }, [id])
+
+  const applyAndStoreBracketMatches = (incomingMatches: Match[]) => {
+    const orderedMatches = applyBracketOrderMap(incomingMatches, loadBracketOrder(id))
+    saveBracketOrder(id, buildBracketOrderMap(orderedMatches))
+    setMatches(orderedMatches)
+    return orderedMatches
+  }
 
   const fetchData = async () => {
     const { data: tournamentData } = await supabase.from('tournaments').select('*').eq('id', id).single()
@@ -71,7 +80,7 @@ export default function TournamentDetail() {
 
     setTournament(baseTournament ? { ...baseTournament, owner_name: ownerName ?? 'Community organizer' } : null)
     setParticipants((participantData as Participant[] | null) ?? [])
-    setMatches((current) => mergeMatchesWithSavedBracketOrder(current, (matchData as Match[] | null) ?? []))
+    applyAndStoreBracketMatches((matchData as Match[] | null) ?? [])
     setLoading(false)
   }
 
@@ -120,6 +129,7 @@ export default function TournamentDetail() {
     if (!confirm('Generate bracket? Existing matches will be deleted.')) return
 
     await supabase.from('matches').delete().eq('tournament_id', id)
+    clearBracketOrder(id)
 
     const newMatches = createInitialBracketMatches(
       id,
@@ -127,7 +137,9 @@ export default function TournamentDetail() {
     )
 
     if (newMatches.length > 0) {
-      await supabase.from('matches').insert(newMatches)
+      const { data } = await supabase.from('matches').insert(newMatches).select('*')
+      applyAndStoreBracketMatches((data as Match[] | null) ?? [])
+      return
     }
     await fetchData()
   }
@@ -192,7 +204,7 @@ export default function TournamentDetail() {
 
     setEditMatch(null)
     setScoreError('')
-    setMatches((current) => mergeMatchesWithSavedBracketOrder(current, nextMatches))
+    applyAndStoreBracketMatches(nextMatches)
   }
 
   const getName = (participantId: string | null) => {
