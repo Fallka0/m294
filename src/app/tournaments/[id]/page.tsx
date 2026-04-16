@@ -217,8 +217,8 @@ export default function TournamentDetail() {
     setJoining(false)
   }
 
-  if (loading) return <p className="p-10 text-gray-500">Loading...</p>
-  if (!tournament) return <p className="p-10 text-gray-500">Tournament not found.</p>
+  if (loading) return <p className="app-text-secondary p-10">Loading...</p>
+  if (!tournament) return <p className="app-text-secondary p-10">Tournament not found.</p>
 
   const banner = detailStatusBanner[currentStatus]
 
@@ -226,7 +226,7 @@ export default function TournamentDetail() {
     <main className="page-shell min-h-screen transition-colors duration-300">
       <FadeContent initialOpacity={0} duration={0.6} ease="ease-out">
         <div className="mx-auto max-w-6xl px-6 pt-6">
-          <Link href="/" className="inline-flex items-center gap-2 text-sm text-white/60 transition duration-200 hover:text-white">
+          <Link href="/" className="inline-flex items-center gap-2 text-sm text-white/80 transition duration-200 hover:text-white">
             <Image src="/arrow-left.svg" alt="" width={16} height={16} className="h-4 w-4" aria-hidden="true" />
             <span>Back to Dashboard</span>
           </Link>
@@ -244,17 +244,17 @@ export default function TournamentDetail() {
                   {tournament.owner_id ? (
                     <Link
                       href={isOwner ? '/profile' : `/organizers/${tournament.owner_id}`}
-                      className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/80 transition duration-200 hover:bg-white/10 hover:text-white"
+                      className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/85 transition duration-200 hover:bg-white/10 hover:text-white"
                     >
                       Created by {isOwner ? 'you' : tournament.owner_name || 'Community organizer'}
                     </Link>
                   ) : (
-                    <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/80">
+                    <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/85">
                       Created by Community organizer
                     </span>
                   )}
                 </div>
-                <div className="mt-4 flex flex-wrap gap-3 text-sm text-white/65">
+                <div className="mt-4 flex flex-wrap gap-3 text-sm text-white/80">
                   <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">{tournament.sport}</span>
                   <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">{modeLabel[tournament.mode]}</span>
                   <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">
@@ -264,20 +264,20 @@ export default function TournamentDetail() {
                     {tournament.is_public === false ? 'Private' : 'Public'}
                   </span>
                 </div>
-                {tournament.description && <p className="mt-5 max-w-2xl text-sm leading-7 text-white/65">{tournament.description}</p>}
+                {tournament.description && <p className="mt-5 max-w-2xl text-sm leading-7 text-white/80">{tournament.description}</p>}
               </div>
 
               <div className="grid grid-cols-2 gap-3 lg:w-[320px]">
                 <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 backdrop-blur-sm">
-                  <p className="text-xs uppercase tracking-[0.24em] text-white/40">Stage</p>
+                  <p className="text-xs uppercase tracking-[0.24em] text-white/65">Stage</p>
                   <p className="mt-2 text-lg font-semibold text-white">{banner.label}</p>
                 </div>
                 <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 backdrop-blur-sm">
-                  <p className="text-xs uppercase tracking-[0.24em] text-white/40">Matches</p>
+                  <p className="text-xs uppercase tracking-[0.24em] text-white/65">Matches</p>
                   <p className="mt-2 text-lg font-semibold text-white">{matches.length}</p>
                 </div>
                 <div className="col-span-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-4 backdrop-blur-sm">
-                  <p className="text-xs uppercase tracking-[0.24em] text-white/40">Organizer</p>
+                  <p className="text-xs uppercase tracking-[0.24em] text-white/65">Organizer</p>
                   {tournament.owner_id ? (
                     <Link
                       href={isOwner ? '/profile' : `/organizers/${tournament.owner_id}`}
@@ -295,17 +295,17 @@ export default function TournamentDetail() {
         </div>
 
         <div className="mx-auto mt-6 grid max-w-6xl grid-cols-1 gap-6 px-6 pb-10 lg:grid-cols-3">
-          <div className="app-card-strong rounded-[28px] p-6 text-gray-900">
+          <div className="app-card-strong rounded-[28px] p-6">
             <div className="mb-5 flex items-start justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-400">Overview</p>
-                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-gray-950">{tournament.name}</h2>
+                <p className="app-eyebrow">Overview</p>
+                <h2 className="app-text-primary mt-2 text-2xl font-semibold tracking-tight">{tournament.name}</h2>
               </div>
 
               {isOwner && (
                 <button
                   onClick={() => router.push(`/tournaments/${id}/edit`)}
-                  className="app-button-secondary cursor-pointer rounded-full p-2 text-gray-400 transition duration-200 hover:-translate-y-0.5 hover:text-gray-600"
+                  className="app-button-secondary app-text-muted rounded-full p-2 transition duration-200 hover:-translate-y-0.5 hover:text-[var(--text-primary)]"
                 >
                   <Image src="/edit.svg" alt="" width={18} height={18} className="h-[18px] w-[18px]" aria-hidden="true" />
                 </button>
@@ -314,50 +314,50 @@ export default function TournamentDetail() {
 
             <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
               <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-gray-400">Sport</p>
-                <p className="font-semibold text-gray-900">{tournament.sport}</p>
+                <p className="app-text-muted text-xs uppercase tracking-[0.2em]">Sport</p>
+                <p className="app-text-primary font-semibold">{tournament.sport}</p>
               </div>
               <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-gray-400">Mode</p>
-                <p className="text-gray-900">{modeLabel[tournament.mode]}</p>
+                <p className="app-text-muted text-xs uppercase tracking-[0.2em]">Mode</p>
+                <p className="app-text-primary">{modeLabel[tournament.mode]}</p>
               </div>
               <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-gray-400">Participants</p>
-                <p className="inline-flex items-center gap-2 text-gray-900">
+                <p className="app-text-muted text-xs uppercase tracking-[0.2em]">Participants</p>
+                <p className="app-text-primary inline-flex items-center gap-2">
                   <Image src="/team.svg" alt="" width={18} height={18} className="h-[18px] w-[18px]" aria-hidden="true" />
                   {participants.length}/{tournament.max_participants}
                 </p>
               </div>
               <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-gray-400">Creator</p>
+                <p className="app-text-muted text-xs uppercase tracking-[0.2em]">Creator</p>
                 {tournament.owner_id ? (
                   <Link
                     href={isOwner ? '/profile' : `/organizers/${tournament.owner_id}`}
-                    className="font-semibold text-gray-900 transition duration-200 hover:text-cyan-600"
+                    className="app-text-primary font-semibold transition duration-200 hover:text-cyan-600"
                   >
                     {isOwner ? 'You' : tournament.owner_name || 'Community organizer'}
                   </Link>
                 ) : (
-                  <p className="font-semibold text-gray-900">Community organizer</p>
+                  <p className="app-text-primary font-semibold">Community organizer</p>
                 )}
               </div>
             </div>
 
             <div className="mb-3 inline-flex items-center gap-2">
               <Image src="/trophy.svg" alt="" width={18} height={18} className="h-[18px] w-[18px]" aria-hidden="true" />
-              <span className="font-bold text-gray-950">Participants</span>
+              <span className="app-text-primary font-bold">Participants</span>
             </div>
 
             <ul className="mb-4 flex flex-col gap-2">
               {participants.map((participant, index) => (
                 <li key={participant.id} className="app-accent-panel flex justify-between rounded-2xl px-4 py-3">
-                  <span className="text-gray-900">
+                  <span className="app-text-primary">
                     {index + 1}. {participant.name}
                   </span>
                   {isOwner && (
                     <button
                       onClick={() => removeParticipant(participant.id)}
-                      className="cursor-pointer transition duration-200 hover:-translate-y-0.5 hover:opacity-80"
+                      className="transition duration-200 hover:-translate-y-0.5 hover:opacity-80"
                     >
                       <Image src="/cross.svg" alt="Remove participant" width={14} height={14} className="h-3.5 w-3.5" />
                     </button>
@@ -376,12 +376,12 @@ export default function TournamentDetail() {
                       void addParticipant()
                     }
                   }}
-                  className="app-input flex-1 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                  className="app-input flex-1 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400"
                   placeholder="Add participant"
                 />
                 <button
                   onClick={addParticipant}
-                  className="cursor-pointer rounded-xl bg-cyan-400 px-4 text-white transition duration-200 hover:-translate-y-0.5 hover:bg-cyan-500 hover:shadow-md"
+                  className="app-button-primary rounded-xl px-4 transition duration-200 hover:-translate-y-0.5 hover:shadow-md"
                 >
                   +
                 </button>
@@ -392,23 +392,23 @@ export default function TournamentDetail() {
                   <button
                     onClick={joinTournament}
                     disabled={joining}
-                    className="w-full rounded-xl bg-cyan-400 px-4 py-3 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-cyan-500 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                    className="app-button-primary w-full rounded-xl px-4 py-3 text-sm font-semibold transition duration-200 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none"
                   >
                     {joining ? 'Joining...' : 'Join Tournament'}
                   </button>
                 )}
                 {isJoined && (
-                  <div className="rounded-2xl border border-green-100 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
+                  <div className="app-banner-success rounded-2xl px-4 py-3 text-sm font-medium">
                     You already joined this tournament.
                   </div>
                 )}
                 {isFull && !isOwner && (
-                  <div className="rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-700">
+                  <div className="app-banner-warning rounded-2xl px-4 py-3 text-sm font-medium">
                     This tournament is already full.
                   </div>
                 )}
                 {joinMessage && (
-                  <div className="rounded-2xl border border-cyan-100 bg-cyan-50 px-4 py-3 text-sm font-medium text-cyan-700">
+                  <div className="app-banner-info rounded-2xl px-4 py-3 text-sm font-medium">
                     {joinMessage}
                   </div>
                 )}
@@ -426,24 +426,24 @@ export default function TournamentDetail() {
             {isOwner && (
               <button
                 onClick={deleteTournament}
-                className="mt-6 w-full cursor-pointer rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-500 transition duration-200 hover:-translate-y-0.5 hover:border-red-300 hover:bg-red-100 hover:shadow-sm"
+                className="app-banner-danger mt-6 w-full rounded-xl px-4 py-3 text-sm font-medium transition duration-200 hover:-translate-y-0.5 hover:shadow-sm"
               >
                 Delete Tournament
               </button>
             )}
           </div>
 
-          <div className="app-card-strong lg:col-span-2 rounded-[28px] p-6 text-gray-900">
+          <div className="app-card-strong lg:col-span-2 rounded-[28px] p-6">
             <div className="mb-6 flex items-center justify-between gap-4">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-400">Bracket</p>
-                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-gray-950">Tournament Bracket</h2>
-                <p className="mt-2 text-sm text-gray-500">Generate matches and update results without leaving this page.</p>
+                <p className="app-eyebrow">Bracket</p>
+                <h2 className="app-text-primary mt-2 text-2xl font-semibold tracking-tight">Tournament Bracket</h2>
+                <p className="app-text-secondary mt-2 text-sm">Generate matches and update results without leaving this page.</p>
               </div>
               {isOwner && participants.length >= 2 && (
                 <button
                   onClick={generateBracket}
-                  className="cursor-pointer rounded-xl bg-cyan-400 px-4 py-2 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-cyan-500 hover:shadow-md"
+                  className="app-button-primary rounded-xl px-4 py-2 text-sm font-semibold transition duration-200 hover:-translate-y-0.5 hover:shadow-md"
                 >
                   {matches.length > 0 ? 'Regenerate' : 'Generate Bracket'}
                 </button>
@@ -469,9 +469,9 @@ export default function TournamentDetail() {
 
       {editMatch && isOwner && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="app-card w-full max-w-sm rounded-2xl p-8 text-gray-900 shadow-xl">
-            <h2 className="mb-2 text-xl font-bold text-gray-900">Enter Result</h2>
-            <p className="mb-4 text-sm text-gray-500">
+          <div className="app-card w-full max-w-sm rounded-2xl p-8 shadow-xl">
+            <h2 className="app-text-primary mb-2 text-xl font-bold">Enter Result</h2>
+            <p className="app-text-secondary mb-4 text-sm">
               {getName(editMatch.participant_a)} vs {getName(editMatch.participant_b)}
             </p>
 
@@ -480,26 +480,26 @@ export default function TournamentDetail() {
                 type="number"
                 value={scores.score_a}
                 onChange={(event) => setScores((current) => ({ ...current, score_a: event.target.value }))}
-                className="app-input w-full rounded-lg px-4 py-3 text-lg font-semibold text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                className="app-input w-full rounded-lg px-4 py-3 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-cyan-400"
               />
               <input
                 type="number"
                 value={scores.score_b}
                 onChange={(event) => setScores((current) => ({ ...current, score_b: event.target.value }))}
-                className="app-input w-full rounded-lg px-4 py-3 text-lg font-semibold text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                className="app-input w-full rounded-lg px-4 py-3 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-cyan-400"
               />
             </div>
 
             <div className="flex gap-2">
               <button
                 onClick={() => setEditMatch(null)}
-                className="app-button-secondary flex-1 cursor-pointer rounded-lg py-3 font-medium transition duration-200 hover:-translate-y-0.5"
+                className="app-button-secondary flex-1 rounded-lg py-3 font-medium transition duration-200 hover:-translate-y-0.5"
               >
                 Cancel
               </button>
               <button
                 onClick={saveResult}
-                className="flex-1 cursor-pointer rounded-lg bg-cyan-400 py-3 font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-cyan-500 hover:shadow-md"
+                className="app-button-primary flex-1 rounded-lg py-3 font-semibold transition duration-200 hover:-translate-y-0.5 hover:shadow-md"
               >
                 Save
               </button>

@@ -1,12 +1,13 @@
 'use client'
 
 import type { ChangeEvent, FormEvent } from 'react'
+import PageShell from '@/components/layout/PageShell'
 import TournamentFormHero from '@/components/tournaments/TournamentFormHero'
 import { modeOptions, sports, statusOptions } from '@/lib/tournaments'
 import type { TournamentFormValues } from '@/lib/types'
 
 const fieldClassName =
-  'app-input w-full rounded-xl px-4 py-3 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400'
+  'app-input w-full rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-cyan-400'
 
 type FeedbackTone = 'error' | 'success' | 'info'
 
@@ -66,14 +67,13 @@ export default function TournamentForm({
 
   const feedbackClassName =
     feedbackTone === 'error'
-      ? 'border-red-200 bg-red-50 text-red-700'
+      ? 'app-banner-danger'
       : feedbackTone === 'success'
-        ? 'border-green-200 bg-green-50 text-green-700'
-        : 'border-cyan-100 bg-cyan-50 text-cyan-700'
+        ? 'app-banner-success'
+        : 'app-banner-info'
 
   return (
-    <main className="page-shell min-h-screen px-6 py-10 transition-colors duration-300">
-      <div className="mx-auto flex max-w-6xl flex-col gap-8">
+    <PageShell>
         <TournamentFormHero title={title} subtitle={subtitle} showStatus={showStatus} />
 
         <div className="grid gap-6 lg:grid-cols-[1.25fr_0.75fr]">
@@ -81,14 +81,14 @@ export default function TournamentForm({
             <form onSubmit={onSubmit} className="flex flex-col gap-6">
               <div className="grid gap-4 md:grid-cols-[1.1fr_0.9fr]">
                 <div className="app-muted-panel rounded-[24px] px-5 py-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-400">Setup progress</p>
+                  <p className="app-eyebrow">Setup progress</p>
                   <div className="mt-4 space-y-3">
                     {setupChecklist.map((item) => (
                       <div key={item.label} className="flex items-center justify-between gap-3 text-sm">
-                        <span className="text-gray-600">{item.label}</span>
+                        <span className="app-text-secondary">{item.label}</span>
                         <span
                           className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                            item.complete ? 'border border-cyan-200 bg-cyan-50 text-cyan-700' : 'app-card-elevated text-gray-500'
+                            item.complete ? 'app-chip-info' : 'app-chip'
                           }`}
                         >
                           {item.complete ? 'Ready' : 'Missing'}
@@ -99,19 +99,19 @@ export default function TournamentForm({
                 </div>
 
                 <div className="app-accent-panel rounded-[24px] px-5 py-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-400">Current setup</p>
+                  <p className="app-eyebrow">Current setup</p>
                   <div className="mt-4 grid gap-3 text-sm">
                     <div>
-                      <p className="text-gray-400">Mode</p>
-                      <p className="font-semibold text-gray-900">{selectedMode}</p>
+                      <p className="app-text-muted">Mode</p>
+                      <p className="app-text-primary font-semibold">{selectedMode}</p>
                     </div>
                     <div>
-                      <p className="text-gray-400">Capacity</p>
-                      <p className="font-semibold text-gray-900">{participantLimit || 'Not set'} players</p>
+                      <p className="app-text-muted">Capacity</p>
+                      <p className="app-text-primary font-semibold">{participantLimit || 'Not set'} players</p>
                     </div>
                     <div>
-                      <p className="text-gray-400">Publishing</p>
-                      <p className="font-semibold text-gray-900">{form.is_public ? 'Public listing' : 'Private draft'}</p>
+                      <p className="app-text-muted">Publishing</p>
+                      <p className="app-text-primary font-semibold">{form.is_public ? 'Public listing' : 'Private draft'}</p>
                     </div>
                   </div>
                 </div>
@@ -124,7 +124,7 @@ export default function TournamentForm({
               )}
 
               {guidance.length > 0 && (
-                <div className="rounded-2xl border border-amber-100 bg-amber-50 px-4 py-4 text-sm text-amber-700">
+                <div className="app-banner-warning rounded-2xl px-4 py-4 text-sm">
                   <p className="font-semibold">Review before saving</p>
                   <ul className="mt-2 space-y-2">
                     {guidance.map((item) => (
@@ -136,13 +136,13 @@ export default function TournamentForm({
 
               <section className="space-y-5">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-400">Step 1</p>
-                  <h2 className="mt-2 text-xl font-semibold tracking-tight text-gray-950">Basics</h2>
-                  <p className="mt-1 text-sm text-gray-500">Name the event clearly and set the public-facing schedule.</p>
+                  <p className="app-eyebrow">Step 1</p>
+                  <h2 className="app-text-primary mt-2 text-xl font-semibold tracking-tight">Basics</h2>
+                  <p className="app-text-secondary mt-1 text-sm">Name the event clearly and set the public-facing schedule.</p>
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-gray-700">
+                  <label className="app-text-primary mb-2 block text-sm font-semibold">
                     Tournament Name <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -153,12 +153,12 @@ export default function TournamentForm({
                     placeholder="Enter tournament name"
                     className={fieldClassName}
                   />
-                  <p className="mt-2 text-sm text-gray-500">Use a short name people can recognize quickly in the dashboard.</p>
+                  <p className="app-text-secondary mt-2 text-sm">Use a short name people can recognize quickly in the dashboard.</p>
                 </div>
 
                 <div className="grid gap-6 md:grid-cols-2">
                   <div>
-                    <label className="mb-2 block text-sm font-semibold text-gray-700">
+                    <label className="app-text-primary mb-2 block text-sm font-semibold">
                       Sport Type <span className="text-red-500">*</span>
                     </label>
                     <select name="sport" required value={form.sport} onChange={onChange} className={fieldClassName}>
@@ -172,7 +172,7 @@ export default function TournamentForm({
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-sm font-semibold text-gray-700">
+                    <label className="app-text-primary mb-2 block text-sm font-semibold">
                       Date <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -184,7 +184,7 @@ export default function TournamentForm({
                       onChange={onChange}
                       className={fieldClassName}
                     />
-                    <p className="mt-2 text-sm text-gray-500">
+                    <p className="app-text-secondary mt-2 text-sm">
                       {showStatus ? 'Past dates are allowed while updating existing tournaments.' : 'New tournaments should start today or later.'}
                     </p>
                   </div>
@@ -193,22 +193,22 @@ export default function TournamentForm({
 
               <section className="space-y-5">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-400">Step 2</p>
-                  <h2 className="mt-2 text-xl font-semibold tracking-tight text-gray-950">Structure</h2>
-                  <p className="mt-1 text-sm text-gray-500">Choose the bracket shape and player limit before people start joining.</p>
+                  <p className="app-eyebrow">Step 2</p>
+                  <h2 className="app-text-primary mt-2 text-xl font-semibold tracking-tight">Structure</h2>
+                  <p className="app-text-secondary mt-1 text-sm">Choose the bracket shape and player limit before people start joining.</p>
                 </div>
 
                 <div>
-                  <label className="mb-3 block text-sm font-semibold text-gray-700">
+                  <label className="app-text-primary mb-3 block text-sm font-semibold">
                     Mode <span className="text-red-500">*</span>
                   </label>
                   <div className="grid gap-3 sm:grid-cols-3">
                     {modeOptions.map((option) => (
                       <label
                         key={option.value}
-                        className={`cursor-pointer rounded-2xl border px-4 py-4 transition duration-200 ${
+                        className={`rounded-2xl border px-4 py-4 transition duration-200 ${
                           form.mode === option.value
-                            ? 'border-cyan-300 bg-cyan-50 shadow-sm'
+                            ? 'app-chip-info shadow-sm'
                             : 'app-card-elevated hover:border-[color:var(--border-strong)]'
                         }`}
                       >
@@ -220,7 +220,7 @@ export default function TournamentForm({
                           onChange={onChange}
                           className="sr-only"
                         />
-                        <span className="block text-sm font-semibold text-gray-900">{option.label}</span>
+                        <span className="app-text-primary block text-sm font-semibold">{option.label}</span>
                       </label>
                     ))}
                   </div>
@@ -228,7 +228,7 @@ export default function TournamentForm({
 
                 <div className="grid gap-6 md:grid-cols-[0.8fr_1.2fr]">
                   <div>
-                    <label className="mb-2 block text-sm font-semibold text-gray-700">Max Participants</label>
+                    <label className="app-text-primary mb-2 block text-sm font-semibold">Max Participants</label>
                     <input
                       name="max_participants"
                       type="number"
@@ -241,7 +241,7 @@ export default function TournamentForm({
                   </div>
 
                   <div>
-                    <label className="mb-2 block text-sm font-semibold text-gray-700">Description</label>
+                    <label className="app-text-primary mb-2 block text-sm font-semibold">Description</label>
                     <textarea
                       name="description"
                       rows={4}
@@ -250,7 +250,7 @@ export default function TournamentForm({
                       placeholder="What kind of tournament is this?"
                       className={`${fieldClassName} resize-none`}
                     />
-                    <p className="mt-2 text-sm text-gray-500">
+                    <p className="app-text-secondary mt-2 text-sm">
                       {form.description.trim().length > 0
                         ? `${form.description.trim().length} characters added.`
                         : 'Descriptions help players understand format, rules, and expectations.'}
@@ -261,13 +261,13 @@ export default function TournamentForm({
 
               <section className="space-y-5">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-400">Step 3</p>
-                  <h2 className="mt-2 text-xl font-semibold tracking-tight text-gray-950">Visibility</h2>
-                  <p className="mt-1 text-sm text-gray-500">Control whether players can discover the event immediately.</p>
+                  <p className="app-eyebrow">Step 3</p>
+                  <h2 className="app-text-primary mt-2 text-xl font-semibold tracking-tight">Visibility</h2>
+                  <p className="app-text-secondary mt-1 text-sm">Control whether players can discover the event immediately.</p>
                 </div>
 
                 <div>
-                  <label className="mb-3 block text-sm font-semibold text-gray-700">Visibility</label>
+                  <label className="app-text-primary mb-3 block text-sm font-semibold">Visibility</label>
                   <div className="grid gap-3 sm:grid-cols-2">
                     {[
                       {
@@ -283,9 +283,9 @@ export default function TournamentForm({
                     ].map((option) => (
                       <label
                         key={String(option.value)}
-                        className={`cursor-pointer rounded-2xl border px-4 py-4 transition duration-200 ${
+                        className={`rounded-2xl border px-4 py-4 transition duration-200 ${
                           form.is_public === option.value
-                            ? 'border-cyan-300 bg-cyan-50 shadow-sm'
+                            ? 'app-chip-info shadow-sm'
                             : 'app-card-elevated hover:border-[color:var(--border-strong)]'
                         }`}
                       >
@@ -297,8 +297,8 @@ export default function TournamentForm({
                           onChange={onChange}
                           className="sr-only"
                         />
-                        <span className="block text-sm font-semibold text-gray-900">{option.title}</span>
-                        <span className="mt-2 block text-sm leading-6 text-gray-500">{option.description}</span>
+                        <span className="app-text-primary block text-sm font-semibold">{option.title}</span>
+                        <span className="app-text-secondary mt-2 block text-sm leading-6">{option.description}</span>
                       </label>
                     ))}
                   </div>
@@ -306,7 +306,7 @@ export default function TournamentForm({
 
                 {showStatus && (
                   <div>
-                    <label className="mb-2 block text-sm font-semibold text-gray-700">Status</label>
+                    <label className="app-text-primary mb-2 block text-sm font-semibold">Status</label>
                     <select name="status" value={form.status} onChange={onChange} className={fieldClassName}>
                       {statusOptions.map((option) => (
                         <option key={option.value} value={option.value}>
@@ -314,7 +314,7 @@ export default function TournamentForm({
                         </option>
                       ))}
                     </select>
-                    <p className="mt-2 text-sm text-gray-500">Use status to signal whether players should join, watch, or treat the bracket as final.</p>
+                    <p className="app-text-secondary mt-2 text-sm">Use status to signal whether players should join, watch, or treat the bracket as final.</p>
                   </div>
                 )}
               </section>
@@ -330,18 +330,18 @@ export default function TournamentForm({
                 <button
                   type="submit"
                   disabled={submitting || blocksSubmission}
-                  className="flex-1 rounded-xl bg-cyan-400 px-4 py-3 font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-cyan-500 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                  className="app-button-primary flex-1 rounded-xl px-4 py-3 font-semibold transition duration-200 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
                 >
                   {submitting ? submitLoadingLabel : submitLabel}
                 </button>
               </div>
 
               {onDelete && (
-                <div className="mt-2 border-t border-gray-100 pt-5">
+                <div className="mt-2 border-t border-[color:var(--border-subtle)] pt-5">
                   <button
                     type="button"
                     onClick={onDelete}
-                    className="w-full rounded-xl border border-red-200 bg-red-50 px-4 py-3 font-medium text-red-600 transition duration-200 hover:-translate-y-0.5 hover:border-red-300 hover:bg-red-100 hover:shadow-sm"
+                    className="app-banner-danger w-full rounded-xl px-4 py-3 font-medium transition duration-200 hover:-translate-y-0.5 hover:shadow-sm"
                   >
                     Delete Tournament
                   </button>
@@ -352,48 +352,48 @@ export default function TournamentForm({
 
           <aside className="space-y-4">
             <div className="app-card-elevated rounded-[28px] p-6">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-400">Preview</p>
+              <p className="app-eyebrow">Preview</p>
               <div className="mt-4 space-y-4">
                 <div>
-                  <p className="text-sm text-gray-400">Name</p>
-                  <p className="text-lg font-semibold text-gray-900">{form.name || 'Tournament name'}</p>
+                  <p className="app-text-muted text-sm">Name</p>
+                  <p className="app-text-primary text-lg font-semibold">{form.name || 'Tournament name'}</p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-400">Sport</p>
-                    <p className="font-medium text-gray-900">{form.sport || 'Not selected'}</p>
+                    <p className="app-text-muted text-sm">Sport</p>
+                    <p className="app-text-primary font-medium">{form.sport || 'Not selected'}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-400">Date</p>
-                    <p className="font-medium text-gray-900">{form.date || 'No date yet'}</p>
+                    <p className="app-text-muted text-sm">Date</p>
+                    <p className="app-text-primary font-medium">{form.date || 'No date yet'}</p>
                   </div>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-400">Visibility</p>
-                  <p className="font-medium text-gray-900">{form.is_public ? 'Public' : 'Private'}</p>
+                  <p className="app-text-muted text-sm">Visibility</p>
+                  <p className="app-text-primary font-medium">{form.is_public ? 'Public' : 'Private'}</p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-400">Mode</p>
-                    <p className="font-medium text-gray-900">
+                    <p className="app-text-muted text-sm">Mode</p>
+                    <p className="app-text-primary font-medium">
                       {modeOptions.find((option) => option.value === form.mode)?.label ?? 'Knockout'}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-400">Capacity</p>
-                    <p className="font-medium text-gray-900">{form.max_participants || 0} players</p>
+                    <p className="app-text-muted text-sm">Capacity</p>
+                    <p className="app-text-primary font-medium">{form.max_participants || 0} players</p>
                   </div>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-400">Description</p>
-                  <p className="font-medium text-gray-900">{form.description || 'No description yet'}</p>
+                  <p className="app-text-muted text-sm">Description</p>
+                  <p className="app-text-primary font-medium">{form.description || 'No description yet'}</p>
                 </div>
               </div>
             </div>
 
             <div className="app-muted-panel rounded-[28px] p-6">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-400">Tips</p>
-              <ul className="mt-4 space-y-3 text-sm leading-6 text-gray-500">
+              <p className="app-eyebrow">Tips</p>
+              <ul className="app-text-secondary mt-4 space-y-3 text-sm leading-6">
                 <li>Pick a clear tournament name so the dashboard stays easy to scan.</li>
                 <li>Use a realistic participant cap before adding the bracket.</li>
                 <li>Set the status to match what players should currently see.</li>
@@ -401,7 +401,6 @@ export default function TournamentForm({
             </div>
           </aside>
         </div>
-      </div>
-    </main>
+    </PageShell>
   )
 }
