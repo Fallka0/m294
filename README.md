@@ -155,20 +155,20 @@ Typical redirect values:
 
 ```text
 m294/
-├── docs/
-├── public/
-├── supabase/
-├── src/
-│   ├── app/
-│   ├── components/
-│   │   ├── auth/
-│   │   ├── home/
-│   │   ├── profile/
-│   │   ├── react-bits/
-│   │   ├── theme/
-│   │   └── tournaments/
-│   └── lib/
-└── README.md
+|- docs/
+|- public/
+|- supabase/
+|- src/
+|  |- app/
+|  |- components/
+|  |  |- auth/
+|  |  |- home/
+|  |  |- profile/
+|  |  |- react-bits/
+|  |  |- theme/
+|  |  `- tournaments/
+|  `- lib/
+`- README.md
 ```
 
 ## Main Application Areas
@@ -203,6 +203,14 @@ If you see:
 `NEXT_PUBLIC_SUPABASE_URL is required`
 
 then your `.env.local` file is missing or placed in the wrong location.
+
+## LB2 Documentation
+
+The formal LB2 project documents are available here:
+
+- [lb2-projektdokumentation.md](C:/Users/ampro/OneDrive/Documents/GitHub/m294/docs/lb2-projektdokumentation.md)
+- [lb2-testfaelle.md](C:/Users/ampro/OneDrive/Documents/GitHub/m294/docs/lb2-testfaelle.md)
+- [lb2-testprotokoll.md](C:/Users/ampro/OneDrive/Documents/GitHub/m294/docs/lb2-testprotokoll.md)
 
 ## Contributing
 
@@ -266,7 +274,7 @@ If you are using the project as a customer, school, or organizer demo:
 If you are contributing as a developer:
 
 - read the structure section first
-- test critical flows like auth, tournament creation, and profile editing
+- test critical flows like auth, tournament creation, profile editing
 - mention database changes clearly in your PR or merge request
 
 ## License
