@@ -113,13 +113,23 @@ export default function BracketPage() {
       ),
     )
 
+    let insertedMatches: Match[] = []
     if (inserts.length > 0) {
-      await supabase.from('matches').insert(inserts)
+      const { data } = await supabase.from('matches').insert(inserts).select('*')
+      insertedMatches = (data as Match[] | null) ?? []
     }
+
+    const updatedMatchPatches = new Map(updates.map((match) => [match.id, match]))
+    const nextMatches = updatedMatches
+      .map((match) => {
+        const patch = updatedMatchPatches.get(match.id)
+        return patch ? { ...match, ...patch } : match
+      })
+      .concat(insertedMatches)
 
     setEditMatch(null)
     setScoreError('')
-    await fetchAll()
+    setMatches((current) => mergeMatchesWithSavedBracketOrder(current, nextMatches))
   }
 
   if (loading) return <p className="app-text-secondary p-10">Laden...</p>

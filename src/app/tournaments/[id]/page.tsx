@@ -176,20 +176,23 @@ export default function TournamentDetail() {
       ),
     )
 
+    let insertedMatches: Match[] = []
     if (inserts.length > 0) {
-      await supabase.from('matches').insert(inserts)
+      const { data } = await supabase.from('matches').insert(inserts).select('*')
+      insertedMatches = (data as Match[] | null) ?? []
     }
+
+    const updatedMatchPatches = new Map(updates.map((match) => [match.id, match]))
+    const nextMatches = updatedMatches
+      .map((match) => {
+        const patch = updatedMatchPatches.get(match.id)
+        return patch ? { ...match, ...patch } : match
+      })
+      .concat(insertedMatches)
 
     setEditMatch(null)
     setScoreError('')
-    const { data: matchData } = await supabase
-      .from('matches')
-      .select('*')
-      .eq('tournament_id', id)
-      .order('round', { ascending: true })
-      .order('created_at', { ascending: true })
-
-    setMatches((current) => mergeMatchesWithSavedBracketOrder(current, (matchData as Match[] | null) ?? []))
+    setMatches((current) => mergeMatchesWithSavedBracketOrder(current, nextMatches))
   }
 
   const getName = (participantId: string | null) => {
