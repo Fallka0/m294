@@ -7,6 +7,8 @@ export function normalizeTeam(raw: Partial<Team>): Team {
     name: raw.name ?? '',
     tag: raw.tag ?? '',
     description: raw.description ?? '',
+    avatar_url: raw.avatar_url ?? '',
+    banner_url: raw.banner_url ?? '',
     member_names: Array.isArray(raw.member_names) ? raw.member_names.filter(Boolean) : [],
     created_at: raw.created_at ?? null,
   }

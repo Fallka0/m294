@@ -1,5 +1,3 @@
--- Run this in the Supabase SQL editor before using team tournaments.
--- It adds reusable teams plus a team reference on tournament participants.
 
 create extension if not exists pgcrypto;
 
@@ -9,9 +7,15 @@ create table if not exists public.teams (
   name text not null,
   tag text default '',
   description text default '',
+  avatar_url text default '',
+  banner_url text default '',
   member_names text[] not null default '{}',
   created_at timestamptz not null default timezone('utc', now())
 );
+
+alter table public.teams
+  add column if not exists avatar_url text default '',
+  add column if not exists banner_url text default '';
 
 alter table public.participants
   add column if not exists team_id uuid references public.teams(id) on delete set null;

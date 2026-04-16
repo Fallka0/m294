@@ -57,6 +57,7 @@
   --bracket-card-text: #111827;
   --bracket-card-subtext: #6b7280;
   --bracket-card-score: #22d3ee;
+  --date-color-scheme: light;
 }
 
 @theme inline {
@@ -122,6 +123,7 @@
   --bracket-card-text: #f5f3ff;
   --bracket-card-subtext: #d1c4f7;
   --bracket-card-score: #a78bfa;
+  --date-color-scheme: dark;
 }
 
 body {
@@ -214,6 +216,16 @@ body {
 
   .app-input::placeholder {
     color: var(--text-muted);
+  }
+
+  .app-input[type='date'] {
+    color-scheme: var(--date-color-scheme, light);
+  }
+
+  .app-input[type='date']::-webkit-calendar-picker-indicator {
+    filter: var(--svg-icon-filter);
+    opacity: 0.88;
+    cursor: pointer;
   }
 
   .app-text-primary {
