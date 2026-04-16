@@ -11,6 +11,7 @@ export default function Header() {
   const { theme, toggleTheme } = useTheme()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const displayName = profile?.username || profile?.full_name || user?.email?.split('@')[0] || 'Account'
+  const mobileAvatarLabel = (profile?.full_name || profile?.username || user?.email || 'A').trim().charAt(0).toUpperCase()
 
   const closeMobileMenu = () => setIsMobileMenuOpen(false)
 
@@ -71,23 +72,44 @@ export default function Header() {
             </>
           )}
         </div>
-        <button
-          type="button"
-          onClick={() => setIsMobileMenuOpen((open) => !open)}
-          aria-expanded={isMobileMenuOpen}
-          aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
-          className="flex md:hidden h-11 w-11 items-center justify-center rounded-full border border-[color:var(--header-border)] bg-[var(--header-pill)] text-[var(--header-text)] transition duration-200 hover:border-[color:var(--header-text-muted)] hover:bg-[var(--header-pill)]/80"
-        >
-          {isMobileMenuOpen ? (
-            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5 stroke-current" fill="none" strokeWidth="2">
-              <path d="M6 6L18 18M18 6L6 18" strokeLinecap="round" />
-            </svg>
-          ) : (
-            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5 stroke-current" fill="none" strokeWidth="2">
-              <path d="M4 7H20M4 12H20M4 17H20" strokeLinecap="round" />
-            </svg>
+        <div className="flex items-center gap-2 md:hidden">
+          {isAuthenticated && (
+            <Link
+              href="/profile"
+              aria-label="Open profile"
+              className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-[color:var(--header-border)] bg-[var(--header-pill)] text-sm font-semibold text-[var(--header-text)] transition duration-200 hover:border-[color:var(--header-text-muted)] hover:bg-[var(--header-pill)]/80"
+            >
+              {profile?.avatar_url ? (
+                <Image
+                  src={profile.avatar_url}
+                  alt={`${displayName} profile picture`}
+                  width={44}
+                  height={44}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <span>{mobileAvatarLabel}</span>
+              )}
+            </Link>
           )}
-        </button>
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen((open) => !open)}
+            aria-expanded={isMobileMenuOpen}
+            aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-[color:var(--header-border)] bg-[var(--header-pill)] text-[var(--header-text)] transition duration-200 hover:border-[color:var(--header-text-muted)] hover:bg-[var(--header-pill)]/80"
+          >
+            {isMobileMenuOpen ? (
+              <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5 stroke-current" fill="none" strokeWidth="2">
+                <path d="M6 6L18 18M18 6L6 18" strokeLinecap="round" />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5 stroke-current" fill="none" strokeWidth="2">
+                <path d="M4 7H20M4 12H20M4 17H20" strokeLinecap="round" />
+              </svg>
+            )}
+          </button>
+        </div>
       </div>
       {isMobileMenuOpen ? (
         <div className="border-t border-[color:var(--header-border)] bg-[var(--header-bg)] md:hidden">
