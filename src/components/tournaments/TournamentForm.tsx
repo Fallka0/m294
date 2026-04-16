@@ -15,6 +15,7 @@ interface TournamentFormProps {
   title: string
   subtitle: string
   form: TournamentFormValues
+  errors?: Partial<Record<'name' | 'sport' | 'mode' | 'max_participants' | 'date', string>>
   onChange: (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void
   onSubmit: (event: FormEvent<HTMLFormElement>) => void
   onCancel: () => void
@@ -31,6 +32,7 @@ export default function TournamentForm({
   title,
   subtitle,
   form,
+  errors = {},
   onChange,
   onSubmit,
   onCancel,
@@ -153,6 +155,7 @@ export default function TournamentForm({
                     placeholder="Enter tournament name"
                     className={fieldClassName}
                   />
+                  {errors.name && <p className="mt-2 text-sm text-red-500">{errors.name}</p>}
                   <p className="app-text-secondary mt-2 text-sm">Use a short name people can recognize quickly in the dashboard.</p>
                 </div>
 
@@ -169,6 +172,7 @@ export default function TournamentForm({
                         </option>
                       ))}
                     </select>
+                    {errors.sport && <p className="mt-2 text-sm text-red-500">{errors.sport}</p>}
                   </div>
 
                   <div>
@@ -184,6 +188,7 @@ export default function TournamentForm({
                       onChange={onChange}
                       className={fieldClassName}
                     />
+                    {errors.date && <p className="mt-2 text-sm text-red-500">{errors.date}</p>}
                     <p className="app-text-secondary mt-2 text-sm">
                       {showStatus ? 'Past dates are allowed while updating existing tournaments.' : 'New tournaments should start today or later.'}
                     </p>
@@ -224,6 +229,7 @@ export default function TournamentForm({
                       </label>
                     ))}
                   </div>
+                  {errors.mode && <p className="mt-3 text-sm text-red-500">{errors.mode}</p>}
                 </div>
 
                 <div className="grid gap-6 md:grid-cols-[0.8fr_1.2fr]">
@@ -238,6 +244,7 @@ export default function TournamentForm({
                       onChange={onChange}
                       className={fieldClassName}
                     />
+                    {errors.max_participants && <p className="mt-2 text-sm text-red-500">{errors.max_participants}</p>}
                   </div>
 
                   <div>
