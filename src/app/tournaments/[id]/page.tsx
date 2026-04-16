@@ -307,7 +307,7 @@ export default function TournamentDetail() {
                   onClick={() => router.push(`/tournaments/${id}/edit`)}
                   className="app-button-secondary app-text-muted rounded-full p-2 transition duration-200 hover:-translate-y-0.5 hover:text-[var(--text-primary)]"
                 >
-                  <Image src="/edit.svg" alt="" width={18} height={18} className="h-[18px] w-[18px]" aria-hidden="true" />
+                  <Image src="/edit.svg" alt="" width={18} height={18} className="theme-icon h-[18px] w-[18px]" aria-hidden="true" />
                 </button>
               )}
             </div>
@@ -324,7 +324,7 @@ export default function TournamentDetail() {
               <div>
                 <p className="app-text-muted text-xs uppercase tracking-[0.2em]">Participants</p>
                 <p className="app-text-primary inline-flex items-center gap-2">
-                  <Image src="/team.svg" alt="" width={18} height={18} className="h-[18px] w-[18px]" aria-hidden="true" />
+                  <Image src="/team.svg" alt="" width={18} height={18} className="theme-icon h-[18px] w-[18px]" aria-hidden="true" />
                   {participants.length}/{tournament.max_participants}
                 </p>
               </div>
@@ -344,7 +344,7 @@ export default function TournamentDetail() {
             </div>
 
             <div className="mb-3 inline-flex items-center gap-2">
-              <Image src="/trophy.svg" alt="" width={18} height={18} className="h-[18px] w-[18px]" aria-hidden="true" />
+              <Image src="/trophy.svg" alt="" width={18} height={18} className="theme-icon h-[18px] w-[18px]" aria-hidden="true" />
               <span className="app-text-primary font-bold">Participants</span>
             </div>
 
@@ -359,7 +359,7 @@ export default function TournamentDetail() {
                       onClick={() => removeParticipant(participant.id)}
                       className="transition duration-200 hover:-translate-y-0.5 hover:opacity-80"
                     >
-                      <Image src="/cross.svg" alt="Remove participant" width={14} height={14} className="h-3.5 w-3.5" />
+                      <Image src="/cross.svg" alt="Remove participant" width={14} height={14} className="theme-icon h-3.5 w-3.5" />
                     </button>
                   )}
                 </li>
