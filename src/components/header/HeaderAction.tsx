@@ -17,7 +17,7 @@ function joinClasses(...classes: Array<string | undefined>) {
 
 const variantClassNames = {
   primary:
-    'rounded-full border border-[color:var(--accent-border)] bg-[var(--accent-solid)] px-5 py-2.5 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(124,58,237,0.28)]',
+    'rounded-full border border-[color:var(--accent-border)] bg-[var(--accent-solid)] px-5 py-2.5 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:shadow-[var(--accent-glow)]',
   secondary:
     'rounded-full border border-[color:var(--header-border)] px-4 py-2 text-sm font-medium text-[var(--header-text-muted)] transition duration-200 hover:border-[color:var(--header-text-muted)] hover:bg-[var(--header-pill)]',
 }

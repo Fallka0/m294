@@ -110,7 +110,7 @@ export default function Header() {
                   <Link
                     href="/tournaments/new"
                     onClick={closeMobileMenu}
-                    className="cursor-pointer rounded-2xl border border-[color:var(--accent-border)] bg-[var(--accent-solid)] px-4 py-3 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(124,58,237,0.28)]"
+                    className="cursor-pointer rounded-2xl border border-[color:var(--accent-border)] bg-[var(--accent-solid)] px-4 py-3 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:shadow-[var(--accent-glow)]"
                   >
                     Create Tournament
                   </Link>
@@ -141,7 +141,7 @@ export default function Header() {
                   <Link
                     href="/auth"
                     onClick={closeMobileMenu}
-                    className="cursor-pointer rounded-2xl border border-[color:var(--accent-border)] bg-[var(--accent-solid)] px-4 py-3 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(124,58,237,0.28)]"
+                    className="cursor-pointer rounded-2xl border border-[color:var(--accent-border)] bg-[var(--accent-solid)] px-4 py-3 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:shadow-[var(--accent-glow)]"
                   >
                     Create account
                   </Link>
