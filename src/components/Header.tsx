@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useAuth } from '@/components/auth/AuthProvider'
@@ -10,8 +10,13 @@ export default function Header() {
   const { user, profile, isAuthenticated, signOut } = useAuth()
   const { theme, toggleTheme } = useTheme()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [avatarLoadFailed, setAvatarLoadFailed] = useState(false)
   const displayName = profile?.username || profile?.full_name || user?.email?.split('@')[0] || 'Account'
   const mobileAvatarLabel = (profile?.full_name || profile?.username || user?.email || 'A').trim().charAt(0).toUpperCase()
+
+  useEffect(() => {
+    setAvatarLoadFailed(false)
+  }, [profile?.avatar_url])
 
   const closeMobileMenu = () => setIsMobileMenuOpen(false)
 
@@ -79,13 +84,12 @@ export default function Header() {
               aria-label="Open profile"
               className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-[color:var(--header-border)] bg-[var(--header-pill)] text-sm font-semibold text-[var(--header-text)] transition duration-200 hover:border-[color:var(--header-text-muted)] hover:bg-[var(--header-pill)]/80"
             >
-              {profile?.avatar_url ? (
-                <Image
+              {profile?.avatar_url && !avatarLoadFailed ? (
+                <img
                   src={profile.avatar_url}
                   alt={`${displayName} profile picture`}
-                  width={44}
-                  height={44}
                   className="h-full w-full object-cover"
+                  onError={() => setAvatarLoadFailed(true)}
                 />
               ) : (
                 <span>{mobileAvatarLabel}</span>
