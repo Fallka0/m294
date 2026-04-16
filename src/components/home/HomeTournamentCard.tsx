@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import SpotlightCard from '@/components/SpotlightCard'
-import { formatTournamentDate, getDisplayTournamentStatus, modeLabel, statusConfig } from '@/lib/tournaments'
+import { entryTypeLabel, formatTournamentDate, getDisplayTournamentStatus, modeLabel, statusConfig } from '@/lib/tournaments'
 import type { Tournament } from '@/lib/types'
 
 interface HomeTournamentCardProps {
@@ -16,6 +16,7 @@ export default function HomeTournamentCard({
   isJoined = false,
 }: HomeTournamentCardProps) {
   const status = statusConfig[getDisplayTournamentStatus(tournament.status)]
+  const entryCountLabel = tournament.entry_type === 'team' ? 'teams' : 'participants'
 
   return (
     <Link href={`/tournaments/${tournament.id}`}>
@@ -35,6 +36,14 @@ export default function HomeTournamentCard({
               <span className="app-chip rounded-full px-3 py-1 text-xs font-medium">
                 {tournament.is_public ? 'Public' : 'Private'}
               </span>
+              <span className="app-chip rounded-full px-3 py-1 text-xs font-medium">
+                {entryTypeLabel[tournament.entry_type ?? 'solo']}
+              </span>
+              {tournament.entry_type === 'team' && (
+                <span className="app-chip rounded-full px-3 py-1 text-xs font-medium">
+                  {tournament.team_size ?? 2} per team
+                </span>
+              )}
               {isOwner && (
                 <span className="app-chip-info rounded-full px-3 py-1 text-xs font-medium">
                   Owner
@@ -65,7 +74,7 @@ export default function HomeTournamentCard({
           </div>
           <div className="app-text-secondary flex items-center gap-2 text-sm">
             <Image src="/team.svg" alt="" width={18} height={18} className="theme-icon h-[18px] w-[18px]" aria-hidden="true" />
-            <span>{tournament.current_participants ?? 0} / {tournament.max_participants} participants</span>
+            <span>{tournament.current_participants ?? 0} / {tournament.max_participants} {entryCountLabel}</span>
           </div>
         </div>
       </SpotlightCard>

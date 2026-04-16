@@ -11,8 +11,8 @@ import BlurText from '@/components/react-bits/BlurText'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { supabase } from '@/lib/supabase'
 import { buildBracketProgressionChanges, createInitialBracketMatches, getScoreValidationMessage, getTournamentStructure } from '@/lib/bracket'
-import { detailStatusBanner, getDisplayTournamentStatus, matchFormatLabel, modeLabel, normalizeTournament } from '@/lib/tournaments'
-import type { Match, Participant, ScoreFormValues, Tournament } from '@/lib/types'
+import { detailStatusBanner, entryTypeLabel, getDisplayTournamentStatus, matchFormatLabel, modeLabel, normalizeTournament } from '@/lib/tournaments'
+import type { Match, Participant, ScoreFormValues, Team, Tournament } from '@/lib/types'
 
 export default function TournamentDetail() {
   const { id } = useParams<{ id: string }>()
@@ -30,10 +30,38 @@ export default function TournamentDetail() {
   const [joining, setJoining] = useState(false)
   const [leaving, setLeaving] = useState(false)
   const [joinMessage, setJoinMessage] = useState('')
+  const [availableTeams, setAvailableTeams] = useState<Team[]>([])
+  const [selectedTeamId, setSelectedTeamId] = useState('')
 
   useEffect(() => {
     void fetchData()
   }, [id])
+
+  useEffect(() => {
+    async function fetchTeams() {
+      if (!user || tournament?.entry_type !== 'team') {
+        setAvailableTeams([])
+        setSelectedTeamId('')
+        return
+      }
+
+      const { data, error } = await supabase
+        .from('teams')
+        .select('*')
+        .eq('owner_id', user.id)
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        setJoinMessage(error.message)
+        setAvailableTeams([])
+        return
+      }
+
+      setAvailableTeams(((data ?? []) as Team[]))
+    }
+
+    void fetchTeams()
+  }, [tournament?.entry_type, user])
 
   const fetchData = async () => {
     const { data: tournamentData } = await supabase.from('tournaments').select('*').eq('id', id).single()
@@ -74,6 +102,12 @@ export default function TournamentDetail() {
   const currentStatus = getDisplayTournamentStatus(tournament?.status ?? 'open')
   const isOwner = Boolean(user && tournament?.owner_id === user.id)
   const isJoined = Boolean(user && participants.some((participant) => participant.user_id === user.id))
+  const isTeamTournament = tournament?.entry_type === 'team'
+  const requiredTeamSize = tournament?.team_size ?? 2
+  const matchingTeams = availableTeams.filter((team) => team.member_names.length === requiredTeamSize)
+  const selectedTeam = matchingTeams.find((team) => team.id === selectedTeamId) ?? null
+  const entryCountLabel = isTeamTournament ? 'teams' : 'participants'
+  const singularEntryLabel = isTeamTournament ? 'team' : 'participant'
   const isFull = Boolean(tournament && participants.length >= tournament.max_participants)
   const canJoin = Boolean(
     tournament && tournament.is_public !== false && currentStatus === 'open' && !isOwner && !isJoined && !isFull,
@@ -98,6 +132,22 @@ export default function TournamentDetail() {
 
     return participants.filter((participant) => participantIds.has(participant.id))
   }, [participants, structure])
+
+  useEffect(() => {
+    if (!isTeamTournament) {
+      setSelectedTeamId('')
+      return
+    }
+
+    if (matchingTeams.length === 0) {
+      setSelectedTeamId('')
+      return
+    }
+
+    if (!matchingTeams.some((team) => team.id === selectedTeamId)) {
+      setSelectedTeamId(matchingTeams[0].id)
+    }
+  }, [isTeamTournament, matchingTeams, selectedTeamId])
 
   const addParticipant = async () => {
     if (!tournament || !isOwner || !newName.trim()) return
@@ -227,14 +277,19 @@ export default function TournamentDetail() {
     }
 
     if (!canJoin || !user) return
+    if (isTeamTournament && !selectedTeam) {
+      setJoinMessage(`Choose a team with exactly ${requiredTeamSize} players before registering.`)
+      return
+    }
 
     setJoining(true)
     const displayName = profile?.username || profile?.full_name || user.email?.split('@')[0] || 'Player'
     const { error } = await supabase.from('participants').insert([
       {
         tournament_id: id,
-        name: displayName,
+        name: isTeamTournament ? selectedTeam?.name ?? 'Team' : displayName,
         user_id: user.id,
+        team_id: isTeamTournament ? selectedTeam?.id ?? null : null,
       },
     ])
 
@@ -317,13 +372,17 @@ export default function TournamentDetail() {
                   <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">{tournament.sport}</span>
                   <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">{modeLabel[tournament.mode]}</span>
                   <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">{matchFormatLabel[tournament.match_format ?? 'bo1']}</span>
+                  <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">{entryTypeLabel[tournament.entry_type ?? 'solo']}</span>
+                  {isTeamTournament && (
+                    <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">{requiredTeamSize} players per team</span>
+                  )}
                   {(tournament.mode === 'group' || tournament.mode === 'both') && (
                     <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">
                       {tournament.group_count ?? 1} group{(tournament.group_count ?? 1) === 1 ? '' : 's'}
                     </span>
                   )}
                   <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">
-                    {participants.length}/{tournament.max_participants} participants
+                    {participants.length}/{tournament.max_participants} {entryCountLabel}
                   </span>
                   <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">
                     {tournament.is_public === false ? 'Private' : 'Public'}
@@ -391,7 +450,17 @@ export default function TournamentDetail() {
                 <p className="app-text-primary">{matchFormatLabel[tournament.match_format ?? 'bo1']}</p>
               </div>
               <div>
-                <p className="app-text-muted text-xs uppercase tracking-[0.2em]">Participants</p>
+                <p className="app-text-muted text-xs uppercase tracking-[0.2em]">Entry Type</p>
+                <p className="app-text-primary">{entryTypeLabel[tournament.entry_type ?? 'solo']}</p>
+              </div>
+              {isTeamTournament && (
+                <div>
+                  <p className="app-text-muted text-xs uppercase tracking-[0.2em]">Team Size</p>
+                  <p className="app-text-primary">{requiredTeamSize} players</p>
+                </div>
+              )}
+              <div>
+                <p className="app-text-muted text-xs uppercase tracking-[0.2em]">{isTeamTournament ? 'Teams' : 'Participants'}</p>
                 <p className="app-text-primary inline-flex items-center gap-2">
                   <Image src="/team.svg" alt="" width={18} height={18} className="theme-icon h-[18px] w-[18px]" aria-hidden="true" />
                   {participants.length}/{tournament.max_participants}
@@ -420,7 +489,7 @@ export default function TournamentDetail() {
 
             <div className="mb-3 inline-flex items-center gap-2">
               <Image src="/team.svg" alt="" width={18} height={18} className="theme-icon h-[18px] w-[18px]" aria-hidden="true" />
-              <span className="app-text-primary font-bold">Participants</span>
+              <span className="app-text-primary font-bold">{isTeamTournament ? 'Registered Teams' : 'Participants'}</span>
             </div>
 
             <ul className="mb-4 flex flex-col gap-2">
@@ -452,7 +521,7 @@ export default function TournamentDetail() {
                     }
                   }}
                   className="app-input flex-1 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400"
-                  placeholder="Add participant"
+                  placeholder={isTeamTournament ? 'Add team' : 'Add participant'}
                 />
                 <button
                   onClick={addParticipant}
@@ -463,19 +532,56 @@ export default function TournamentDetail() {
               </div>
             ) : (
               <div className="space-y-3">
+                {canJoin && isTeamTournament && (
+                  <>
+                    <label className="block">
+                      <span className="app-text-primary mb-2 block text-sm font-semibold">Choose your team</span>
+                      <select
+                        value={selectedTeamId}
+                        onChange={(event) => {
+                          setSelectedTeamId(event.target.value)
+                          setJoinMessage('')
+                        }}
+                        className="app-input w-full rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                        disabled={joining || matchingTeams.length === 0}
+                      >
+                        {matchingTeams.length === 0 ? (
+                          <option value="">No team matches this roster size</option>
+                        ) : (
+                          matchingTeams.map((team) => (
+                            <option key={team.id} value={team.id}>
+                              {team.name} ({team.member_names.length} players)
+                            </option>
+                          ))
+                        )}
+                      </select>
+                    </label>
+                    <p className="app-text-secondary text-sm">
+                      Team tournaments require exactly {requiredTeamSize} players per roster.
+                    </p>
+                    {matchingTeams.length === 0 && (
+                      <Link
+                        href="/teams"
+                        className="app-button-secondary block rounded-xl px-4 py-3 text-center text-sm font-semibold transition duration-200 hover:-translate-y-0.5"
+                      >
+                        Create a team first
+                      </Link>
+                    )}
+                  </>
+                )}
                 {canJoin && (
                   <button
                     onClick={joinTournament}
-                    disabled={joining}
+                    disabled={joining || (isTeamTournament && !selectedTeam)}
                     className="app-button-primary w-full rounded-xl px-4 py-3 text-sm font-semibold transition duration-200 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none"
                   >
-                    {joining ? 'Joining...' : 'Join Tournament'}
+                    {joining ? (isTeamTournament ? 'Registering team...' : 'Joining...') : isTeamTournament ? 'Register Team' : 'Join Tournament'}
                   </button>
                 )}
                 {isJoined && (
                   <>
                     <div className="app-banner-success rounded-2xl px-4 py-3 text-sm font-medium">
-                      You already joined this tournament.
+                      You already joined this tournament as a {singularEntryLabel}.
                     </div>
                     <button
                       onClick={leaveTournament}

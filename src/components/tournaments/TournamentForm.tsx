@@ -3,8 +3,8 @@
 import type { ChangeEvent, FormEvent } from 'react'
 import PageShell from '@/components/layout/PageShell'
 import TournamentFormHero from '@/components/tournaments/TournamentFormHero'
-import { matchFormatLabel, modeOptions, sports, statusOptions } from '@/lib/tournaments'
-import { sanitizeGroupCount } from '@/lib/tournament-settings'
+import { entryTypeLabel, matchFormatLabel, modeOptions, sports, statusOptions } from '@/lib/tournaments'
+import { sanitizeGroupCount, sanitizeTeamSize } from '@/lib/tournament-settings'
 import type { TournamentFormValues } from '@/lib/types'
 
 const fieldClassName =
@@ -16,7 +16,7 @@ interface TournamentFormProps {
   title: string
   subtitle: string
   form: TournamentFormValues
-  errors?: Partial<Record<'name' | 'sport' | 'mode' | 'group_count' | 'max_participants' | 'date', string>>
+  errors?: Partial<Record<'name' | 'sport' | 'mode' | 'group_count' | 'max_participants' | 'date' | 'team_size', string>>
   onChange: (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void
   onSubmit: (event: FormEvent<HTMLFormElement>) => void
   onCancel: () => void
@@ -52,10 +52,20 @@ export default function TournamentForm({
   const blocksSubmission = participantLimit < 2 || (isCreateMode && hasPastDate)
   const selectedMode = modeOptions.find((option) => option.value === form.mode)?.label ?? 'Knockout'
   const sanitizedGroupCount = sanitizeGroupCount(form.group_count, form.mode, participantLimit || 2)
+  const sanitizedTeamSize = sanitizeTeamSize(form.team_size, form.entry_type)
   const showGroupControls = form.mode === 'group' || form.mode === 'both'
+  const isTeamTournament = form.entry_type === 'team'
   const setupChecklist = [
     { label: 'Basic details', complete: Boolean(form.name.trim() && form.sport && form.date) },
-    { label: 'Structure choices', complete: Boolean(form.mode && participantLimit >= 2 && (!showGroupControls || sanitizedGroupCount >= 1)) },
+    {
+      label: 'Structure choices',
+      complete: Boolean(
+        form.mode &&
+          participantLimit >= 2 &&
+          (!showGroupControls || sanitizedGroupCount >= 1) &&
+          (!isTeamTournament || sanitizedTeamSize >= 2),
+      ),
+    },
     { label: 'Visibility ready', complete: typeof form.is_public === 'boolean' },
     { label: 'Description added', complete: form.description.trim().length >= 12 },
   ]
@@ -65,6 +75,7 @@ export default function TournamentForm({
     showGroupControls && participantLimit > 0 && participantLimit / sanitizedGroupCount < 2
       ? 'Each group should have at least 2 teams, so reduce the group count or raise the cap.'
       : null,
+    isTeamTournament && sanitizedTeamSize < 2 ? 'Team tournaments should use at least 2 players per team.' : null,
     form.mode !== 'group' && participantLimit > 0 && participantLimit % 2 !== 0
       ? 'Odd participant caps create automatic byes in knockout rounds.'
       : null,
@@ -118,8 +129,20 @@ export default function TournamentForm({
                       <p className="app-text-primary font-semibold">{matchFormatLabel[form.match_format]}</p>
                     </div>
                     <div>
+                      <p className="app-text-muted">Entry type</p>
+                      <p className="app-text-primary font-semibold">{entryTypeLabel[form.entry_type]}</p>
+                    </div>
+                    {isTeamTournament && (
+                      <div>
+                        <p className="app-text-muted">Team size</p>
+                        <p className="app-text-primary font-semibold">{sanitizedTeamSize} players</p>
+                      </div>
+                    )}
+                    <div>
                       <p className="app-text-muted">Capacity</p>
-                      <p className="app-text-primary font-semibold">{participantLimit || 'Not set'} players</p>
+                      <p className="app-text-primary font-semibold">
+                        {participantLimit || 'Not set'} {isTeamTournament ? 'teams' : 'players'}
+                      </p>
                     </div>
                     {showGroupControls && (
                       <div>
@@ -264,6 +287,20 @@ export default function TournamentForm({
                   </div>
 
                   <div>
+                    <label className="app-text-primary mb-2 block text-sm font-semibold">Entry Type</label>
+                    <select name="entry_type" value={form.entry_type} onChange={onChange} className={fieldClassName}>
+                      {Object.entries(entryTypeLabel).map(([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="app-text-secondary mt-2 text-sm">
+                      Choose whether tournaments are joined by individual players or full teams.
+                    </p>
+                  </div>
+
+                  <div>
                     <label className="app-text-primary mb-2 block text-sm font-semibold">Match Format</label>
                     <select name="match_format" value={form.match_format} onChange={onChange} className={fieldClassName}>
                       {Object.entries(matchFormatLabel).map(([value, label]) => (
@@ -274,6 +311,27 @@ export default function TournamentForm({
                     </select>
                     <p className="app-text-secondary mt-2 text-sm">Use series play for finals, esports, or longer head-to-head matchups.</p>
                   </div>
+                </div>
+
+                {isTeamTournament && (
+                  <div>
+                    <label className="app-text-primary mb-2 block text-sm font-semibold">Team Size</label>
+                    <input
+                      name="team_size"
+                      type="number"
+                      min={2}
+                      value={form.team_size}
+                      onChange={onChange}
+                      className={fieldClassName}
+                    />
+                    {errors.team_size && <p className="mt-2 text-sm text-red-500">{errors.team_size}</p>}
+                    <p className="app-text-secondary mt-2 text-sm">
+                      Teams joining this tournament must match the required roster size.
+                    </p>
+                  </div>
+                )}
+
+                <div className="grid gap-6 md:grid-cols-[0.8fr_1.2fr]">
 
                   <div>
                     <label className="app-text-primary mb-2 block text-sm font-semibold">Description</label>
@@ -435,13 +493,25 @@ export default function TournamentForm({
                   </div>
                   <div>
                     <p className="app-text-muted text-sm">Capacity</p>
-                    <p className="app-text-primary font-medium">{form.max_participants || 0} players</p>
+                    <p className="app-text-primary font-medium">
+                      {form.max_participants || 0} {isTeamTournament ? 'teams' : 'players'}
+                    </p>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
+                    <p className="app-text-muted text-sm">Entry type</p>
+                    <p className="app-text-primary font-medium">{entryTypeLabel[form.entry_type]}</p>
+                  </div>
+                  <div>
                     <p className="app-text-muted text-sm">Match format</p>
                     <p className="app-text-primary font-medium">{matchFormatLabel[form.match_format]}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="app-text-muted text-sm">Team size</p>
+                    <p className="app-text-primary font-medium">{isTeamTournament ? sanitizedTeamSize : 'Not required'}</p>
                   </div>
                   <div>
                     <p className="app-text-muted text-sm">Groups</p>

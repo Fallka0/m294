@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { formatTournamentDate, getDisplayTournamentStatus, modeLabel, statusConfig } from '@/lib/tournaments'
+import { entryTypeLabel, formatTournamentDate, getDisplayTournamentStatus, modeLabel, statusConfig } from '@/lib/tournaments'
 import type { Tournament } from '@/lib/types'
 
 interface TournamentCardProps {
@@ -8,6 +8,7 @@ interface TournamentCardProps {
 
 export default function TournamentCard({ tournament }: TournamentCardProps) {
   const status = statusConfig[getDisplayTournamentStatus(tournament.status)]
+  const entryCountLabel = tournament.entry_type === 'team' ? 'teams' : 'participants'
 
   return (
     <Link href={`/tournaments/${tournament.id}`}>
@@ -26,12 +27,23 @@ export default function TournamentCard({ tournament }: TournamentCardProps) {
           <span className="app-text-muted font-normal"> - {modeLabel[tournament.mode]}</span>
         </p>
 
+        <div className="mb-3 flex flex-wrap gap-2">
+          <span className="app-chip rounded-full px-3 py-1 text-xs font-medium">
+            {entryTypeLabel[tournament.entry_type ?? 'solo']}
+          </span>
+          {tournament.entry_type === 'team' && (
+            <span className="app-chip rounded-full px-3 py-1 text-xs font-medium">
+              {tournament.team_size ?? 2} per team
+            </span>
+          )}
+        </div>
+
         <div className="flex flex-col gap-1">
           <div className="app-text-secondary flex items-center gap-2 text-sm">
             <span>{formatTournamentDate(tournament.date)}</span>
           </div>
           <div className="app-text-secondary flex items-center gap-2 text-sm">
-            <span>{tournament.current_participants ?? '?'} / {tournament.max_participants} participants</span>
+            <span>{tournament.current_participants ?? '?'} / {tournament.max_participants} {entryCountLabel}</span>
           </div>
         </div>
       </div>

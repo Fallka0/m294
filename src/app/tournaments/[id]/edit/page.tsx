@@ -6,7 +6,7 @@ import { useParams, useRouter } from 'next/navigation'
 import TournamentForm from '@/components/tournaments/TournamentForm'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { supabase } from '@/lib/supabase'
-import { encodeTournamentDescription, normalizeTournamentSettings, sanitizeGroupCount } from '@/lib/tournament-settings'
+import { encodeTournamentDescription, normalizeTournamentSettings, sanitizeGroupCount, sanitizeTeamSize } from '@/lib/tournament-settings'
 import type { Tournament, TournamentFormValues } from '@/lib/types'
 
 export default function EditTournament() {
@@ -22,6 +22,8 @@ export default function EditTournament() {
     mode: 'knockout',
     group_count: 2,
     match_format: 'bo1',
+    entry_type: 'solo',
+    team_size: 2,
     max_participants: '',
     date: '',
     status: 'open',
@@ -55,6 +57,8 @@ export default function EditTournament() {
           mode: tournament.mode,
           group_count: tournament.group_count ?? 2,
           match_format: tournament.match_format ?? 'bo1',
+          entry_type: tournament.entry_type ?? 'solo',
+          team_size: tournament.team_size ?? 2,
           max_participants: tournament.max_participants,
           date: tournament.date,
           status: tournament.status ?? 'open',
@@ -88,6 +92,11 @@ export default function EditTournament() {
       setSaving(false)
       return
     }
+    if (form.entry_type === 'team' && sanitizeTeamSize(form.team_size, form.entry_type) < 2) {
+      setMessage('Team tournaments require at least 2 players per team.')
+      setSaving(false)
+      return
+    }
 
     const tournamentPayload = {
       name: form.name,
@@ -102,6 +111,8 @@ export default function EditTournament() {
         maxParticipants: Number(form.max_participants),
         groupCount: form.group_count,
         matchFormat: form.match_format,
+        entryType: form.entry_type,
+        teamSize: form.team_size,
       }),
       is_public: form.is_public,
     }

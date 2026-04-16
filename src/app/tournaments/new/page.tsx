@@ -6,10 +6,10 @@ import { useRouter } from 'next/navigation'
 import TournamentForm from '@/components/tournaments/TournamentForm'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { supabase } from '@/lib/supabase'
-import { encodeTournamentDescription, sanitizeGroupCount } from '@/lib/tournament-settings'
+import { encodeTournamentDescription, sanitizeGroupCount, sanitizeTeamSize } from '@/lib/tournament-settings'
 import type { TournamentFormValues } from '@/lib/types'
 
-type TournamentFormErrors = Partial<Record<'name' | 'sport' | 'mode' | 'group_count' | 'max_participants' | 'date', string>>
+type TournamentFormErrors = Partial<Record<'name' | 'sport' | 'mode' | 'group_count' | 'max_participants' | 'date' | 'team_size', string>>
 
 export default function NewTournament() {
   const router = useRouter()
@@ -23,6 +23,8 @@ export default function NewTournament() {
     mode: 'knockout',
     group_count: 2,
     match_format: 'bo1',
+    entry_type: 'solo',
+    team_size: 2,
     max_participants: 8,
     date: '',
     status: 'open',
@@ -55,6 +57,9 @@ export default function NewTournament() {
     if (!form.date) nextErrors.date = 'Tournament date is required.'
     if (!Number(form.max_participants) || Number(form.max_participants) < 2) {
       nextErrors.max_participants = 'Maximum participants must be at least 2.'
+    }
+    if (form.entry_type === 'team' && sanitizeTeamSize(form.team_size, form.entry_type) < 2) {
+      nextErrors.team_size = 'Team tournaments require at least 2 players per team.'
     }
     if ((form.mode === 'group' || form.mode === 'both') && Number(form.max_participants) / sanitizeGroupCount(form.group_count, form.mode, Number(form.max_participants)) < 2) {
       nextErrors.group_count = 'Groups need at least 2 teams each with the current participant cap.'
@@ -92,6 +97,8 @@ export default function NewTournament() {
         maxParticipants: Number(form.max_participants),
         groupCount: form.group_count,
         matchFormat: form.match_format,
+        entryType: form.entry_type,
+        teamSize: form.team_size,
       }),
       is_public: form.is_public,
       owner_id: user.id,

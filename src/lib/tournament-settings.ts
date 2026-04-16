@@ -1,4 +1,4 @@
-import type { MatchFormat, Tournament, TournamentMode } from '@/lib/types'
+import type { MatchFormat, Tournament, TournamentEntryType, TournamentMode } from '@/lib/types'
 
 const SETTINGS_START = '<!-- tournament-settings:'
 const SETTINGS_END = '-->'
@@ -6,6 +6,8 @@ const SETTINGS_END = '-->'
 interface StoredTournamentSettings {
   group_count?: number
   match_format?: MatchFormat
+  entry_type?: TournamentEntryType
+  team_size?: number
 }
 
 interface TournamentSettingsInput {
@@ -14,6 +16,17 @@ interface TournamentSettingsInput {
   maxParticipants: number
   groupCount: number | string
   matchFormat: MatchFormat
+  entryType: TournamentEntryType
+  teamSize: number | string
+}
+
+function sanitizeTeamSize(teamSize: number | string | null | undefined, entryType: TournamentEntryType) {
+  if (entryType === 'solo') return 1
+
+  const parsed = Number(teamSize)
+  if (!Number.isFinite(parsed)) return 2
+
+  return Math.max(2, Math.floor(parsed))
 }
 
 function getDefaultGroupCount(mode: TournamentMode, maxParticipants: number) {
@@ -80,11 +93,15 @@ export function encodeTournamentDescription({
   maxParticipants,
   groupCount,
   matchFormat,
+  entryType,
+  teamSize,
 }: TournamentSettingsInput) {
   const cleanDescription = description.trim()
   const payload: StoredTournamentSettings = {
     group_count: sanitizeGroupCount(groupCount, mode, maxParticipants),
     match_format: matchFormat,
+    entry_type: entryType,
+    team_size: sanitizeTeamSize(teamSize, entryType),
   }
 
   return `${SETTINGS_START}${JSON.stringify(payload)}${SETTINGS_END}\n${cleanDescription}`.trim()
@@ -92,12 +109,17 @@ export function encodeTournamentDescription({
 
 export function normalizeTournamentSettings(tournament: Tournament): Tournament {
   const { cleanDescription, settings } = extractTournamentSettings(tournament.description)
+  const entryType = settings.entry_type ?? 'solo'
 
   return {
     ...tournament,
     description: cleanDescription,
     group_count: sanitizeGroupCount(settings.group_count, tournament.mode, tournament.max_participants),
     match_format: settings.match_format ?? 'bo1',
+    entry_type: entryType,
+    team_size: sanitizeTeamSize(settings.team_size, entryType),
   }
 }
+
+export { sanitizeTeamSize }
 

@@ -1,4 +1,4 @@
-import type { Tournament, TournamentMode, TournamentStatus } from '@/lib/types'
+import type { Tournament, TournamentEntryType, TournamentMode, TournamentStatus } from '@/lib/types'
 import { normalizeTournamentSettings } from '@/lib/tournament-settings'
 
 export const matchFormatLabel = {
@@ -6,6 +6,11 @@ export const matchFormatLabel = {
   bo3: 'Best of 3',
   bo5: 'Best of 5',
 } as const
+
+export const entryTypeLabel: Record<TournamentEntryType, string> = {
+  solo: 'Solo',
+  team: 'Team',
+}
 
 export const statusConfig: Record<TournamentStatus, { label: string; className: string }> = {
   open: { label: 'Open', className: 'app-status-open' },

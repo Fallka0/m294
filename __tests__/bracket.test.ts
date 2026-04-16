@@ -74,6 +74,9 @@ describe('buildBracketProgressionChanges', () => {
         participant_a: 'p1',
         participant_b: 'p4',
         round: 2,
+        score_a: null,
+        score_b: null,
+        winner: null,
       },
     ])
   })

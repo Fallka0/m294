@@ -59,6 +59,9 @@ export default function Header() {
               <HeaderAction href="/tournaments/new" variant="primary">
                 Create Tournament
               </HeaderAction>
+              <HeaderAction href="/teams" className="hidden bg-[var(--header-pill)] md:block">
+                Teams
+              </HeaderAction>
               <HeaderAction href="/profile" className="hidden bg-[var(--header-pill)] md:block">
                 @{displayName}
               </HeaderAction>
@@ -146,6 +149,13 @@ export default function Header() {
                     className="rounded-2xl border border-[color:var(--header-border)] px-4 py-3 text-sm font-medium text-[var(--header-text-muted)] transition duration-200 hover:border-[color:var(--header-text-muted)] hover:bg-[var(--header-pill)]"
                   >
                     @{displayName}
+                  </Link>
+                  <Link
+                    href="/teams"
+                    onClick={closeMobileMenu}
+                    className="rounded-2xl border border-[color:var(--header-border)] px-4 py-3 text-sm font-medium text-[var(--header-text-muted)] transition duration-200 hover:border-[color:var(--header-text-muted)] hover:bg-[var(--header-pill)]"
+                  >
+                    Teams
                   </Link>
                   <button
                     type="button"
