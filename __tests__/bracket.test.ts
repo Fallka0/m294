@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { buildBracketProgressionChanges, createInitialBracketMatches, getScoreValidationMessage } from '@/lib/bracket'
+import {
+  buildBracketProgressionChanges,
+  createInitialBracketMatches,
+  getScoreValidationMessage,
+  sortMatchesForBracket,
+} from '@/lib/bracket'
 import type { Match } from '@/lib/types'
 
 function createMatch(overrides: Partial<Match>): Match {
@@ -123,5 +128,86 @@ describe('buildBracketProgressionChanges', () => {
         winner: null,
       },
     ])
+  })
+
+  it('keeps downstream slot assignments stable even when fetched round order is scrambled', () => {
+    const matches = [
+      createMatch({
+        id: 'm1',
+        participant_a: 'p1',
+        participant_b: 'p2',
+        score_a: 4,
+        score_b: 1,
+        winner: 'p1',
+        created_at: '2026-04-16T08:00:00.000Z',
+      }),
+      createMatch({
+        id: 'm2',
+        participant_a: 'p3',
+        participant_b: 'p4',
+        score_a: 2,
+        score_b: 0,
+        winner: 'p3',
+        created_at: '2026-04-16T08:05:00.000Z',
+      }),
+      createMatch({
+        id: 'm3',
+        participant_a: 'p5',
+        participant_b: 'p6',
+        score_a: 3,
+        score_b: 0,
+        winner: 'p5',
+        created_at: '2026-04-16T08:10:00.000Z',
+      }),
+      createMatch({
+        id: 'm4',
+        participant_a: 'p7',
+        participant_b: 'p8',
+        score_a: 1,
+        score_b: 2,
+        winner: 'p8',
+        created_at: '2026-04-16T08:15:00.000Z',
+      }),
+      createMatch({
+        id: 'a-bottom-slot',
+        participant_a: 'p5',
+        participant_b: 'p8',
+        round: 2,
+        created_at: '2026-04-16T08:20:00.000Z',
+      }),
+      createMatch({
+        id: 'z-top-slot',
+        participant_a: 'p1',
+        participant_b: 'p3',
+        round: 2,
+        created_at: '2026-04-16T08:20:00.000Z',
+      }),
+    ]
+
+    const reorderedRoundTwo = sortMatchesForBracket(matches).filter((match) => match.round === 2)
+
+    expect(reorderedRoundTwo.map((match) => match.id)).toEqual(['z-top-slot', 'a-bottom-slot'])
+
+    const updatedFirstMatch = matches.map((match) =>
+      match.id === 'm1'
+        ? {
+            ...match,
+            score_a: 1,
+            score_b: 4,
+            winner: 'p2',
+          }
+        : match,
+    )
+
+    const { updates } = buildBracketProgressionChanges('t-1', updatedFirstMatch)
+
+    expect(updates).toContainEqual({
+      id: 'z-top-slot',
+      participant_a: 'p2',
+      participant_b: 'p3',
+      score_a: null,
+      score_b: null,
+      winner: null,
+    })
   })
 })

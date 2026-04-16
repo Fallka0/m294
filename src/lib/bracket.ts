@@ -3,18 +3,78 @@ import type { Match } from '@/lib/types'
 type MatchUpdate = Pick<Match, 'id' | 'participant_a' | 'participant_b' | 'score_a' | 'score_b' | 'winner'>
 type MatchInsert = Pick<Match, 'tournament_id' | 'participant_a' | 'participant_b' | 'round'>
 
-function sortMatches(matches: Match[]) {
-  return [...matches].sort((left, right) => {
-    if (left.round !== right.round) return left.round - right.round
-    if (left.created_at && right.created_at && left.created_at !== right.created_at) {
-      return new Date(left.created_at).getTime() - new Date(right.created_at).getTime()
+function compareMatchesByCreation(left: Match, right: Match) {
+  if (left.created_at && right.created_at && left.created_at !== right.created_at) {
+    return new Date(left.created_at).getTime() - new Date(right.created_at).getTime()
+  }
+
+  return left.id.localeCompare(right.id)
+}
+
+function findSourceMatchIndex(previousRoundMatches: Match[], participantId: string | null) {
+  if (!participantId) return -1
+
+  const winnerIndex = previousRoundMatches.findIndex((match) => match.winner === participantId)
+  if (winnerIndex >= 0) return winnerIndex
+
+  return previousRoundMatches.findIndex(
+    (match) => match.participant_a === participantId || match.participant_b === participantId,
+  )
+}
+
+function getBracketSlotIndex(match: Match, previousRoundMatches: Match[]) {
+  const sourceIndices = [match.participant_a, match.participant_b]
+    .map((participantId) => findSourceMatchIndex(previousRoundMatches, participantId))
+    .filter((index) => index >= 0)
+
+  if (sourceIndices.length === 0) {
+    return Number.POSITIVE_INFINITY
+  }
+
+  return Math.floor(Math.min(...sourceIndices) / 2)
+}
+
+export function sortMatchesForBracket(matches: Match[]) {
+  const matchesByRound = matches.reduce<Map<number, Match[]>>((map, match) => {
+    const current = map.get(match.round) ?? []
+    current.push(match)
+    map.set(match.round, current)
+    return map
+  }, new Map())
+  const orderedRounds = [...matchesByRound.keys()].sort((left, right) => left - right)
+  const orderedMatchesByRound = new Map<number, Match[]>()
+
+  orderedRounds.forEach((round) => {
+    const currentRoundMatches = [...(matchesByRound.get(round) ?? [])]
+
+    if (round === 1) {
+      orderedMatchesByRound.set(round, currentRoundMatches.sort(compareMatchesByCreation))
+      return
     }
-    return left.id.localeCompare(right.id)
+
+    const previousRoundMatches = orderedMatchesByRound.get(round - 1) ?? []
+    const orderedRoundMatches = currentRoundMatches
+      .map((match) => ({
+        match,
+        slotIndex: getBracketSlotIndex(match, previousRoundMatches),
+      }))
+      .sort((left, right) => {
+        if (left.slotIndex !== right.slotIndex) {
+          return left.slotIndex - right.slotIndex
+        }
+
+        return compareMatchesByCreation(left.match, right.match)
+      })
+      .map(({ match }) => match)
+
+    orderedMatchesByRound.set(round, orderedRoundMatches)
   })
+
+  return orderedRounds.flatMap((round) => orderedMatchesByRound.get(round) ?? [])
 }
 
 function buildRoundMap(matches: Match[]) {
-  return sortMatches(matches).reduce<Map<number, Match[]>>((map, match) => {
+  return sortMatchesForBracket(matches).reduce<Map<number, Match[]>>((map, match) => {
     const current = map.get(match.round) ?? []
     current.push(match)
     map.set(match.round, current)
@@ -57,7 +117,7 @@ export function getScoreValidationMessage(scoreA: string, scoreB: string) {
 }
 
 export function buildBracketProgressionChanges(tournamentId: string, matches: Match[]) {
-  const orderedMatches = sortMatches(matches)
+  const orderedMatches = sortMatchesForBracket(matches)
   const rounds = buildRoundMap(orderedMatches)
   const updates: MatchUpdate[] = []
   const inserts: MatchInsert[] = []

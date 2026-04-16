@@ -3,7 +3,12 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { buildBracketProgressionChanges, createInitialBracketMatches, getScoreValidationMessage } from '@/lib/bracket'
+import {
+  buildBracketProgressionChanges,
+  createInitialBracketMatches,
+  getScoreValidationMessage,
+  sortMatchesForBracket,
+} from '@/lib/bracket'
 import type { Match, Participant, ScoreFormValues, Tournament } from '@/lib/types'
 
 export default function BracketPage() {
@@ -32,7 +37,7 @@ export default function BracketPage() {
 
     setTournament((tournamentData as Tournament | null) ?? null)
     setParticipants((participantData as Participant[] | null) ?? [])
-    setMatches((matchData as Match[] | null) ?? [])
+    setMatches(sortMatchesForBracket((matchData as Match[] | null) ?? []))
     setLoading(false)
   }
 
