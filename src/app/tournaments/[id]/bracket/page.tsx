@@ -88,27 +88,27 @@ export default function BracketPage() {
     await fetchAll()
   }
 
-  if (loading) return <p className="p-10 text-gray-500">Laden...</p>
+  if (loading) return <p className="app-text-secondary p-10">Laden...</p>
 
   const rounds = [...new Set(matches.map((match) => match.round))].sort((left, right) => left - right)
 
   return (
-    <main className="page-shell min-h-screen px-6 py-10 text-gray-900 transition-colors duration-300">
+    <main className="page-shell min-h-screen px-6 py-10 transition-colors duration-300">
       <div className="mx-auto max-w-3xl">
       <div className="mb-8 flex items-center justify-between">
         <div>
           <button
             onClick={() => router.push(`/tournaments/${id}`)}
-            className="mb-2 block cursor-pointer text-sm text-white/60 transition duration-200 hover:text-white"
+            className="mb-2 block text-sm text-white/80 transition duration-200 hover:text-white"
           >
             Back
           </button>
           <h1 className="text-3xl font-bold text-white">{tournament?.name}</h1>
-          <p className="text-sm text-white/65">Bracket</p>
+          <p className="text-sm text-white/80">Bracket</p>
         </div>
         <button
           onClick={generateBracket}
-          className="cursor-pointer rounded-lg bg-cyan-400 px-4 py-2 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-cyan-500 hover:shadow-md"
+          className="app-button-primary rounded-lg px-4 py-2 text-sm font-semibold transition duration-200 hover:-translate-y-0.5 hover:shadow-md"
         >
           {matches.length > 0 ? 'Regenerate' : 'Generate Bracket'}
         </button>
@@ -118,17 +118,17 @@ export default function BracketPage() {
 
       {rounds.map((round) => (
         <div key={round} className="app-card mb-8 rounded-[28px] p-6">
-          <h2 className="mb-3 text-lg font-semibold text-gray-900">Round {round}</h2>
+          <h2 className="app-text-primary mb-3 text-lg font-semibold">Round {round}</h2>
           <div className="flex flex-col gap-3">
             {matches
               .filter((match) => match.round === round)
               .map((match) => (
                 <div key={match.id} className="app-card-elevated flex items-center justify-between rounded-xl px-5 py-4">
-                  <div className="flex items-center gap-4 text-gray-900">
+                  <div className="app-text-primary flex items-center gap-4">
                     <span className={`font-medium ${match.winner === match.participant_a ? 'text-cyan-600' : ''}`}>
                       {getName(match.participant_a)}
                     </span>
-                    <span className="text-sm text-gray-400">vs</span>
+                    <span className="app-text-muted text-sm">vs</span>
                     <span className={`font-medium ${match.winner === match.participant_b ? 'text-cyan-600' : ''}`}>
                       {getName(match.participant_b)}
                     </span>
@@ -136,13 +136,13 @@ export default function BracketPage() {
 
                   <div className="flex items-center gap-3">
                     {match.score_a !== null && match.score_b !== null && (
-                      <span className="font-mono text-sm text-gray-500">
+                      <span className="app-text-secondary font-mono text-sm">
                         {match.score_a} : {match.score_b}
                       </span>
                     )}
                     <button
                       onClick={() => openEdit(match)}
-                      className="app-button-secondary cursor-pointer rounded-lg px-3 py-1 text-sm transition duration-200 hover:-translate-y-0.5"
+                      className="app-button-secondary rounded-lg px-3 py-1 text-sm transition duration-200 hover:-translate-y-0.5"
                     >
                       {match.winner ? 'Edit' : 'Result'}
                     </button>
@@ -155,29 +155,29 @@ export default function BracketPage() {
 
       {editMatch && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="app-card w-full max-w-sm rounded-2xl p-8 text-gray-900 shadow-xl">
-            <h2 className="mb-6 text-center text-xl font-bold text-gray-900">Enter result</h2>
+          <div className="app-card w-full max-w-sm rounded-2xl p-8 shadow-xl">
+            <h2 className="app-text-primary mb-6 text-center text-xl font-bold">Enter result</h2>
 
             <div className="mb-6 flex items-center justify-center gap-4">
               <div className="flex-1 text-center">
-                <p className="mb-2 text-sm font-medium text-gray-700">{getName(editMatch.participant_a)}</p>
+                <p className="app-text-primary mb-2 text-sm font-medium">{getName(editMatch.participant_a)}</p>
                 <input
                   type="number"
                   min={0}
                   value={scores.score_a}
                   onChange={(event) => setScores((current) => ({ ...current, score_a: event.target.value }))}
-                  className="app-input w-full rounded-lg px-3 py-2 text-center text-xl font-bold text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                  className="app-input w-full rounded-lg px-3 py-2 text-center text-xl font-bold focus:outline-none focus:ring-2 focus:ring-cyan-400"
                 />
               </div>
-              <span className="font-bold text-gray-400">:</span>
+              <span className="app-text-muted font-bold">:</span>
               <div className="flex-1 text-center">
-                <p className="mb-2 text-sm font-medium text-gray-700">{getName(editMatch.participant_b)}</p>
+                <p className="app-text-primary mb-2 text-sm font-medium">{getName(editMatch.participant_b)}</p>
                 <input
                   type="number"
                   min={0}
                   value={scores.score_b}
                   onChange={(event) => setScores((current) => ({ ...current, score_b: event.target.value }))}
-                  className="app-input w-full rounded-lg px-3 py-2 text-center text-xl font-bold text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                  className="app-input w-full rounded-lg px-3 py-2 text-center text-xl font-bold focus:outline-none focus:ring-2 focus:ring-cyan-400"
                 />
               </div>
             </div>
@@ -185,13 +185,13 @@ export default function BracketPage() {
             <div className="flex gap-3">
               <button
                 onClick={() => setEditMatch(null)}
-                className="app-button-secondary flex-1 cursor-pointer rounded-lg px-4 py-2 transition duration-200 hover:-translate-y-0.5"
+                className="app-button-secondary flex-1 rounded-lg px-4 py-2 transition duration-200 hover:-translate-y-0.5"
               >
                 Cancel
               </button>
               <button
                 onClick={saveResult}
-                className="flex-1 cursor-pointer rounded-lg bg-cyan-400 px-4 py-2 text-white transition duration-200 hover:-translate-y-0.5 hover:bg-cyan-500 hover:shadow-md"
+                className="app-button-primary flex-1 rounded-lg px-4 py-2 transition duration-200 hover:-translate-y-0.5 hover:shadow-md"
               >
                 Save
               </button>

@@ -3,6 +3,7 @@ import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useAuth } from '@/components/auth/AuthProvider'
+import HeaderAction from '@/components/header/HeaderAction'
 import { useTheme } from '@/components/theme/ThemeProvider'
 
 export default function Header() {
@@ -49,40 +50,24 @@ export default function Header() {
           </button>
           {isAuthenticated ? (
             <>
-              <Link
-                href="/tournaments/new"
-                className="cursor-pointer rounded-full border border-[color:var(--accent-border)] bg-[var(--accent-solid)] px-5 py-2.5 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:shadow-[var(--accent-glow)]"
-              >
+              <HeaderAction href="/tournaments/new" variant="primary">
                 Create Tournament
-              </Link>
-              <Link
-                href="/profile"
-                className="hidden rounded-full border border-[color:var(--header-border)] bg-[var(--header-pill)] px-4 py-2 text-sm text-[var(--header-text-muted)] transition duration-200 hover:border-[color:var(--header-text-muted)] hover:bg-[var(--header-pill)]/80 md:block"
-              >
+              </HeaderAction>
+              <HeaderAction href="/profile" className="hidden bg-[var(--header-pill)] md:block">
                 @{displayName}
-              </Link>
-              <button
-                type="button"
-                onClick={signOut}
-                className="rounded-full border border-[color:var(--header-border)] px-4 py-2 text-sm font-medium text-[var(--header-text-muted)] transition duration-200 hover:border-[color:var(--header-text-muted)] hover:bg-[var(--header-pill)]"
-              >
+              </HeaderAction>
+              <HeaderAction onClick={signOut}>
                 Sign out
-              </button>
+              </HeaderAction>
             </>
           ) : (
             <>
-              <Link
-                href="/auth"
-                className="rounded-full border border-[color:var(--header-border)] px-4 py-2 text-sm font-medium text-[var(--header-text-muted)] transition duration-200 hover:border-[color:var(--header-text-muted)] hover:bg-[var(--header-pill)]"
-              >
+              <HeaderAction href="/auth">
                 Sign in
-              </Link>
-              <Link
-                href="/auth"
-                className="cursor-pointer rounded-full border border-[color:var(--accent-border)] bg-[var(--accent-solid)] px-5 py-2.5 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:shadow-[var(--accent-glow)]"
-              >
+              </HeaderAction>
+              <HeaderAction href="/auth" variant="primary">
                 Create account
-              </Link>
+              </HeaderAction>
             </>
           )}
         </div>

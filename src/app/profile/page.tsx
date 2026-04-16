@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import OrganizerProfileCard from '@/components/profile/OrganizerProfileCard'
 import { useAuth } from '@/components/auth/AuthProvider'
+import PageShell from '@/components/layout/PageShell'
 import { getProfileMediaHelper, removeProfileMedia, uploadProfileMedia, validateProfileMedia } from '@/lib/profile-media'
 import { supabase } from '@/lib/supabase'
 import type { Profile } from '@/lib/types'
@@ -24,7 +25,7 @@ type ProfileMediaField = 'avatar_url' | 'banner_url'
 type FeedbackTone = 'error' | 'success' | 'info'
 
 const fieldClassName =
-  'app-input w-full rounded-xl px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400'
+  'app-input w-full rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-cyan-400'
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -159,7 +160,7 @@ export default function ProfilePage() {
   }
 
   if (authLoading || loading || !isAuthenticated) {
-    return <p className="p-10 text-gray-500">Loading...</p>
+    return <p className="app-text-secondary p-10">Loading...</p>
   }
 
   const previewProfile: Profile = {
@@ -179,45 +180,44 @@ export default function ProfilePage() {
   const isUploadingBanner = uploadingField === 'banner_url'
   const messageClassName =
     messageTone === 'error'
-      ? 'border-red-200 bg-red-50 text-red-700'
+      ? 'app-banner-danger'
       : messageTone === 'success'
-        ? 'border-green-200 bg-green-50 text-green-700'
-        : 'border-cyan-100 bg-cyan-50 text-cyan-700'
+        ? 'app-banner-success'
+        : 'app-banner-info'
 
   return (
-    <main className="page-shell min-h-screen px-6 py-10 transition-colors duration-300">
-      <div className="mx-auto flex max-w-6xl flex-col gap-8">
-        <section className="hero-surface overflow-hidden rounded-[32px] border border-black/5 bg-[radial-gradient(circle_at_top,rgba(8,145,178,0.12),transparent_34%),linear-gradient(180deg,#ffffff_0%,#f7f7f7_100%)] px-7 py-8 text-gray-950 shadow-[0_24px_80px_rgba(15,23,42,0.08)]">
-          <div className="max-w-2xl">
-            <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">Profile</h1>
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-gray-500 md:text-base">
-              Update your photo, banner, bio, and links.
-            </p>
-          </div>
-        </section>
+    <PageShell>
+      <section className="hero-surface overflow-hidden rounded-[32px] border border-black/5 bg-[radial-gradient(circle_at_top,rgba(8,145,178,0.12),transparent_34%),linear-gradient(180deg,#ffffff_0%,#f7f7f7_100%)] px-7 py-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)]">
+        <div className="max-w-2xl">
+          <h1 className="hero-title text-4xl font-semibold tracking-tight text-gray-950 md:text-5xl">Profile</h1>
+          <p className="hero-copy mt-4 max-w-2xl text-sm leading-7 text-gray-500 md:text-base">
+            Update your photo, banner, bio, and links.
+          </p>
+        </div>
+      </section>
 
-        <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-          <section className="app-card rounded-[32px] p-8 md:p-10">
+      <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+        <section className="app-card rounded-[32px] p-8 md:p-10">
             <form onSubmit={handleSubmit} className="space-y-8">
               <section className="space-y-5">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-400">Identity</p>
-                  <h2 className="mt-2 text-2xl font-semibold tracking-tight text-gray-950">Public-facing basics</h2>
+                  <p className="app-eyebrow">Identity</p>
+                  <h2 className="app-text-primary mt-2 text-2xl font-semibold tracking-tight">Public-facing basics</h2>
                 </div>
 
                 <div className="grid gap-5 md:grid-cols-2">
                   <div>
-                    <label className="mb-2 block text-sm font-semibold text-gray-700">Username</label>
+                    <label className="app-text-primary mb-2 block text-sm font-semibold">Username</label>
                     <input name="username" value={form.username} onChange={handleChange} className={fieldClassName} placeholder="tournamentfan" />
                   </div>
                   <div>
-                    <label className="mb-2 block text-sm font-semibold text-gray-700">Full name</label>
+                    <label className="app-text-primary mb-2 block text-sm font-semibold">Full name</label>
                     <input name="full_name" value={form.full_name} onChange={handleChange} className={fieldClassName} placeholder="Alex Example" />
                   </div>
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-gray-700">Bio</label>
+                  <label className="app-text-primary mb-2 block text-sm font-semibold">Bio</label>
                   <textarea
                     name="bio"
                     rows={5}
@@ -226,7 +226,7 @@ export default function ProfilePage() {
                     className={`${fieldClassName} resize-none`}
                     placeholder="Tell players what kind of tournaments you run."
                   />
-                  <div className="mt-2 flex items-center justify-between text-xs text-gray-400">
+                  <div className="app-text-muted mt-2 flex items-center justify-between text-xs">
                     <span>Short bios make the public card easier to scan.</span>
                     <span>{bioLength} characters</span>
                   </div>
@@ -235,8 +235,8 @@ export default function ProfilePage() {
 
               <section className="space-y-5">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-400">Media</p>
-                  <h2 className="mt-2 text-2xl font-semibold tracking-tight text-gray-950">Images</h2>
+                  <p className="app-eyebrow">Media</p>
+                  <h2 className="app-text-primary mt-2 text-2xl font-semibold tracking-tight">Images</h2>
                 </div>
 
                 <div className="grid gap-5 md:grid-cols-2">
@@ -275,7 +275,7 @@ export default function ProfilePage() {
                           }
                         >
                           {!imageUrl && (
-                            <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.18),transparent_45%),linear-gradient(135deg,rgba(255,255,255,0.7),rgba(240,249,255,0.9))] text-sm font-medium text-gray-500">
+                            <div className="app-text-secondary flex h-full items-center justify-center bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.18),transparent_45%),linear-gradient(135deg,rgba(255,255,255,0.7),rgba(240,249,255,0.9))] text-sm font-medium">
                               {item.title} preview
                             </div>
                           )}
@@ -291,10 +291,10 @@ export default function ProfilePage() {
 
                         <div className="mt-4">
                           <div className="flex items-center justify-between gap-3">
-                            <p className="text-sm font-semibold text-gray-700">{item.title}</p>
-                            <span className="text-xs text-gray-400">{item.uploading ? 'Processing...' : 'Ready'}</span>
+                            <p className="app-text-primary text-sm font-semibold">{item.title}</p>
+                            <span className="app-text-muted text-xs">{item.uploading ? 'Processing...' : 'Ready'}</span>
                           </div>
-                          <p className="mt-2 text-sm leading-6 text-gray-500">{item.helper}</p>
+                          <p className="app-text-secondary mt-2 text-sm leading-6">{item.helper}</p>
                         </div>
 
                         <div className="mt-4 flex gap-3">
@@ -302,7 +302,7 @@ export default function ProfilePage() {
                             type="button"
                             onClick={() => item.inputRef.current?.click()}
                             disabled={item.uploading}
-                            className="flex-1 rounded-xl bg-cyan-400 px-4 py-3 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-cyan-500 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
+                            className="app-button-primary flex-1 rounded-xl px-4 py-3 text-sm font-semibold transition duration-200 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-60"
                           >
                             {item.uploading ? 'Uploading...' : imageUrl ? 'Replace image' : 'Upload image'}
                           </button>
@@ -310,7 +310,7 @@ export default function ProfilePage() {
                             type="button"
                             onClick={() => void handleRemoveImage(item.field)}
                             disabled={!imageUrl || item.uploading}
-                            className="app-button-secondary rounded-xl px-4 py-3 text-sm font-semibold transition duration-200 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="app-button-secondary rounded-xl px-4 py-3 text-sm font-semibold transition duration-200 hover:-translate-y-0.5 disabled:opacity-50"
                           >
                             Remove
                           </button>
@@ -323,21 +323,21 @@ export default function ProfilePage() {
 
               <section className="space-y-5">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-400">Links</p>
-                  <h2 className="mt-2 text-2xl font-semibold tracking-tight text-gray-950">Links</h2>
+                  <p className="app-eyebrow">Links</p>
+                  <h2 className="app-text-primary mt-2 text-2xl font-semibold tracking-tight">Links</h2>
                 </div>
 
                 <div className="grid gap-5 md:grid-cols-3">
                   <div>
-                    <label className="mb-2 block text-sm font-semibold text-gray-700">Website</label>
+                    <label className="app-text-primary mb-2 block text-sm font-semibold">Website</label>
                     <input name="website_url" value={form.website_url} onChange={handleChange} className={fieldClassName} placeholder="your-site.com" />
                   </div>
                   <div>
-                    <label className="mb-2 block text-sm font-semibold text-gray-700">X / Twitter</label>
+                    <label className="app-text-primary mb-2 block text-sm font-semibold">X / Twitter</label>
                     <input name="x_url" value={form.x_url} onChange={handleChange} className={fieldClassName} placeholder="x.com/you" />
                   </div>
                   <div>
-                    <label className="mb-2 block text-sm font-semibold text-gray-700">GitHub</label>
+                    <label className="app-text-primary mb-2 block text-sm font-semibold">GitHub</label>
                     <input name="github_url" value={form.github_url} onChange={handleChange} className={fieldClassName} placeholder="github.com/you" />
                   </div>
                 </div>
@@ -360,17 +360,16 @@ export default function ProfilePage() {
                 <button
                   type="submit"
                   disabled={saving || isUploadingAvatar || isUploadingBanner}
-                  className="flex-1 rounded-xl bg-cyan-400 px-4 py-3 font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-cyan-500 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
+                  className="app-button-primary flex-1 rounded-xl px-4 py-3 font-semibold transition duration-200 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-60"
                 >
                   {saving ? 'Saving...' : 'Save Profile'}
                 </button>
               </div>
             </form>
-          </section>
+        </section>
 
-          <OrganizerProfileCard profile={previewProfile} />
-        </div>
+        <OrganizerProfileCard profile={previewProfile} />
       </div>
-    </main>
+    </PageShell>
   )
 }
