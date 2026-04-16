@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { formatTournamentDate, getDisplayTournamentStatus, modeLabel, statusConfig } from '@/lib/tournaments'
+import { entryTypeLabel, formatTournamentDate, getDisplayTournamentStatus, modeLabel, statusConfig } from '@/lib/tournaments'
 import type { Tournament } from '@/lib/types'
 
 interface TournamentCardProps {
@@ -8,12 +8,13 @@ interface TournamentCardProps {
 
 export default function TournamentCard({ tournament }: TournamentCardProps) {
   const status = statusConfig[getDisplayTournamentStatus(tournament.status)]
+  const entryCountLabel = tournament.entry_type === 'team' ? 'teams' : 'participants'
 
   return (
     <Link href={`/tournaments/${tournament.id}`}>
-      <div className="cursor-pointer rounded-2xl border border-gray-100 bg-white p-5 transition hover:shadow-md">
+      <div className="app-card cursor-pointer rounded-2xl p-5 transition hover:shadow-md">
         <div className="mb-3 flex items-start justify-between">
-          <h2 className="pr-2 text-lg font-bold leading-tight text-gray-900">
+          <h2 className="app-text-primary pr-2 text-lg font-bold leading-tight">
             {tournament.name}
           </h2>
           <span className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${status.className}`}>
@@ -21,17 +22,28 @@ export default function TournamentCard({ tournament }: TournamentCardProps) {
           </span>
         </div>
 
-        <p className="mb-3 text-sm font-semibold text-gray-700">
+        <p className="app-text-primary mb-3 text-sm font-semibold">
           {tournament.sport}
-          <span className="font-normal text-gray-400"> - {modeLabel[tournament.mode]}</span>
+          <span className="app-text-muted font-normal"> - {modeLabel[tournament.mode]}</span>
         </p>
 
+        <div className="mb-3 flex flex-wrap gap-2">
+          <span className="app-chip rounded-full px-3 py-1 text-xs font-medium">
+            {entryTypeLabel[tournament.entry_type ?? 'solo']}
+          </span>
+          {tournament.entry_type === 'team' && (
+            <span className="app-chip rounded-full px-3 py-1 text-xs font-medium">
+              {tournament.team_size ?? 2} per team
+            </span>
+          )}
+        </div>
+
         <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-2 text-sm text-gray-500">
+          <div className="app-text-secondary flex items-center gap-2 text-sm">
             <span>{formatTournamentDate(tournament.date)}</span>
           </div>
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <span>{tournament.current_participants ?? '?'} / {tournament.max_participants} participants</span>
+          <div className="app-text-secondary flex items-center gap-2 text-sm">
+            <span>{tournament.current_participants ?? '?'} / {tournament.max_participants} {entryCountLabel}</span>
           </div>
         </div>
       </div>

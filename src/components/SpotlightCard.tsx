@@ -34,7 +34,7 @@ export default function SpotlightCard({
     <div
       ref={divRef}
       onMouseMove={handleMouseMove}
-      className={`relative overflow-hidden rounded-2xl border border-gray-100 bg-white transition-shadow hover:shadow-lg ${className}`}
+      className={`app-card relative overflow-hidden rounded-2xl transition-shadow hover:shadow-lg ${className}`}
       style={style}
     >
       {children}

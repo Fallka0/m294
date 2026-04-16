@@ -1,15 +1,27 @@
-import type { Tournament, TournamentMode, TournamentStatus } from '@/lib/types'
+import type { Tournament, TournamentEntryType, TournamentMode, TournamentStatus } from '@/lib/types'
+import { normalizeTournamentSettings } from '@/lib/tournament-settings'
+
+export const matchFormatLabel = {
+  bo1: 'Best of 1',
+  bo3: 'Best of 3',
+  bo5: 'Best of 5',
+} as const
+
+export const entryTypeLabel: Record<TournamentEntryType, string> = {
+  solo: 'Solo',
+  team: 'Team',
+}
 
 export const statusConfig: Record<TournamentStatus, { label: string; className: string }> = {
-  open: { label: 'Open', className: 'bg-green-500 text-white' },
-  live: { label: 'Live', className: 'bg-cyan-400 text-white' },
-  finished: { label: 'Finished', className: 'bg-gray-200 text-gray-500' },
+  open: { label: 'Open', className: 'app-status-open' },
+  live: { label: 'Live', className: 'app-status-live' },
+  finished: { label: 'Finished', className: 'app-status-finished' },
 }
 
 export const detailStatusBanner: Record<TournamentStatus, { label: string; className: string }> = {
-  open: { label: 'Registration Open', className: 'bg-green-400 text-white' },
-  live: { label: 'Tournament in Progress', className: 'bg-cyan-500 text-white' },
-  finished: { label: 'Tournament Finished', className: 'bg-gray-300 text-gray-700' },
+  open: { label: 'Registration Open', className: 'app-status-open' },
+  live: { label: 'Tournament in Progress', className: 'app-status-live' },
+  finished: { label: 'Tournament Finished', className: 'app-status-finished' },
 }
 
 export const modeLabel: Record<TournamentMode, string> = {
@@ -44,13 +56,13 @@ export const statusOptions: Array<{ value: TournamentStatus; label: string }> = 
 ]
 
 export function normalizeTournament(tournament: Tournament): Tournament {
-  return {
+  return normalizeTournamentSettings({
     ...tournament,
     status: tournament.status ?? 'open',
     is_public: tournament.is_public ?? true,
     current_participants: tournament.current_participants ?? 0,
     description: tournament.description ?? '',
-  }
+  })
 }
 
 export function formatTournamentDate(date: string): string {

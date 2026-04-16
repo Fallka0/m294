@@ -1,8 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import GroupStageOverview from '@/components/GroupStageOverview'
+import TournamentBracket from '@/components/TournamentBracket'
 import { supabase } from '@/lib/supabase'
+import { buildBracketProgressionChanges, createInitialBracketMatches, getScoreValidationMessage, getTournamentStructure } from '@/lib/bracket'
+import { matchFormatLabel, modeLabel, normalizeTournament } from '@/lib/tournaments'
 import type { Match, Participant, ScoreFormValues, Tournament } from '@/lib/types'
 
 export default function BracketPage() {
@@ -14,6 +18,7 @@ export default function BracketPage() {
   const [loading, setLoading] = useState(true)
   const [editMatch, setEditMatch] = useState<Match | null>(null)
   const [scores, setScores] = useState<ScoreFormValues>({ score_a: '', score_b: '' })
+  const [scoreError, setScoreError] = useState('')
 
   useEffect(() => {
     void fetchAll()
@@ -28,30 +33,33 @@ export default function BracketPage() {
       .eq('tournament_id', id)
       .order('round', { ascending: true })
 
-    setTournament((tournamentData as Tournament | null) ?? null)
+    setTournament(tournamentData ? normalizeTournament(tournamentData as Tournament) : null)
     setParticipants((participantData as Participant[] | null) ?? [])
     setMatches((matchData as Match[] | null) ?? [])
     setLoading(false)
   }
 
+  const structure = useMemo(
+    () => (tournament ? getTournamentStructure(tournament.mode, tournament.group_count ?? 1, participants, matches) : null),
+    [matches, participants, tournament],
+  )
+
   const generateBracket = async () => {
+    if (!tournament) return
     if (!confirm('Generate bracket? Existing matches will be deleted.')) return
 
     await supabase.from('matches').delete().eq('tournament_id', id)
 
-    const shuffled = [...participants].sort(() => Math.random() - 0.5)
-    const newMatches = []
+    const newMatches = createInitialBracketMatches(
+      id,
+      participants.map((participant) => participant.id),
+      tournament.mode,
+      tournament.group_count ?? 1,
+    )
 
-    for (let index = 0; index < shuffled.length - 1; index += 2) {
-      newMatches.push({
-        tournament_id: id,
-        participant_a: shuffled[index].id,
-        participant_b: shuffled[index + 1]?.id ?? null,
-        round: 1,
-      })
+    if (newMatches.length > 0) {
+      await supabase.from('matches').insert(newMatches)
     }
-
-    await supabase.from('matches').insert(newMatches)
     await fetchAll()
   }
 
@@ -62,6 +70,7 @@ export default function BracketPage() {
 
   const openEdit = (match: Match) => {
     setEditMatch(match)
+    setScoreError('')
     setScores({
       score_a: match.score_a?.toString() ?? '',
       score_b: match.score_b?.toString() ?? '',
@@ -70,6 +79,12 @@ export default function BracketPage() {
 
   const saveResult = async () => {
     if (!editMatch) return
+
+    const validationMessage = getScoreValidationMessage(scores.score_a, scores.score_b, tournament?.match_format ?? 'bo1')
+    if (validationMessage) {
+      setScoreError(validationMessage)
+      return
+    }
 
     const scoreA = Number.parseInt(scores.score_a, 10)
     const scoreB = Number.parseInt(scores.score_b, 10)
@@ -84,114 +99,151 @@ export default function BracketPage() {
       })
       .eq('id', editMatch.id)
 
+    const updatedMatches = matches.map((match) =>
+      match.id === editMatch.id ? { ...match, score_a: scoreA, score_b: scoreB, winner } : match,
+    )
+    const { updates, inserts } = buildBracketProgressionChanges(
+      id,
+      updatedMatches,
+      tournament?.mode ?? 'knockout',
+      tournament?.group_count ?? 1,
+      participants,
+    )
+
+    await Promise.all(
+      updates.map((match) =>
+        supabase
+          .from('matches')
+          .update({
+            participant_a: match.participant_a,
+            participant_b: match.participant_b,
+            score_a: match.score_a,
+            score_b: match.score_b,
+            winner: match.winner,
+          })
+          .eq('id', match.id),
+      ),
+    )
+
+    if (inserts.length > 0) {
+      await supabase.from('matches').insert(inserts)
+    }
+
     setEditMatch(null)
+    setScoreError('')
     await fetchAll()
   }
 
-  if (loading) return <p className="p-10 text-gray-500">Laden...</p>
+  if (loading) return <p className="app-text-secondary p-10">Laden...</p>
 
-  const rounds = [...new Set(matches.map((match) => match.round))].sort((left, right) => left - right)
+  const rounds =
+    structure ? [...new Set(structure.knockoutMatches.map((match) => match.round))].sort((left, right) => left - right) : []
+  const knockoutParticipants = useMemo(() => {
+    if (!structure) return participants
+
+    const participantIds = new Set(
+      structure.knockoutMatches.flatMap((match) => [match.participant_a, match.participant_b]).filter(Boolean) as string[],
+    )
+
+    return participants.filter((participant) => participantIds.has(participant.id))
+  }, [participants, structure])
 
   return (
-    <main className="page-shell min-h-screen px-6 py-10 text-gray-900 transition-colors duration-300">
+    <main className="page-shell min-h-screen px-6 py-10 transition-colors duration-300">
       <div className="mx-auto max-w-3xl">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <button
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <button
             onClick={() => router.push(`/tournaments/${id}`)}
-            className="mb-2 block cursor-pointer text-sm text-white/60 transition duration-200 hover:text-white"
-          >
-            Back
-          </button>
-          <h1 className="text-3xl font-bold text-white">{tournament?.name}</h1>
-          <p className="text-sm text-white/65">Bracket</p>
-        </div>
-        <button
-          onClick={generateBracket}
-          className="cursor-pointer rounded-lg bg-cyan-400 px-4 py-2 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-cyan-500 hover:shadow-md"
-        >
-          {matches.length > 0 ? 'Regenerate' : 'Generate Bracket'}
-        </button>
-      </div>
-
-      {matches.length === 0 && <p className="app-empty-state rounded-2xl px-5 py-4 text-sm">No bracket generated yet.</p>}
-
-      {rounds.map((round) => (
-        <div key={round} className="app-card mb-8 rounded-[28px] p-6">
-          <h2 className="mb-3 text-lg font-semibold text-gray-900">Round {round}</h2>
-          <div className="flex flex-col gap-3">
-            {matches
-              .filter((match) => match.round === round)
-              .map((match) => (
-                <div key={match.id} className="app-card-elevated flex items-center justify-between rounded-xl px-5 py-4">
-                  <div className="flex items-center gap-4 text-gray-900">
-                    <span className={`font-medium ${match.winner === match.participant_a ? 'text-cyan-600' : ''}`}>
-                      {getName(match.participant_a)}
-                    </span>
-                    <span className="text-sm text-gray-400">vs</span>
-                    <span className={`font-medium ${match.winner === match.participant_b ? 'text-cyan-600' : ''}`}>
-                      {getName(match.participant_b)}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    {match.score_a !== null && match.score_b !== null && (
-                      <span className="font-mono text-sm text-gray-500">
-                        {match.score_a} : {match.score_b}
-                      </span>
-                    )}
-                    <button
-                      onClick={() => openEdit(match)}
-                      className="app-button-secondary cursor-pointer rounded-lg px-3 py-1 text-sm transition duration-200 hover:-translate-y-0.5"
-                    >
-                      {match.winner ? 'Edit' : 'Result'}
-                    </button>
-                  </div>
-                </div>
-              ))}
+            className="mb-2 block text-sm text-white/80 transition duration-200 hover:text-white"
+            >
+              Back
+            </button>
+            <h1 className="text-3xl font-bold text-white">{tournament?.name}</h1>
+          <p className="text-sm text-white/80">
+            {tournament ? `${modeLabel[tournament.mode]} - ${matchFormatLabel[tournament.match_format ?? 'bo1']}` : 'Bracket'}
+          </p>
           </div>
+          <button
+            onClick={generateBracket}
+            className="app-button-primary rounded-lg px-4 py-2 text-sm font-semibold transition duration-200 hover:-translate-y-0.5 hover:shadow-md"
+          >
+          {matches.length > 0 ? 'Regenerate' : tournament?.mode === 'knockout' ? 'Generate Bracket' : 'Generate Stage'}
+          </button>
         </div>
-      ))}
+
+      {matches.length === 0 && <p className="app-empty-state rounded-2xl px-5 py-4 text-sm">No stage generated yet.</p>}
+
+      {matches.length > 0 && structure && (
+        <div className="space-y-6">
+          {(tournament?.mode === 'group' || tournament?.mode === 'both') && (
+            <GroupStageOverview
+              groups={structure.groups}
+              matchFormatLabel={matchFormatLabel[tournament?.match_format ?? 'bo1']}
+              onMatchClick={openEdit}
+            />
+          )}
+
+          {tournament?.mode !== 'group' &&
+            (structure.knockoutMatches.length > 0 ? (
+              <TournamentBracket matches={structure.knockoutMatches} participants={knockoutParticipants} rounds={rounds} onMatchClick={openEdit} />
+            ) : (
+              <div className="app-empty-state rounded-2xl px-5 py-4 text-sm">
+                {structure.isGroupStageComplete
+                  ? 'Knockout matches will appear after the qualifying teams are seeded.'
+                  : 'Finish the group stage to unlock the knockout bracket.'}
+              </div>
+            ))}
+        </div>
+      )}
 
       {editMatch && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="app-card w-full max-w-sm rounded-2xl p-8 text-gray-900 shadow-xl">
-            <h2 className="mb-6 text-center text-xl font-bold text-gray-900">Enter result</h2>
+          <div className="app-card w-full max-w-sm rounded-2xl p-8 shadow-xl">
+            <h2 className="app-text-primary mb-6 text-center text-xl font-bold">Enter result</h2>
+            <p className="app-text-muted mb-4 text-center text-xs uppercase tracking-[0.2em]">
+              {matchFormatLabel[tournament?.match_format ?? 'bo1']}
+            </p>
 
             <div className="mb-6 flex items-center justify-center gap-4">
               <div className="flex-1 text-center">
-                <p className="mb-2 text-sm font-medium text-gray-700">{getName(editMatch.participant_a)}</p>
+                <p className="app-text-primary mb-2 text-sm font-medium">{getName(editMatch.participant_a)}</p>
                 <input
                   type="number"
                   min={0}
                   value={scores.score_a}
                   onChange={(event) => setScores((current) => ({ ...current, score_a: event.target.value }))}
-                  className="app-input w-full rounded-lg px-3 py-2 text-center text-xl font-bold text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                  className="app-input w-full rounded-lg px-3 py-2 text-center text-xl font-bold focus:outline-none focus:ring-2 focus:ring-cyan-400"
                 />
               </div>
-              <span className="font-bold text-gray-400">:</span>
+              <span className="app-text-muted font-bold">:</span>
               <div className="flex-1 text-center">
-                <p className="mb-2 text-sm font-medium text-gray-700">{getName(editMatch.participant_b)}</p>
+                <p className="app-text-primary mb-2 text-sm font-medium">{getName(editMatch.participant_b)}</p>
                 <input
                   type="number"
                   min={0}
                   value={scores.score_b}
                   onChange={(event) => setScores((current) => ({ ...current, score_b: event.target.value }))}
-                  className="app-input w-full rounded-lg px-3 py-2 text-center text-xl font-bold text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                  className="app-input w-full rounded-lg px-3 py-2 text-center text-xl font-bold focus:outline-none focus:ring-2 focus:ring-cyan-400"
                 />
               </div>
             </div>
 
+            {scoreError && <p className="app-banner-warning mb-4 rounded-xl px-4 py-3 text-sm">{scoreError}</p>}
+
             <div className="flex gap-3">
               <button
-                onClick={() => setEditMatch(null)}
-                className="app-button-secondary flex-1 cursor-pointer rounded-lg px-4 py-2 transition duration-200 hover:-translate-y-0.5"
+                onClick={() => {
+                  setEditMatch(null)
+                  setScoreError('')
+                }}
+                className="app-button-secondary flex-1 rounded-lg px-4 py-2 transition duration-200 hover:-translate-y-0.5"
               >
                 Cancel
               </button>
               <button
                 onClick={saveResult}
-                className="flex-1 cursor-pointer rounded-lg bg-cyan-400 px-4 py-2 text-white transition duration-200 hover:-translate-y-0.5 hover:bg-cyan-500 hover:shadow-md"
+                className="app-button-primary flex-1 rounded-lg px-4 py-2 transition duration-200 hover:-translate-y-0.5 hover:shadow-md"
               >
                 Save
               </button>

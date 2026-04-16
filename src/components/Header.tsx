@@ -1,15 +1,22 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useAuth } from '@/components/auth/AuthProvider'
+import HeaderAction from '@/components/header/HeaderAction'
 import { useTheme } from '@/components/theme/ThemeProvider'
 
 export default function Header() {
   const { user, profile, isAuthenticated, signOut } = useAuth()
   const { theme, toggleTheme } = useTheme()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [avatarLoadFailed, setAvatarLoadFailed] = useState(false)
   const displayName = profile?.username || profile?.full_name || user?.email?.split('@')[0] || 'Account'
+  const mobileAvatarLabel = (profile?.full_name || profile?.username || user?.email || 'A').trim().charAt(0).toUpperCase()
+
+  useEffect(() => {
+    setAvatarLoadFailed(false)
+  }, [profile?.avatar_url])
 
   const closeMobileMenu = () => setIsMobileMenuOpen(false)
 
@@ -23,7 +30,7 @@ export default function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[color:var(--header-border)] bg-[var(--header-bg)] backdrop-blur-xl transition-colors duration-300">
+    <header className="app-header sticky top-0 z-40 border-b border-[color:var(--header-border)] bg-[var(--header-bg)] backdrop-blur-xl transition-colors duration-300">
       <div className="max-w-6xl mx-auto px-4 py-4 sm:px-6 flex justify-between items-center">
         <Link href="/" className="flex items-center gap-3 text-[var(--header-text)]">
           <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--header-border)] bg-[var(--header-pill)] transition-colors duration-300">
@@ -49,60 +56,67 @@ export default function Header() {
           </button>
           {isAuthenticated ? (
             <>
-              <Link
-                href="/tournaments/new"
-                className="cursor-pointer rounded-full border border-[color:var(--accent-border)] bg-[var(--accent-solid)] px-5 py-2.5 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(124,58,237,0.28)]"
-              >
+              <HeaderAction href="/tournaments/new" variant="primary">
                 Create Tournament
-              </Link>
-              <Link
-                href="/profile"
-                className="hidden rounded-full border border-[color:var(--header-border)] bg-[var(--header-pill)] px-4 py-2 text-sm text-[var(--header-text-muted)] transition duration-200 hover:border-[color:var(--header-text-muted)] hover:bg-[var(--header-pill)]/80 md:block"
-              >
+              </HeaderAction>
+              <HeaderAction href="/teams" className="hidden bg-[var(--header-pill)] md:block">
+                Teams
+              </HeaderAction>
+              <HeaderAction href="/profile" className="hidden bg-[var(--header-pill)] md:block">
                 @{displayName}
-              </Link>
-              <button
-                type="button"
-                onClick={signOut}
-                className="rounded-full border border-[color:var(--header-border)] px-4 py-2 text-sm font-medium text-[var(--header-text-muted)] transition duration-200 hover:border-[color:var(--header-text-muted)] hover:bg-[var(--header-pill)]"
-              >
+              </HeaderAction>
+              <HeaderAction onClick={signOut}>
                 Sign out
-              </button>
+              </HeaderAction>
             </>
           ) : (
             <>
-              <Link
-                href="/auth"
-                className="rounded-full border border-[color:var(--header-border)] px-4 py-2 text-sm font-medium text-[var(--header-text-muted)] transition duration-200 hover:border-[color:var(--header-text-muted)] hover:bg-[var(--header-pill)]"
-              >
+              <HeaderAction href="/auth">
                 Sign in
-              </Link>
-              <Link
-                href="/auth"
-                className="cursor-pointer rounded-full border border-[color:var(--accent-border)] bg-[var(--accent-solid)] px-5 py-2.5 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(124,58,237,0.28)]"
-              >
+              </HeaderAction>
+              <HeaderAction href="/auth" variant="primary">
                 Create account
-              </Link>
+              </HeaderAction>
             </>
           )}
         </div>
-        <button
-          type="button"
-          onClick={() => setIsMobileMenuOpen((open) => !open)}
-          aria-expanded={isMobileMenuOpen}
-          aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
-          className="flex md:hidden h-11 w-11 items-center justify-center rounded-full border border-[color:var(--header-border)] bg-[var(--header-pill)] text-[var(--header-text)] transition duration-200 hover:border-[color:var(--header-text-muted)] hover:bg-[var(--header-pill)]/80"
-        >
-          {isMobileMenuOpen ? (
-            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5 stroke-current" fill="none" strokeWidth="2">
-              <path d="M6 6L18 18M18 6L6 18" strokeLinecap="round" />
-            </svg>
-          ) : (
-            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5 stroke-current" fill="none" strokeWidth="2">
-              <path d="M4 7H20M4 12H20M4 17H20" strokeLinecap="round" />
-            </svg>
+        <div className="flex items-center gap-2 md:hidden">
+          {isAuthenticated && (
+            <Link
+              href="/profile"
+              aria-label="Open profile"
+              className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-[color:var(--header-border)] bg-[var(--header-pill)] text-sm font-semibold text-[var(--header-text)] transition duration-200 hover:border-[color:var(--header-text-muted)] hover:bg-[var(--header-pill)]/80"
+            >
+              {profile?.avatar_url && !avatarLoadFailed ? (
+                <img
+                  src={profile.avatar_url}
+                  alt={`${displayName} profile picture`}
+                  className="h-full w-full object-cover"
+                  onError={() => setAvatarLoadFailed(true)}
+                />
+              ) : (
+                <span>{mobileAvatarLabel}</span>
+              )}
+            </Link>
           )}
-        </button>
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen((open) => !open)}
+            aria-expanded={isMobileMenuOpen}
+            aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-[color:var(--header-border)] bg-[var(--header-pill)] text-[var(--header-text)] transition duration-200 hover:border-[color:var(--header-text-muted)] hover:bg-[var(--header-pill)]/80"
+          >
+            {isMobileMenuOpen ? (
+              <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5 stroke-current" fill="none" strokeWidth="2">
+                <path d="M6 6L18 18M18 6L6 18" strokeLinecap="round" />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5 stroke-current" fill="none" strokeWidth="2">
+                <path d="M4 7H20M4 12H20M4 17H20" strokeLinecap="round" />
+              </svg>
+            )}
+          </button>
+        </div>
       </div>
       {isMobileMenuOpen ? (
         <div className="border-t border-[color:var(--header-border)] bg-[var(--header-bg)] md:hidden">
@@ -125,7 +139,7 @@ export default function Header() {
                   <Link
                     href="/tournaments/new"
                     onClick={closeMobileMenu}
-                    className="cursor-pointer rounded-2xl border border-[color:var(--accent-border)] bg-[var(--accent-solid)] px-4 py-3 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(124,58,237,0.28)]"
+                    className="cursor-pointer rounded-2xl border border-[color:var(--accent-border)] bg-[var(--accent-solid)] px-4 py-3 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:shadow-[var(--accent-glow)]"
                   >
                     Create Tournament
                   </Link>
@@ -135,6 +149,13 @@ export default function Header() {
                     className="rounded-2xl border border-[color:var(--header-border)] px-4 py-3 text-sm font-medium text-[var(--header-text-muted)] transition duration-200 hover:border-[color:var(--header-text-muted)] hover:bg-[var(--header-pill)]"
                   >
                     @{displayName}
+                  </Link>
+                  <Link
+                    href="/teams"
+                    onClick={closeMobileMenu}
+                    className="rounded-2xl border border-[color:var(--header-border)] px-4 py-3 text-sm font-medium text-[var(--header-text-muted)] transition duration-200 hover:border-[color:var(--header-text-muted)] hover:bg-[var(--header-pill)]"
+                  >
+                    Teams
                   </Link>
                   <button
                     type="button"
@@ -156,7 +177,7 @@ export default function Header() {
                   <Link
                     href="/auth"
                     onClick={closeMobileMenu}
-                    className="cursor-pointer rounded-2xl border border-[color:var(--accent-border)] bg-[var(--accent-solid)] px-4 py-3 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(124,58,237,0.28)]"
+                    className="cursor-pointer rounded-2xl border border-[color:var(--accent-border)] bg-[var(--accent-solid)] px-4 py-3 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:shadow-[var(--accent-glow)]"
                   >
                     Create account
                   </Link>

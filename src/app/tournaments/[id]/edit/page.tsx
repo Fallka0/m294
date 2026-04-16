@@ -6,6 +6,7 @@ import { useParams, useRouter } from 'next/navigation'
 import TournamentForm from '@/components/tournaments/TournamentForm'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { supabase } from '@/lib/supabase'
+import { encodeTournamentDescription, normalizeTournamentSettings, sanitizeGroupCount, sanitizeTeamSize } from '@/lib/tournament-settings'
 import type { Tournament, TournamentFormValues } from '@/lib/types'
 
 export default function EditTournament() {
@@ -19,6 +20,10 @@ export default function EditTournament() {
     name: '',
     sport: '',
     mode: 'knockout',
+    group_count: 2,
+    match_format: 'bo1',
+    entry_type: 'solo',
+    team_size: 2,
     max_participants: '',
     date: '',
     status: 'open',
@@ -38,7 +43,7 @@ export default function EditTournament() {
 
     async function fetchTournament() {
       const { data } = await supabase.from('tournaments').select('*').eq('id', id).single()
-      const tournament = data as Tournament | null
+      const tournament = data ? normalizeTournamentSettings(data as Tournament) : null
 
       if (tournament?.owner_id && tournament.owner_id !== currentUser.id) {
         router.push(`/tournaments/${id}`)
@@ -50,6 +55,10 @@ export default function EditTournament() {
           name: tournament.name,
           sport: tournament.sport,
           mode: tournament.mode,
+          group_count: tournament.group_count ?? 2,
+          match_format: tournament.match_format ?? 'bo1',
+          entry_type: tournament.entry_type ?? 'solo',
+          team_size: tournament.team_size ?? 2,
           max_participants: tournament.max_participants,
           date: tournament.date,
           status: tournament.status ?? 'open',
@@ -67,7 +76,7 @@ export default function EditTournament() {
   const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = event.target
     const nextValue =
-      name === 'is_public' ? value === 'true' : name === 'max_participants' ? Number(value) : value
+      name === 'is_public' ? value === 'true' : name === 'max_participants' || name === 'group_count' ? Number(value) : value
 
     setMessage('')
     setForm((current) => ({ ...current, [name]: nextValue }))
@@ -78,7 +87,37 @@ export default function EditTournament() {
     setSaving(true)
     setMessage('')
 
-    const { error } = await supabase.from('tournaments').update(form).eq('id', id)
+    if ((form.mode === 'group' || form.mode === 'both') && Number(form.max_participants) / sanitizeGroupCount(form.group_count, form.mode, Number(form.max_participants)) < 2) {
+      setMessage('Groups need at least 2 teams each with the current participant cap.')
+      setSaving(false)
+      return
+    }
+    if (form.entry_type === 'team' && sanitizeTeamSize(form.team_size, form.entry_type) < 2) {
+      setMessage('Team tournaments require at least 2 players per team.')
+      setSaving(false)
+      return
+    }
+
+    const tournamentPayload = {
+      name: form.name,
+      sport: form.sport,
+      mode: form.mode,
+      max_participants: Number(form.max_participants),
+      date: form.date,
+      status: form.status,
+      description: encodeTournamentDescription({
+        description: form.description,
+        mode: form.mode,
+        maxParticipants: Number(form.max_participants),
+        groupCount: form.group_count,
+        matchFormat: form.match_format,
+        entryType: form.entry_type,
+        teamSize: form.team_size,
+      }),
+      is_public: form.is_public,
+    }
+
+    const { error } = await supabase.from('tournaments').update(tournamentPayload).eq('id', id)
 
     if (error) {
       setMessage(error.message)
@@ -95,8 +134,8 @@ export default function EditTournament() {
     router.push('/')
   }
 
-  if (authLoading || !isAuthenticated) return <p className="p-10 text-gray-500">Loading...</p>
-  if (loading) return <p className="p-10 text-gray-500">Laden...</p>
+  if (authLoading || !isAuthenticated) return <p className="app-text-secondary p-10">Loading...</p>
+  if (loading) return <p className="app-text-secondary p-10">Laden...</p>
 
   return (
     <TournamentForm

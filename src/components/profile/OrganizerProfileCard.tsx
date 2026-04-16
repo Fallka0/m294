@@ -52,18 +52,14 @@ export default function OrganizerProfileCard({ profile }: { profile: Profile }) 
                   {displayName.slice(0, 1).toUpperCase()}
                 </div>
                 <div className="pb-1">
-                  <p className="text-2xl font-semibold tracking-tight text-gray-950">{displayName}</p>
-                  <p className="mt-1 text-sm text-gray-500">@{profile.username || 'organizer'}</p>
+                  <p className="app-text-primary text-2xl font-semibold tracking-tight">{displayName}</p>
+                  <p className="app-text-secondary mt-1 text-sm">@{profile.username || 'organizer'}</p>
                 </div>
-              </div>
-
-              <div className="rounded-full border border-[color:var(--border-subtle)] px-4 py-2 text-sm text-gray-500">
-                {socials.length > 0 ? `${socials.length} link${socials.length === 1 ? '' : 's'}` : 'No links'}
               </div>
             </div>
           </div>
 
-          <p className="mt-5 max-w-2xl text-sm leading-7 text-gray-600">
+          <p className="app-text-secondary mt-5 max-w-2xl text-sm leading-7">
             {profile.bio || 'This organizer has not added a bio yet.'}
           </p>
 

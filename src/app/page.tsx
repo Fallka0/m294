@@ -3,6 +3,7 @@
 import { useDeferredValue, useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import HomeHero from '@/components/home/HomeHero'
+import PageShell from '@/components/layout/PageShell'
 import HomeTournamentCard from '@/components/home/HomeTournamentCard'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { supabase } from '@/lib/supabase'
@@ -170,169 +171,163 @@ export default function Home() {
   ]
 
   return (
-    <main className="page-shell min-h-screen px-6 py-10 transition-colors duration-300">
-      <div className="mx-auto max-w-6xl">
-        <HomeHero tournaments={tournaments} />
+    <PageShell contentClassName="max-w-6xl gap-0">
+      <HomeHero tournaments={tournaments} />
 
-        <div className="mt-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-400">Browse</p>
-            <div className="mt-2 flex items-center gap-3">
-              <h2 className="text-2xl font-semibold tracking-tight text-gray-950">Tournaments</h2>
-              <span className="app-card-elevated rounded-full px-3 py-1 text-xs font-medium text-gray-500">
-                {resultsLabel}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-3 md:items-end">
-            <div className="flex flex-wrap gap-2">
-              {scopes.map((item) => (
-                <button
-                  key={item.key}
-                  type="button"
-                  onClick={() => setScope(item.key)}
-                  className={`cursor-pointer rounded-full border px-4 py-2 text-sm font-medium transition duration-200 hover:-translate-y-0.5 hover:shadow-sm ${
-                    scope === item.key
-                      ? 'border-cyan-300 bg-cyan-50 text-cyan-700'
-                      : 'app-button-secondary'
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {filters.map((item) => (
-                <motion.button
-                  key={item.key}
-                  type="button"
-                  onClick={() => setFilter(item.key)}
-                  whileTap={{ scale: 0.95 }}
-                  className={`cursor-pointer rounded-full border px-4 py-2 text-sm font-medium transition duration-200 hover:-translate-y-0.5 hover:shadow-sm ${
-                    filter === item.key
-                      ? 'border-gray-950 bg-gray-950 text-white'
-                      : 'app-button-secondary'
-                  }`}
-                >
-                  {item.label}
-                </motion.button>
-              ))}
-            </div>
+      <div className="mt-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div>
+          <p className="app-eyebrow">Browse</p>
+          <div className="mt-2 flex items-center gap-3">
+            <h2 className="app-text-primary text-2xl font-semibold tracking-tight">Tournaments</h2>
+            <span className="app-chip rounded-full px-3 py-1 text-xs font-medium">
+              {resultsLabel}
+            </span>
           </div>
         </div>
 
-        <section className="app-card mt-6 rounded-[28px] p-5">
-          <div className="grid gap-4 lg:grid-cols-[1.4fr_0.8fr_0.8fr_auto]">
-            <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-gray-700">Search</span>
-              <input
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Search by tournament, sport, or description"
-                className="app-input w-full rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400"
-              />
-            </label>
-
-            <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-gray-700">Sport</span>
-              <select
-                value={sportFilter}
-                onChange={(event) => setSportFilter(event.target.value)}
-                className="app-input w-full rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400"
-              >
-                <option value="all">All sports</option>
-                {sports.map((sport) => (
-                  <option key={sport} value={sport}>
-                    {sport}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-gray-700">Sort</span>
-              <select
-                value={sortBy}
-                onChange={(event) => setSortBy(event.target.value as SortKey)}
-                className="app-input w-full rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400"
-              >
-                <option value="newest">Newest first</option>
-                <option value="soonest">Soonest date</option>
-                <option value="popular">Most joined</option>
-                <option value="capacity">Largest capacity</option>
-              </select>
-            </label>
-
-            <div className="flex items-end">
+        <div className="flex flex-col gap-3 md:items-end">
+          <div className="flex flex-wrap gap-2">
+            {scopes.map((item) => (
               <button
+                key={item.key}
                 type="button"
-                onClick={clearFilters}
-                className="app-button-secondary w-full cursor-pointer rounded-xl px-4 py-3 text-sm font-semibold transition duration-200 hover:-translate-y-0.5"
+                onClick={() => setScope(item.key)}
+                className={`rounded-full border px-4 py-2 text-sm font-medium transition duration-200 hover:-translate-y-0.5 hover:shadow-sm ${
+                  scope === item.key ? 'app-chip-info' : 'app-button-secondary'
+                }`}
               >
-                Reset filters
+                {item.label}
               </button>
-            </div>
-          </div>
-
-          <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-gray-500">
-            <span className="rounded-full border border-[color:var(--border-subtle)] px-3 py-1">
-              Scope: {scopes.find((item) => item.key === scope)?.label ?? 'Explore'}
-            </span>
-            <span className="rounded-full border border-[color:var(--border-subtle)] px-3 py-1">
-              Status: {filters.find((item) => item.key === filter)?.label ?? 'All'}
-            </span>
-            <span className="rounded-full border border-[color:var(--border-subtle)] px-3 py-1">
-              Sport: {sportFilter === 'all' ? 'Any' : sportFilter}
-            </span>
-            <span className="rounded-full border border-[color:var(--border-subtle)] px-3 py-1">
-              Sort: {sortBy === 'newest' ? 'Newest' : sortBy === 'soonest' ? 'Soonest' : sortBy === 'popular' ? 'Most joined' : 'Largest'}
-            </span>
-          </div>
-        </section>
-
-        {loading && (
-          <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 3 }, (_, index) => (
-              <div
-                key={index}
-                className="app-card-strong h-44 animate-pulse rounded-[28px]"
-              />
             ))}
           </div>
-        )}
 
-        {!loading && visibleTournaments.length === 0 && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="app-empty-state mt-8 rounded-3xl px-6 py-8 text-center"
-          >
-            No tournaments match the current filters. Try resetting filters or broadening your search.
-          </motion.p>
-        )}
-
-        <motion.div layout className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-          <AnimatePresence mode="popLayout">
-            {visibleTournaments.map((tournament, index) => (
-              <motion.div
-                key={tournament.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.3, delay: index * 0.05 }}
+          <div className="flex flex-wrap gap-2">
+            {filters.map((item) => (
+              <motion.button
+                key={item.key}
+                type="button"
+                onClick={() => setFilter(item.key)}
+                whileTap={{ scale: 0.95 }}
+                className={`rounded-full border px-4 py-2 text-sm font-medium transition duration-200 hover:-translate-y-0.5 hover:shadow-sm ${
+                  filter === item.key ? 'app-chip-selected' : 'app-button-secondary'
+                }`}
               >
-                <HomeTournamentCard
-                  tournament={tournament}
-                  isOwner={Boolean(user && tournament.owner_id === user.id)}
-                  isJoined={joinedTournamentIds.includes(tournament.id)}
-                />
-              </motion.div>
+                {item.label}
+              </motion.button>
             ))}
-          </AnimatePresence>
-        </motion.div>
+          </div>
+        </div>
       </div>
-    </main>
+
+      <section className="app-card mt-6 rounded-[28px] p-5">
+        <div className="grid gap-4 lg:grid-cols-[1.4fr_0.8fr_0.8fr_auto]">
+          <label className="block">
+            <span className="app-text-primary mb-2 block text-sm font-semibold">Search</span>
+            <input
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Search by tournament, sport, or description"
+              className="app-input w-full rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400"
+            />
+          </label>
+
+          <label className="block">
+            <span className="app-text-primary mb-2 block text-sm font-semibold">Sport</span>
+            <select
+              value={sportFilter}
+              onChange={(event) => setSportFilter(event.target.value)}
+              className="app-input w-full rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400"
+            >
+              <option value="all">All sports</option>
+              {sports.map((sport) => (
+                <option key={sport} value={sport}>
+                  {sport}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="block">
+            <span className="app-text-primary mb-2 block text-sm font-semibold">Sort</span>
+            <select
+              value={sortBy}
+              onChange={(event) => setSortBy(event.target.value as SortKey)}
+              className="app-input w-full rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400"
+            >
+              <option value="newest">Newest first</option>
+              <option value="soonest">Soonest date</option>
+              <option value="popular">Most joined</option>
+              <option value="capacity">Largest capacity</option>
+            </select>
+          </label>
+
+          <div className="flex items-end">
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="app-button-secondary w-full rounded-xl px-4 py-3 text-sm font-semibold transition duration-200 hover:-translate-y-0.5"
+            >
+              Reset filters
+            </button>
+          </div>
+        </div>
+
+        <div className="app-text-secondary mt-4 flex flex-wrap items-center gap-2 text-sm">
+          <span className="app-chip rounded-full px-3 py-1">
+            Scope: {scopes.find((item) => item.key === scope)?.label ?? 'Explore'}
+          </span>
+          <span className="app-chip rounded-full px-3 py-1">
+            Status: {filters.find((item) => item.key === filter)?.label ?? 'All'}
+          </span>
+          <span className="app-chip rounded-full px-3 py-1">
+            Sport: {sportFilter === 'all' ? 'Any' : sportFilter}
+          </span>
+          <span className="app-chip rounded-full px-3 py-1">
+            Sort: {sortBy === 'newest' ? 'Newest' : sortBy === 'soonest' ? 'Soonest' : sortBy === 'popular' ? 'Most joined' : 'Largest'}
+          </span>
+        </div>
+      </section>
+
+      {loading && (
+        <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 3 }, (_, index) => (
+            <div
+              key={index}
+              className="app-card-strong h-44 animate-pulse rounded-[28px]"
+            />
+          ))}
+        </div>
+      )}
+
+      {!loading && visibleTournaments.length === 0 && (
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="app-empty-state mt-8 rounded-3xl px-6 py-8 text-center"
+        >
+          No tournaments match the current filters. Try resetting filters or broadening your search.
+        </motion.p>
+      )}
+
+      <motion.div layout className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+        <AnimatePresence mode="popLayout">
+          {visibleTournaments.map((tournament, index) => (
+            <motion.div
+              key={tournament.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3, delay: index * 0.05 }}
+            >
+              <HomeTournamentCard
+                tournament={tournament}
+                isOwner={Boolean(user && tournament.owner_id === user.id)}
+                isJoined={joinedTournamentIds.includes(tournament.id)}
+              />
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </motion.div>
+    </PageShell>
   )
 }
