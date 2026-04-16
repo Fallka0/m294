@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { buildBracketProgressionChanges, createInitialBracketMatches, getScoreValidationMessage } from '@/lib/bracket'
 import type { Match, Participant, ScoreFormValues, Tournament } from '@/lib/types'
 
 export default function BracketPage() {
@@ -14,6 +15,7 @@ export default function BracketPage() {
   const [loading, setLoading] = useState(true)
   const [editMatch, setEditMatch] = useState<Match | null>(null)
   const [scores, setScores] = useState<ScoreFormValues>({ score_a: '', score_b: '' })
+  const [scoreError, setScoreError] = useState('')
 
   useEffect(() => {
     void fetchAll()
@@ -39,19 +41,14 @@ export default function BracketPage() {
 
     await supabase.from('matches').delete().eq('tournament_id', id)
 
-    const shuffled = [...participants].sort(() => Math.random() - 0.5)
-    const newMatches = []
+    const newMatches = createInitialBracketMatches(
+      id,
+      participants.map((participant) => participant.id),
+    )
 
-    for (let index = 0; index < shuffled.length - 1; index += 2) {
-      newMatches.push({
-        tournament_id: id,
-        participant_a: shuffled[index].id,
-        participant_b: shuffled[index + 1]?.id ?? null,
-        round: 1,
-      })
+    if (newMatches.length > 0) {
+      await supabase.from('matches').insert(newMatches)
     }
-
-    await supabase.from('matches').insert(newMatches)
     await fetchAll()
   }
 
@@ -62,6 +59,7 @@ export default function BracketPage() {
 
   const openEdit = (match: Match) => {
     setEditMatch(match)
+    setScoreError('')
     setScores({
       score_a: match.score_a?.toString() ?? '',
       score_b: match.score_b?.toString() ?? '',
@@ -70,6 +68,12 @@ export default function BracketPage() {
 
   const saveResult = async () => {
     if (!editMatch) return
+
+    const validationMessage = getScoreValidationMessage(scores.score_a, scores.score_b)
+    if (validationMessage) {
+      setScoreError(validationMessage)
+      return
+    }
 
     const scoreA = Number.parseInt(scores.score_a, 10)
     const scoreB = Number.parseInt(scores.score_b, 10)
@@ -84,7 +88,32 @@ export default function BracketPage() {
       })
       .eq('id', editMatch.id)
 
+    const updatedMatches = matches.map((match) =>
+      match.id === editMatch.id ? { ...match, score_a: scoreA, score_b: scoreB, winner } : match,
+    )
+    const { updates, inserts } = buildBracketProgressionChanges(id, updatedMatches)
+
+    await Promise.all(
+      updates.map((match) =>
+        supabase
+          .from('matches')
+          .update({
+            participant_a: match.participant_a,
+            participant_b: match.participant_b,
+            score_a: match.score_a,
+            score_b: match.score_b,
+            winner: match.winner,
+          })
+          .eq('id', match.id),
+      ),
+    )
+
+    if (inserts.length > 0) {
+      await supabase.from('matches').insert(inserts)
+    }
+
     setEditMatch(null)
+    setScoreError('')
     await fetchAll()
   }
 
@@ -142,7 +171,8 @@ export default function BracketPage() {
                     )}
                     <button
                       onClick={() => openEdit(match)}
-                      className="app-button-secondary rounded-lg px-3 py-1 text-sm transition duration-200 hover:-translate-y-0.5"
+                      disabled={!match.participant_a || !match.participant_b}
+                      className="app-button-secondary rounded-lg px-3 py-1 text-sm transition duration-200 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
                     >
                       {match.winner ? 'Edit' : 'Result'}
                     </button>
@@ -182,9 +212,14 @@ export default function BracketPage() {
               </div>
             </div>
 
+            {scoreError && <p className="app-banner-warning mb-4 rounded-xl px-4 py-3 text-sm">{scoreError}</p>}
+
             <div className="flex gap-3">
               <button
-                onClick={() => setEditMatch(null)}
+                onClick={() => {
+                  setEditMatch(null)
+                  setScoreError('')
+                }}
                 className="app-button-secondary flex-1 rounded-lg px-4 py-2 transition duration-200 hover:-translate-y-0.5"
               >
                 Cancel

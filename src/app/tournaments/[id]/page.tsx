@@ -9,6 +9,7 @@ import FadeContent from '@/components/react-bits/FadeContent'
 import BlurText from '@/components/react-bits/BlurText'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { supabase } from '@/lib/supabase'
+import { buildBracketProgressionChanges, createInitialBracketMatches, getScoreValidationMessage } from '@/lib/bracket'
 import { detailStatusBanner, getDisplayTournamentStatus, modeLabel } from '@/lib/tournaments'
 import type { Match, Participant, ScoreFormValues, Tournament } from '@/lib/types'
 
@@ -24,7 +25,9 @@ export default function TournamentDetail() {
   const [loading, setLoading] = useState(true)
   const [editMatch, setEditMatch] = useState<Match | null>(null)
   const [scores, setScores] = useState<ScoreFormValues>({ score_a: '', score_b: '' })
+  const [scoreError, setScoreError] = useState('')
   const [joining, setJoining] = useState(false)
+  const [leaving, setLeaving] = useState(false)
   const [joinMessage, setJoinMessage] = useState('')
 
   useEffect(() => {
@@ -113,24 +116,20 @@ export default function TournamentDetail() {
 
     await supabase.from('matches').delete().eq('tournament_id', id)
 
-    const shuffled = [...participants].sort(() => Math.random() - 0.5)
-    const newMatches = []
+    const newMatches = createInitialBracketMatches(
+      id,
+      participants.map((participant) => participant.id),
+    )
 
-    for (let index = 0; index < shuffled.length - 1; index += 2) {
-      newMatches.push({
-        tournament_id: id,
-        participant_a: shuffled[index].id,
-        participant_b: shuffled[index + 1]?.id ?? null,
-        round: 1,
-      })
+    if (newMatches.length > 0) {
+      await supabase.from('matches').insert(newMatches)
     }
-
-    await supabase.from('matches').insert(newMatches)
     await fetchData()
   }
 
   const openEdit = (match: Match) => {
     setEditMatch(match)
+    setScoreError('')
     setScores({
       score_a: match.score_a?.toString() ?? '',
       score_b: match.score_b?.toString() ?? '',
@@ -140,38 +139,44 @@ export default function TournamentDetail() {
   const saveResult = async () => {
     if (!editMatch || !isOwner) return
 
+    const validationMessage = getScoreValidationMessage(scores.score_a, scores.score_b)
+    if (validationMessage) {
+      setScoreError(validationMessage)
+      return
+    }
+
     const scoreA = Number.parseInt(scores.score_a, 10)
     const scoreB = Number.parseInt(scores.score_b, 10)
     const winner = scoreA > scoreB ? editMatch.participant_a : editMatch.participant_b
 
     await supabase.from('matches').update({ score_a: scoreA, score_b: scoreB, winner }).eq('id', editMatch.id)
 
-    const currentRoundMatches = matches.filter((match) => match.round === editMatch.round)
-    const updatedMatches = currentRoundMatches.map((match) => (match.id === editMatch.id ? { ...match, winner } : match))
-    const allDone = updatedMatches.every((match) => match.winner !== null)
+    const updatedMatches = matches.map((match) =>
+      match.id === editMatch.id ? { ...match, score_a: scoreA, score_b: scoreB, winner } : match,
+    )
+    const { updates, inserts } = buildBracketProgressionChanges(id, updatedMatches)
 
-    if (allDone && updatedMatches.length > 1) {
-      const winners = updatedMatches.map((match) => match.winner)
-      const nextRound = editMatch.round + 1
-      const nextRoundExists = matches.some((match) => match.round === nextRound)
-
-      if (!nextRoundExists) {
-        const nextMatches = []
-
-        for (let index = 0; index < winners.length - 1; index += 2) {
-          nextMatches.push({
-            tournament_id: id,
-            participant_a: winners[index],
-            participant_b: winners[index + 1] ?? null,
-            round: nextRound,
+    await Promise.all(
+      updates.map((match) =>
+        supabase
+          .from('matches')
+          .update({
+            participant_a: match.participant_a,
+            participant_b: match.participant_b,
+            score_a: match.score_a,
+            score_b: match.score_b,
+            winner: match.winner,
           })
-        }
+          .eq('id', match.id),
+      ),
+    )
 
-        await supabase.from('matches').insert(nextMatches)
-      }
+    if (inserts.length > 0) {
+      await supabase.from('matches').insert(inserts)
     }
 
     setEditMatch(null)
+    setScoreError('')
     const { data: matchData } = await supabase
       .from('matches')
       .select('*')
@@ -215,6 +220,29 @@ export default function TournamentDetail() {
       setJoinMessage(error.message)
     }
     setJoining(false)
+  }
+
+  const leaveTournament = async () => {
+    if (!user || !isJoined) return
+    if (!confirm('Are you sure you want to leave this tournament?')) return
+
+    setJoinMessage('')
+    setLeaving(true)
+
+    const { error } = await supabase
+      .from('participants')
+      .delete()
+      .eq('tournament_id', id)
+      .eq('user_id', user.id)
+
+    if (!error) {
+      await fetchData()
+      setJoinMessage('You left the tournament.')
+    } else {
+      setJoinMessage(error.message)
+    }
+
+    setLeaving(false)
   }
 
   if (loading) return <p className="app-text-secondary p-10">Loading...</p>
@@ -398,9 +426,18 @@ export default function TournamentDetail() {
                   </button>
                 )}
                 {isJoined && (
-                  <div className="app-banner-success rounded-2xl px-4 py-3 text-sm font-medium">
-                    You already joined this tournament.
-                  </div>
+                  <>
+                    <div className="app-banner-success rounded-2xl px-4 py-3 text-sm font-medium">
+                      You already joined this tournament.
+                    </div>
+                    <button
+                      onClick={leaveTournament}
+                      disabled={leaving}
+                      className="app-button-secondary w-full rounded-xl px-4 py-3 text-sm font-semibold transition duration-200 hover:-translate-y-0.5 disabled:opacity-60 disabled:hover:translate-y-0"
+                    >
+                      {leaving ? 'Leaving...' : 'Leave Tournament'}
+                    </button>
+                  </>
                 )}
                 {isFull && !isOwner && (
                   <div className="app-banner-warning rounded-2xl px-4 py-3 text-sm font-medium">
@@ -478,21 +515,28 @@ export default function TournamentDetail() {
             <div className="mb-6 flex gap-4">
               <input
                 type="number"
+                min={0}
                 value={scores.score_a}
                 onChange={(event) => setScores((current) => ({ ...current, score_a: event.target.value }))}
                 className="app-input w-full rounded-lg px-4 py-3 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-cyan-400"
               />
               <input
                 type="number"
+                min={0}
                 value={scores.score_b}
                 onChange={(event) => setScores((current) => ({ ...current, score_b: event.target.value }))}
                 className="app-input w-full rounded-lg px-4 py-3 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-cyan-400"
               />
             </div>
 
+            {scoreError && <p className="app-banner-warning mb-4 rounded-xl px-4 py-3 text-sm">{scoreError}</p>}
+
             <div className="flex gap-2">
               <button
-                onClick={() => setEditMatch(null)}
+                onClick={() => {
+                  setEditMatch(null)
+                  setScoreError('')
+                }}
                 className="app-button-secondary flex-1 rounded-lg py-3 font-medium transition duration-200 hover:-translate-y-0.5"
               >
                 Cancel
