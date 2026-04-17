@@ -139,6 +139,58 @@ Typical redirect values:
 - deployed auth route: `https://m294-d5ns.vercel.app/auth`
 - provider callback: `https://YOUR_PROJECT_REF.supabase.co/auth/v1/callback`
 
+## Routes and Endpoints
+
+Tournamount currently does not expose custom Next.js API endpoints such as `src/app/api/*/route.ts`.
+
+Instead, the app is made up of:
+
+- user-facing App Router pages
+- client-side calls to Supabase Auth, Database, and Storage endpoints
+
+### App routes
+
+- `/`
+  Dashboard, tournament discovery, filters, and stats
+- `/auth`
+  Email auth, OAuth sign-in, and account creation
+- `/profile`
+  Organizer profile editing
+- `/teams`
+  Team creation and management
+- `/organizers/[id]`
+  Public organizer profile page
+- `/tournaments/new`
+  Tournament creation flow
+- `/tournaments/[id]`
+  Tournament detail page, participant handling, join/leave, and bracket actions
+- `/tournaments/[id]/edit`
+  Tournament editing flow
+- `/tournaments/[id]/bracket`
+  Standalone bracket management page
+
+### Supabase endpoints used by the app
+
+- `https://YOUR_PROJECT_REF.supabase.co/auth/v1/*`
+  Authentication, OAuth redirects, session handling, and provider callback flow
+- `https://YOUR_PROJECT_REF.supabase.co/rest/v1/*`
+  Database access for tournaments, participants, profiles, teams, and matches
+- `https://YOUR_PROJECT_REF.supabase.co/storage/v1/*`
+  Profile and team media uploads/removals
+
+### Main data areas used through Supabase
+
+- `profiles`
+  User profile and organizer identity data
+- `tournaments`
+  Tournament metadata and ownership
+- `participants`
+  Joined players or registered teams
+- `matches`
+  Bracket and stage matches
+- `teams`
+  Team rosters and team media
+
 ## Main App Areas
 
 - `src/app/page.tsx`
