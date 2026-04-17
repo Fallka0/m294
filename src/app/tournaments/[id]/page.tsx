@@ -766,6 +766,7 @@ export default function TournamentDetail() {
                         matches={structure.knockoutMatches}
                         participants={knockoutParticipants}
                         rounds={rounds}
+                        mode={tournament.mode}
                         onMatchClick={isOwner ? openEdit : undefined}
                         locked={!isOwner}
                       />
@@ -773,7 +774,7 @@ export default function TournamentDetail() {
                   ) : tournament.mode === 'both' ? (
                     <div className="app-empty-state rounded-[24px] px-6 py-8 text-center">
                       {structure.isGroupStageComplete
-                        ? 'Knockout matches will appear as soon as the group-stage results are saved.'
+                        ? `${structure.qualifiedParticipantIds.length} teams qualified from the group stage. Generate the knockout bracket to continue.`
                         : 'Finish the group-stage matches to unlock the knockout bracket.'}
                     </div>
                   ) : null

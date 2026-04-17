@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildBracketProgressionChanges, createInitialBracketMatches, getScoreValidationMessage } from '@/lib/bracket'
+import { buildBracketProgressionChanges, createInitialBracketMatches, getScoreValidationMessage, orderKnockoutMatches } from '@/lib/bracket'
 import type { Match } from '@/lib/types'
 
 function createMatch(overrides: Partial<Match>): Match {
@@ -43,6 +43,70 @@ describe('getScoreValidationMessage', () => {
 })
 
 describe('buildBracketProgressionChanges', () => {
+  it('keeps later-round matches in their visual slot even when fetched in the wrong order', () => {
+    const matches = [
+      createMatch({
+        id: 'qf-1',
+        participant_a: 'p1',
+        participant_b: 'p2',
+        score_a: 1,
+        score_b: 0,
+        winner: 'p1',
+        round: 1,
+        created_at: '2026-04-16T08:00:00.000Z',
+      }),
+      createMatch({
+        id: 'qf-2',
+        participant_a: 'p3',
+        participant_b: 'p4',
+        score_a: 0,
+        score_b: 1,
+        winner: 'p4',
+        round: 1,
+        created_at: '2026-04-16T08:01:00.000Z',
+      }),
+      createMatch({
+        id: 'qf-3',
+        participant_a: 'p5',
+        participant_b: 'p6',
+        score_a: 1,
+        score_b: 0,
+        winner: 'p5',
+        round: 1,
+        created_at: '2026-04-16T08:02:00.000Z',
+      }),
+      createMatch({
+        id: 'qf-4',
+        participant_a: 'p7',
+        participant_b: 'p8',
+        score_a: 0,
+        score_b: 1,
+        winner: 'p8',
+        round: 1,
+        created_at: '2026-04-16T08:03:00.000Z',
+      }),
+      createMatch({
+        id: 'sf-bottom',
+        participant_a: 'p5',
+        participant_b: 'p8',
+        round: 2,
+        created_at: '2026-04-16T08:04:00.000Z',
+      }),
+      createMatch({
+        id: 'sf-top',
+        participant_a: 'p1',
+        participant_b: 'p4',
+        round: 2,
+        created_at: '2026-04-16T08:05:00.000Z',
+      }),
+    ]
+
+    const orderedMatches = orderKnockoutMatches(matches)
+    const semiFinals = orderedMatches.filter((match) => match.round === 2)
+
+    expect(semiFinals.map((match) => match.id)).toEqual(['sf-top', 'sf-bottom'])
+  })
+
   it('creates the next round when all winners in the current round are known', () => {
     const matches = [
       createMatch({

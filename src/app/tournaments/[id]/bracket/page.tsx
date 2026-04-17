@@ -228,12 +228,20 @@ export default function BracketPage() {
 
           {tournament?.mode !== 'group' &&
             (structure.knockoutMatches.length > 0 ? (
-              <TournamentBracket matches={structure.knockoutMatches} participants={knockoutParticipants} rounds={rounds} onMatchClick={openEdit} />
+              <TournamentBracket
+                matches={structure.knockoutMatches}
+                participants={knockoutParticipants}
+                rounds={rounds}
+                mode={tournament.mode}
+                onMatchClick={openEdit}
+              />
             ) : (
               <div className="app-empty-state rounded-2xl px-5 py-4 text-sm">
-                {structure.isGroupStageComplete
-                  ? 'Knockout matches will appear after the qualifying teams are seeded.'
-                  : 'Finish the group stage to unlock the knockout bracket.'}
+                {tournament.mode === 'both' && structure.isGroupStageComplete
+                  ? `${structure.qualifiedParticipantIds.length} teams qualified from the group stage. Generate the knockout bracket to continue.`
+                  : structure.isGroupStageComplete
+                    ? 'Knockout matches will appear after the qualifying teams are seeded.'
+                    : 'Finish the group stage to unlock the knockout bracket.'}
               </div>
             ))}
         </div>

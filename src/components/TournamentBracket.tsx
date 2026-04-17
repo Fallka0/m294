@@ -1,10 +1,11 @@
 import type { CSSProperties, MouseEvent } from 'react'
-import type { Match, MatchSlot, Participant } from '@/lib/types'
+import type { Match, MatchSlot, Participant, TournamentMode } from '@/lib/types'
 
 interface TournamentBracketProps {
   matches: Match[]
   participants: Participant[]
   rounds: number[]
+  mode?: TournamentMode
   onMatchClick?: (match: Match) => void
   locked?: boolean
 }
@@ -18,6 +19,7 @@ export default function TournamentBracket({
   matches,
   participants,
   rounds,
+  mode = 'knockout',
   onMatchClick,
   locked = false,
 }: TournamentBracketProps) {
@@ -26,12 +28,12 @@ export default function TournamentBracket({
     return participants.find((participant) => participant.id === participantId)?.name || 'TBD'
   }
 
-  const totalRounds = Math.max(1, Math.ceil(Math.log2(Math.max(participants.length, 1))))
-  const allRounds = Array.from({ length: totalRounds }, (_, index) => index + 1)
+  const displayRounds = rounds.length > 0 ? rounds : Array.from({ length: Math.max(1, Math.ceil(Math.log2(Math.max(participants.length, 1)))) }, (_, index) => index + 1)
+  const totalRounds = displayRounds.length
 
-  const getMatchesForRound = (round: number): MatchSlot[] => {
+  const getMatchesForRound = (round: number, displayIndex: number): MatchSlot[] => {
     const existing = matches.filter((match) => match.round === round)
-    const expectedCount = Math.pow(2, totalRounds - round)
+    const expectedCount = Math.pow(2, totalRounds - displayIndex - 1)
 
     return Array.from({ length: expectedCount }, (_, index) => {
       return (
@@ -50,34 +52,35 @@ export default function TournamentBracket({
     })
   }
 
-  const roundLabel = (round: number) => {
-    if (totalRounds === 1 || round === totalRounds) return 'Final'
-    if (round === totalRounds - 1) return 'Semi-Finals'
-    if (round === 1 && totalRounds > 2) return 'Quarter-Finals'
-    return `Round ${round}`
+  const roundLabel = (displayIndex: number) => {
+    if (totalRounds === 1 || displayIndex === totalRounds - 1) return 'Final'
+    if (displayIndex === totalRounds - 2) return 'Semi-Finals'
+    if (mode === 'both') return `Knockout Round ${displayIndex + 1}`
+    if (displayIndex === 0 && totalRounds > 2) return 'Quarter-Finals'
+    return `Round ${displayIndex + 1}`
   }
 
-  const getMatchY = (round: number, matchIndex: number) => {
+  const getMatchY = (displayIndex: number, matchIndex: number) => {
     const totalHeight = Math.pow(2, totalRounds - 1) * (MATCH_HEIGHT + ROW_GAP) - ROW_GAP
-    const count = Math.pow(2, totalRounds - round)
+    const count = Math.pow(2, totalRounds - displayIndex - 1)
     const spacing = totalHeight / count
     return 40 + matchIndex * spacing + spacing / 2 - MATCH_HEIGHT / 2
   }
 
-  const getMatchX = (round: number) => (round - 1) * (MATCH_WIDTH + COLUMN_GAP)
+  const getMatchX = (displayIndex: number) => displayIndex * (MATCH_WIDTH + COLUMN_GAP)
 
   const totalWidth = totalRounds * (MATCH_WIDTH + COLUMN_GAP)
   const totalHeight = Math.pow(2, totalRounds - 1) * (MATCH_HEIGHT + ROW_GAP) + 40
 
-  const lines = allRounds.flatMap((round) => {
-    if (round === totalRounds) return []
+  const lines = displayRounds.flatMap((round, displayIndex) => {
+    if (displayIndex === totalRounds - 1) return []
 
-    return getMatchesForRound(round).map((_, index) => {
-      const x1 = getMatchX(round) + MATCH_WIDTH
-      const y1 = getMatchY(round, index) + MATCH_HEIGHT / 2
-      const x2 = getMatchX(round + 1)
+    return getMatchesForRound(round, displayIndex).map((_, index) => {
+      const x1 = getMatchX(displayIndex) + MATCH_WIDTH
+      const y1 = getMatchY(displayIndex, index) + MATCH_HEIGHT / 2
+      const x2 = getMatchX(displayIndex + 1)
       const nextMatchIndex = Math.floor(index / 2)
-      const y2 = getMatchY(round + 1, nextMatchIndex) + MATCH_HEIGHT / 2
+      const y2 = getMatchY(displayIndex + 1, nextMatchIndex) + MATCH_HEIGHT / 2
       const midX = x1 + COLUMN_GAP / 2
 
       return { x1, y1, x2, y2, midX, key: `line-${round}-${index}` }
@@ -108,13 +111,13 @@ export default function TournamentBracket({
           ))}
         </svg>
 
-        {allRounds.map((round) => (
+        {displayRounds.map((round, displayIndex) => (
           <div
             key={`label-${round}`}
             style={{
               position: 'absolute',
               top: 0,
-              left: getMatchX(round),
+              left: getMatchX(displayIndex),
               width: MATCH_WIDTH,
               textAlign: 'center',
               fontSize: '13px',
@@ -122,14 +125,14 @@ export default function TournamentBracket({
               color: 'var(--bracket-label)',
             }}
           >
-            {roundLabel(round)}
+            {roundLabel(displayIndex)}
           </div>
         ))}
 
-        {allRounds.map((round) =>
-          getMatchesForRound(round).map((match, matchIndex) => {
-            const x = getMatchX(round)
-            const y = getMatchY(round, matchIndex)
+        {displayRounds.map((round, displayIndex) =>
+          getMatchesForRound(round, displayIndex).map((match, matchIndex) => {
+            const x = getMatchX(displayIndex)
+            const y = getMatchY(displayIndex, matchIndex)
             const isSkeleton = Boolean(match.isSkeleton)
             const isClickable =
               !isSkeleton && Boolean(match.participant_a) && Boolean(match.participant_b) && typeof onMatchClick === 'function'
