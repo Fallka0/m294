@@ -13,6 +13,7 @@ const fieldClassName =
   'app-input w-full rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-cyan-400'
 
 type FeedbackTone = 'error' | 'success' | 'info'
+type SportPickerTab = 'games' | 'sports' | 'other'
 
 interface TournamentFormProps {
   title: string
@@ -60,7 +61,11 @@ export default function TournamentForm({
   const showGroupControls = form.mode === 'group' || form.mode === 'both'
   const isTeamTournament = form.entry_type === 'team'
   const presetGameSport = findGameSportOption(form.sport)
-  const [showCustomSportInput, setShowCustomSportInput] = useState(Boolean(form.sport.trim() && !presetGameSport))
+  const isCustomGameSport = Boolean(form.sport.trim() && !presetGameSport)
+  const [isSportPickerOpen, setIsSportPickerOpen] = useState(false)
+  const [sportPickerTab, setSportPickerTab] = useState<SportPickerTab>(presetGameSport?.category === 'sport' ? 'sports' : 'games')
+  const [sportPickerQuery, setSportPickerQuery] = useState('')
+  const [customSportDraft, setCustomSportDraft] = useState(isCustomGameSport ? form.sport : '')
   const setupChecklist = [
     { label: 'Basic details', complete: Boolean(form.name.trim() && form.sport.trim() && form.date) },
     {
@@ -98,20 +103,39 @@ export default function TournamentForm({
         : 'app-banner-info'
 
   useEffect(() => {
-    if (presetGameSport) {
-      setShowCustomSportInput(false)
-      return
+    if (isCustomGameSport) {
+      setCustomSportDraft(form.sport)
+    }
+  }, [form.sport, isCustomGameSport])
+
+  useEffect(() => {
+    if (!isSportPickerOpen) return
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsSportPickerOpen(false)
+      }
     }
 
-    if (form.sport.trim()) {
-      setShowCustomSportInput(true)
-    }
-  }, [form.sport, presetGameSport])
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isSportPickerOpen])
 
-  const selectableCardClassName = (isActive: boolean) =>
-    `rounded-[24px] border px-4 py-4 text-left transition duration-200 ${
-      isActive ? 'app-selectable-card-active' : 'app-selectable-card hover:-translate-y-0.5'
-    }`
+  const openSportPicker = () => {
+    setSportPickerTab(presetGameSport ? (presetGameSport.category === 'game' ? 'games' : 'sports') : 'other')
+    setSportPickerQuery('')
+    setCustomSportDraft(isCustomGameSport ? form.sport : '')
+    setIsSportPickerOpen(true)
+  }
+
+  const filteredPickerOptions = (sportPickerTab === 'games' ? featuredGameOptions : featuredSportOptions).filter((option) => {
+    const normalizedQuery = sportPickerQuery.trim().toLowerCase()
+    if (!normalizedQuery) return true
+
+    return [option.label, option.description, ...(option.keywords ?? [])].some((value) =>
+      value.toLowerCase().includes(normalizedQuery),
+    )
+  })
 
   return (
     <PageShell>
@@ -225,100 +249,58 @@ export default function TournamentForm({
                     <label className="app-text-primary mb-2 block text-sm font-semibold">
                       Game or Sport <span className="text-red-500">*</span>
                     </label>
-                    <div className="space-y-4">
-                      <div>
-                        <p className="app-eyebrow">Popular Games</p>
-                        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                          {featuredGameOptions.map((option) => {
-                            const isActive = presetGameSport?.value === option.value
-
-                            return (
-                              <button
-                                key={option.value}
-                                type="button"
-                                onClick={() => {
-                                  setShowCustomSportInput(false)
-                                  onSportChange(option.value)
-                                }}
-                                className={selectableCardClassName(isActive)}
-                              >
-                                <div className="flex items-center gap-3">
-                                  <GameSportIcon value={option.value} />
-                                  <div>
-                                    <p className="app-text-primary text-sm font-semibold">{option.label}</p>
-                                    <p className="app-text-secondary text-xs">{option.description}</p>
-                                  </div>
-                                </div>
-                              </button>
-                            )
-                          })}
+                    <div className="app-card-elevated rounded-[24px] p-5">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex items-center gap-4">
+                          {form.sport.trim() ? (
+                            <GameSportIcon value={form.sport} className="h-12 w-12 rounded-2xl" iconClassName="h-5 w-5" />
+                          ) : (
+                            <GameSportIcon value={otherGameSportOption.value} className="h-12 w-12 rounded-2xl" iconClassName="h-5 w-5" />
+                          )}
+                          <div>
+                            <p className="app-text-primary text-base font-semibold">
+                              {form.sport.trim() || 'No game or sport selected'}
+                            </p>
+                            <p className="app-text-secondary mt-1 text-sm">
+                              {presetGameSport
+                                ? presetGameSport.category === 'game'
+                                  ? `PC game • ${presetGameSport.description}`
+                                  : `Real sport • ${presetGameSport.description}`
+                                : form.sport.trim()
+                                  ? 'Custom title'
+                                  : 'Choose from popular PC games, real sports, or add your own'}
+                            </p>
+                          </div>
                         </div>
+
+                        {form.sport.trim() && (
+                          <span className={`rounded-full px-3 py-1 text-xs font-semibold ${presetGameSport ? 'app-chip-info' : 'app-chip'}`}>
+                            {presetGameSport ? (presetGameSport.category === 'game' ? 'PC Game' : 'Real Sport') : 'Custom'}
+                          </span>
+                        )}
                       </div>
 
-                      <div>
-                        <p className="app-eyebrow">Sports</p>
-                        <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                          {featuredSportOptions.map((option) => {
-                            const isActive = presetGameSport?.value === option.value
-
-                            return (
-                              <button
-                                key={option.value}
-                                type="button"
-                                onClick={() => {
-                                  setShowCustomSportInput(false)
-                                  onSportChange(option.value)
-                                }}
-                                className={selectableCardClassName(isActive)}
-                              >
-                                <div className="flex items-center gap-3">
-                                  <GameSportIcon value={option.value} />
-                                  <div>
-                                    <p className="app-text-primary text-sm font-semibold">{option.label}</p>
-                                    <p className="app-text-secondary text-xs">{option.description}</p>
-                                  </div>
-                                </div>
-                              </button>
-                            )
-                          })}
-
+                      <div className="mt-5 flex flex-wrap gap-3">
+                        <button
+                          type="button"
+                          onClick={openSportPicker}
+                          className="app-button-secondary rounded-xl px-4 py-3 text-sm font-semibold transition duration-200 hover:-translate-y-0.5"
+                        >
+                          {form.sport.trim() ? 'Change selection' : 'Choose title'}
+                        </button>
+                        {form.sport.trim() && (
                           <button
                             type="button"
                             onClick={() => {
-                              setShowCustomSportInput(true)
-                              if (presetGameSport) {
-                                onSportChange('')
-                              }
+                              onSportChange('')
+                              setCustomSportDraft('')
                             }}
-                            className={selectableCardClassName(showCustomSportInput)}
+                            className="app-button-secondary rounded-xl px-4 py-3 text-sm font-semibold transition duration-200 hover:-translate-y-0.5"
                           >
-                            <div className="flex items-center gap-3">
-                              <GameSportIcon value={otherGameSportOption.value} />
-                              <div>
-                                <p className="app-text-primary text-sm font-semibold">{otherGameSportOption.label}</p>
-                                <p className="app-text-secondary text-xs">{otherGameSportOption.description}</p>
-                              </div>
-                            </div>
+                            Clear
                           </button>
-                        </div>
+                        )}
                       </div>
-
-                      {showCustomSportInput && (
-                        <div className="app-muted-panel rounded-[24px] p-4">
-                          <label className="app-text-primary mb-2 block text-sm font-semibold">
-                            Custom game or sport <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            value={presetGameSport ? '' : form.sport}
-                            onChange={(event) => onSportChange(event.target.value)}
-                            placeholder="e.g. Call of Duty, Chess, Handball"
-                            className={fieldClassName}
-                          />
-                          <p className="app-text-secondary mt-2 text-sm">
-                            Use this when the title you need is not in the featured list yet.
-                          </p>
-                        </div>
-                      )}
                     </div>
                     {errors.sport && <p className="mt-3 text-sm text-red-500">{errors.sport}</p>}
                   </div>
@@ -647,6 +629,156 @@ export default function TournamentForm({
             </div>
           </aside>
         </div>
+
+        {isSportPickerOpen && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6"
+            onClick={() => setIsSportPickerOpen(false)}
+          >
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-label="Choose game or sport"
+              className="app-card w-full max-w-2xl rounded-[28px] p-6 shadow-xl"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="app-eyebrow">Selector</p>
+                  <h3 className="app-text-primary mt-2 text-2xl font-semibold tracking-tight">Choose a title</h3>
+                  <p className="app-text-secondary mt-2 text-sm">
+                    Pick between popular PC games, real sports, or add your own custom title.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsSportPickerOpen(false)}
+                  className="app-button-secondary rounded-xl px-3 py-2 text-sm font-semibold transition duration-200 hover:-translate-y-0.5"
+                >
+                  Close
+                </button>
+              </div>
+
+              <div className="mt-5 flex flex-wrap gap-2">
+                {[
+                  { value: 'games' as const, label: 'PC Games' },
+                  { value: 'sports' as const, label: 'Real Sports' },
+                  { value: 'other' as const, label: 'Other' },
+                ].map((tab) => (
+                  <button
+                    key={tab.value}
+                    type="button"
+                    onClick={() => {
+                      setSportPickerTab(tab.value)
+                      setSportPickerQuery('')
+                    }}
+                    className={`rounded-full px-4 py-2 text-sm font-semibold transition duration-200 ${
+                      sportPickerTab === tab.value ? 'app-chip-selected' : 'app-button-secondary'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {sportPickerTab !== 'other' && (
+                <div className="mt-5">
+                  <input
+                    value={sportPickerQuery}
+                    onChange={(event) => setSportPickerQuery(event.target.value)}
+                    placeholder={sportPickerTab === 'games' ? 'Search PC games' : 'Search sports'}
+                    className={fieldClassName}
+                  />
+                </div>
+              )}
+
+              <div className="mt-5">
+                {sportPickerTab === 'other' ? (
+                  <div className="app-muted-panel rounded-[24px] p-5">
+                    <label className="app-text-primary mb-2 block text-sm font-semibold">
+                      Custom game or sport <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      value={customSportDraft}
+                      onChange={(event) => setCustomSportDraft(event.target.value)}
+                      placeholder="e.g. Call of Duty, Chess, Handball"
+                      className={fieldClassName}
+                    />
+                    <p className="app-text-secondary mt-2 text-sm">
+                      Use this when the title you need is not in the featured lists yet.
+                    </p>
+
+                    <div className="mt-5 flex flex-wrap gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const nextValue = customSportDraft.trim()
+                          onSportChange(nextValue)
+                          setIsSportPickerOpen(false)
+                        }}
+                        disabled={!customSportDraft.trim()}
+                        className="app-button-primary rounded-xl px-4 py-3 text-sm font-semibold transition duration-200 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                      >
+                        Use custom title
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCustomSportDraft('')
+                          onSportChange('')
+                        }}
+                        className="app-button-secondary rounded-xl px-4 py-3 text-sm font-semibold transition duration-200 hover:-translate-y-0.5"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="app-muted-panel overflow-hidden rounded-[24px]">
+                    <div className="max-h-[420px] overflow-y-auto">
+                      {filteredPickerOptions.map((option) => {
+                        const isActive = presetGameSport?.value === option.value
+
+                        return (
+                          <button
+                            key={option.value}
+                            type="button"
+                            onClick={() => {
+                              onSportChange(option.value)
+                              setIsSportPickerOpen(false)
+                            }}
+                            className={`app-list-option w-full px-5 py-4 text-left transition duration-200 ${
+                              isActive ? 'app-list-option-active' : ''
+                            }`}
+                          >
+                            <div className="flex items-center justify-between gap-4">
+                              <div className="flex items-center gap-4">
+                                <GameSportIcon value={option.value} className="h-11 w-11 rounded-2xl" iconClassName="h-5 w-5" />
+                                <div>
+                                  <p className="app-text-primary text-sm font-semibold">{option.label}</p>
+                                  <p className="app-text-secondary mt-1 text-sm">{option.description}</p>
+                                </div>
+                              </div>
+                              <span className={`rounded-full px-3 py-1 text-xs font-semibold ${isActive ? 'app-chip-selected' : 'app-chip'}`}>
+                                {option.category === 'game' ? 'PC Game' : 'Sport'}
+                              </span>
+                            </div>
+                          </button>
+                        )
+                      })}
+
+                      {filteredPickerOptions.length === 0 && (
+                        <div className="app-empty-state m-4 rounded-2xl px-5 py-8 text-center text-sm">
+                          No matches found. Try another search or switch to `Other`.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
     </PageShell>
   )
 }
