@@ -19,8 +19,8 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'TournamentHub',
-  description: 'Turniere einfach verwalten',
+  title: 'Tournamount',
+  description: 'Manage gaming and sports tournaments without the chaos.',
 }
 
 interface RootLayoutProps {
