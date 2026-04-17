@@ -110,6 +110,8 @@ export default function TeamsPage() {
         return
       }
 
+      // New teams do not have a row id yet, so we create one first and reuse it
+      // for both the storage path and the later insert.
       const teamId = editingTeamId ?? crypto.randomUUID()
 
       try {

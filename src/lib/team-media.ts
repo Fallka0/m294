@@ -20,6 +20,7 @@ export async function uploadTeamMedia(
   file: File,
   field: TeamMediaField,
 ) {
+  // Team media reuses the profile-media bucket, but each team gets its own folder.
   const uploadedUrl = await uploadProfileMedia(supabase, `${userId}/teams/${teamId}`, file, field)
   return uploadedUrl
 }
