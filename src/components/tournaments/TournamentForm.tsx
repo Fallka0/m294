@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent, type ReactNode } from 'react'
 import GameSportIcon from '@/components/game-sports/GameSportIcon'
 import PageShell from '@/components/layout/PageShell'
+import StepStatusIcon from '@/components/tournaments/StepStatusIcon'
 import TournamentFormHero from '@/components/tournaments/TournamentFormHero'
 import { featuredGameOptions, featuredSportOptions, findGameSportOption, otherGameSportOption } from '@/lib/game-sports'
 import { sanitizeGroupCount, sanitizeTeamSize } from '@/lib/tournament-settings'
@@ -14,6 +15,7 @@ const fieldClassName =
 
 type FeedbackTone = 'error' | 'success' | 'info'
 type SportPickerTab = 'games' | 'sports' | 'other'
+type FormStep = 1 | 2 | 3 | 4
 
 interface TournamentFormProps {
   title: string
@@ -31,6 +33,64 @@ interface TournamentFormProps {
   showStatus?: boolean
   feedbackMessage?: string
   feedbackTone?: FeedbackTone
+}
+
+interface StepSectionProps {
+  step: FormStep
+  title: string
+  description: string
+  summary: string
+  complete: boolean
+  active: boolean
+  available: boolean
+  onOpen: (step: FormStep) => void
+  children: ReactNode
+}
+
+function StepSection({
+  step,
+  title,
+  description,
+  summary,
+  complete,
+  active,
+  available,
+  onOpen,
+  children,
+}: StepSectionProps) {
+  const toneClassName = complete ? 'app-chip-info' : active ? 'app-chip-selected' : 'app-chip'
+  const stateLabel = complete ? 'Done' : active ? 'Current step' : available ? 'Open' : 'Locked'
+
+  return (
+    <section className={`rounded-[28px] border p-6 transition duration-200 ${active ? 'app-card shadow-sm' : 'app-card-elevated'} ${!available ? 'opacity-60' : ''}`}>
+      <button
+        type="button"
+        onClick={() => {
+          if (available) onOpen(step)
+        }}
+        disabled={!available}
+        className="w-full text-left"
+      >
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="app-eyebrow">Step {step}</p>
+            <h2 className="app-text-primary mt-2 flex items-center gap-3 text-xl font-semibold tracking-tight">
+              {complete ? <StepStatusIcon /> : null}
+              <span>{title}</span>
+            </h2>
+            <p className="app-text-secondary mt-1 text-sm">
+              {active ? description : summary}
+            </p>
+          </div>
+          <span className={`rounded-full px-3 py-1 text-xs font-semibold ${toneClassName}`}>
+            {stateLabel}
+          </span>
+        </div>
+      </button>
+
+      {active ? <div className="mt-6 space-y-5">{children}</div> : null}
+    </section>
+  )
 }
 
 export default function TournamentForm({
@@ -66,19 +126,34 @@ export default function TournamentForm({
   const [sportPickerTab, setSportPickerTab] = useState<SportPickerTab>(presetGameSport?.category === 'sport' ? 'sports' : 'games')
   const [sportPickerQuery, setSportPickerQuery] = useState('')
   const [customSportDraft, setCustomSportDraft] = useState(isCustomGameSport ? form.sport : '')
+  const [activeStep, setActiveStep] = useState<FormStep>(1)
+  const [visibilityConfirmed, setVisibilityConfirmed] = useState(showStatus)
+  const previousCompletionRef = useRef({
+    step1Complete: false,
+    step2Complete: false,
+    step3Complete: false,
+  })
+  const step1Complete = Boolean(form.name.trim() && form.sport.trim() && form.date)
+  const step2Complete = Boolean(
+    form.mode &&
+      participantLimit >= 2 &&
+      (!showGroupControls || sanitizedGroupCount >= 1) &&
+      (!isTeamTournament || sanitizedTeamSize >= 2),
+  )
+  const step3Complete = Boolean(
+    typeof form.is_public === 'boolean' &&
+      visibilityConfirmed &&
+      (!showStatus || Boolean(form.status)),
+  )
+  const step4Complete = form.description.trim().length >= 12
+  const step2Available = step1Complete
+  const step3Available = step1Complete && step2Complete
+  const step4Available = step1Complete && step2Complete && step3Complete
   const setupChecklist = [
-    { label: 'Basic details', complete: Boolean(form.name.trim() && form.sport.trim() && form.date) },
-    {
-      label: 'Structure choices',
-      complete: Boolean(
-        form.mode &&
-          participantLimit >= 2 &&
-          (!showGroupControls || sanitizedGroupCount >= 1) &&
-          (!isTeamTournament || sanitizedTeamSize >= 2),
-      ),
-    },
-    { label: 'Visibility ready', complete: typeof form.is_public === 'boolean' },
-    { label: 'Description added', complete: form.description.trim().length >= 12 },
+    { label: 'Basics', complete: step1Complete },
+    { label: 'Structure', complete: step2Complete },
+    { label: 'Visibility', complete: step3Complete },
+    { label: 'Description', complete: step4Complete },
   ]
   const guidance = [
     participantLimit < 2 ? 'Set at least 2 participants before saving.' : null,
@@ -120,6 +195,36 @@ export default function TournamentForm({
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isSportPickerOpen])
+
+  useEffect(() => {
+    setActiveStep((currentStep) => {
+      const availableByStep: Record<FormStep, boolean> = {
+        1: true,
+        2: step2Available,
+        3: step3Available,
+        4: step4Available,
+      }
+
+      if (!availableByStep[currentStep]) {
+        if (!step1Complete) return 1
+        if (!step2Complete) return 2
+        if (!step3Complete) return 3
+        return 4
+      }
+
+      if (currentStep === 1 && !previousCompletionRef.current.step1Complete && step1Complete && step2Available) return 2
+      if (currentStep === 2 && !previousCompletionRef.current.step2Complete && step2Complete && step3Available) return 3
+      if (currentStep === 3 && !previousCompletionRef.current.step3Complete && step3Complete && step4Available) return 4
+
+      return currentStep
+    })
+
+    previousCompletionRef.current = {
+      step1Complete,
+      step2Complete,
+      step3Complete,
+    }
+  }, [step1Complete, step2Complete, step3Complete, step2Available, step3Available, step4Available])
 
   const openSportPicker = () => {
     setSportPickerTab(presetGameSport ? (presetGameSport.category === 'game' ? 'games' : 'sports') : 'other')
@@ -221,13 +326,16 @@ export default function TournamentForm({
                 </div>
               )}
 
-              <section className="space-y-5">
-                <div>
-                  <p className="app-eyebrow">Step 1</p>
-                  <h2 className="app-text-primary mt-2 text-xl font-semibold tracking-tight">Basics</h2>
-                  <p className="app-text-secondary mt-1 text-sm">Name the event clearly and set the public-facing schedule.</p>
-                </div>
-
+              <StepSection
+                step={1}
+                title="Basics"
+                description="Name the event clearly and set the public-facing schedule."
+                summary={step1Complete ? `${form.name || 'Tournament'} • ${form.sport || 'No title'} • ${form.date || 'No date'}` : 'Complete the basics to unlock the next step.'}
+                complete={step1Complete}
+                active={activeStep === 1}
+                available
+                onOpen={setActiveStep}
+              >
                 <div>
                   <label className="app-text-primary mb-2 block text-sm font-semibold">
                     Tournament Name <span className="text-red-500">*</span>
@@ -324,15 +432,22 @@ export default function TournamentForm({
                     </p>
                   </div>
                 </div>
-              </section>
+              </StepSection>
 
-              <section className="space-y-5">
-                <div>
-                  <p className="app-eyebrow">Step 2</p>
-                  <h2 className="app-text-primary mt-2 text-xl font-semibold tracking-tight">Structure</h2>
-                  <p className="app-text-secondary mt-1 text-sm">Choose the bracket shape and player limit before players or teams start joining.</p>
-                </div>
-
+              <StepSection
+                step={2}
+                title="Structure"
+                description="Choose the bracket shape and player limit before players or teams start joining."
+                summary={
+                  step2Complete
+                    ? `${selectedMode} • ${participantLimit || 0} ${isTeamTournament ? 'teams' : 'players'} • ${entryTypeLabel[form.entry_type]}`
+                    : 'Unlocks after the basics are complete.'
+                }
+                complete={step2Complete}
+                active={activeStep === 2}
+                available={step2Available}
+                onOpen={setActiveStep}
+              >
                 <div>
                   <label className="app-text-primary mb-3 block text-sm font-semibold">
                     Mode <span className="text-red-500">*</span>
@@ -422,26 +537,6 @@ export default function TournamentForm({
                   </div>
                 )}
 
-                <div className="grid gap-6 md:grid-cols-[0.8fr_1.2fr]">
-
-                  <div>
-                    <label className="app-text-primary mb-2 block text-sm font-semibold">Description</label>
-                    <textarea
-                      name="description"
-                      rows={4}
-                      value={form.description}
-                      onChange={onChange}
-                      placeholder="What kind of tournament is this?"
-                      className={`${fieldClassName} resize-none`}
-                    />
-                    <p className="app-text-secondary mt-2 text-sm">
-                      {form.description.trim().length > 0
-                        ? `${form.description.trim().length} characters added.`
-                        : 'Descriptions help players understand format, rules, and expectations.'}
-                    </p>
-                  </div>
-                </div>
-
                 {showGroupControls && (
                   <div>
                     <label className="app-text-primary mb-2 block text-sm font-semibold">Number of Groups</label>
@@ -460,15 +555,22 @@ export default function TournamentForm({
                     </p>
                   </div>
                 )}
-              </section>
+              </StepSection>
 
-              <section className="space-y-5">
-                <div>
-                  <p className="app-eyebrow">Step 3</p>
-                  <h2 className="app-text-primary mt-2 text-xl font-semibold tracking-tight">Visibility</h2>
-                  <p className="app-text-secondary mt-1 text-sm">Control whether players can discover the event immediately.</p>
-                </div>
-
+              <StepSection
+                step={3}
+                title="Visibility"
+                description="Control whether players can discover the event immediately."
+                summary={
+                  step3Complete
+                    ? `${form.is_public ? 'Public listing' : 'Private draft'}${showStatus ? ` • ${statusOptions.find((option) => option.value === form.status)?.label ?? form.status}` : ''}`
+                    : 'Choose how visible the tournament should be.'
+                }
+                complete={step3Complete}
+                active={activeStep === 3}
+                available={step3Available}
+                onOpen={setActiveStep}
+              >
                 <div>
                   <label className="app-text-primary mb-3 block text-sm font-semibold">Visibility</label>
                   <div className="grid items-stretch gap-3 sm:grid-cols-2">
@@ -497,7 +599,10 @@ export default function TournamentForm({
                           name="is_public"
                           value={String(option.value)}
                           checked={form.is_public === option.value}
-                          onChange={onChange}
+                          onChange={(event) => {
+                            setVisibilityConfirmed(true)
+                            onChange(event)
+                          }}
                           className="sr-only"
                         />
                         <span className="flex w-full max-w-[18rem] flex-col items-center justify-center gap-2">
@@ -512,7 +617,15 @@ export default function TournamentForm({
                 {showStatus && (
                   <div>
                     <label className="app-text-primary mb-2 block text-sm font-semibold">Status</label>
-                    <select name="status" value={form.status} onChange={onChange} className={fieldClassName}>
+                    <select
+                      name="status"
+                      value={form.status}
+                      onChange={(event) => {
+                        setVisibilityConfirmed(true)
+                        onChange(event)
+                      }}
+                      className={fieldClassName}
+                    >
                       {statusOptions.map((option) => (
                         <option key={option.value} value={option.value}>
                           {option.label}
@@ -522,36 +635,68 @@ export default function TournamentForm({
                     <p className="app-text-secondary mt-2 text-sm">Use status to signal whether players should join, watch, or treat the bracket as final.</p>
                   </div>
                 )}
-              </section>
+              </StepSection>
 
-              <div className="mt-2 flex gap-4">
-                <button
-                  type="button"
-                  onClick={onCancel}
-                  className="app-button-secondary flex-1 rounded-xl px-4 py-3 font-semibold transition duration-200 hover:-translate-y-0.5"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting || blocksSubmission}
-                  className="app-button-primary flex-1 rounded-xl px-4 py-3 font-semibold transition duration-200 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
-                >
-                  {submitting ? submitLoadingLabel : submitLabel}
-                </button>
-              </div>
+              <StepSection
+                step={4}
+                title="Final details"
+                description="Add context for players, then review and save the tournament."
+                summary={
+                  step4Complete
+                    ? `${form.description.trim().length} characters added`
+                    : 'Finish with a short description and final review.'
+                }
+                complete={step4Complete}
+                active={activeStep === 4}
+                available={step4Available}
+                onOpen={setActiveStep}
+              >
+                <div>
+                  <label className="app-text-primary mb-2 block text-sm font-semibold">Description</label>
+                  <textarea
+                    name="description"
+                    rows={4}
+                    value={form.description}
+                    onChange={onChange}
+                    placeholder="What kind of tournament is this?"
+                    className={`${fieldClassName} resize-none`}
+                  />
+                  <p className="app-text-secondary mt-2 text-sm">
+                    {form.description.trim().length > 0
+                      ? `${form.description.trim().length} characters added.`
+                      : 'Descriptions help players understand format, rules, and expectations.'}
+                  </p>
+                </div>
 
-              {onDelete && (
-                <div className="mt-2 border-t border-[color:var(--border-subtle)] pt-5">
+                <div className="mt-2 flex gap-4">
                   <button
                     type="button"
-                    onClick={onDelete}
-                    className="app-banner-danger w-full rounded-xl px-4 py-3 font-medium transition duration-200 hover:-translate-y-0.5 hover:shadow-sm"
+                    onClick={onCancel}
+                    className="app-button-secondary flex-1 rounded-xl px-4 py-3 font-semibold transition duration-200 hover:-translate-y-0.5"
                   >
-                    Delete Tournament
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting || blocksSubmission}
+                    className="app-button-primary flex-1 rounded-xl px-4 py-3 font-semibold transition duration-200 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                  >
+                    {submitting ? submitLoadingLabel : submitLabel}
                   </button>
                 </div>
-              )}
+
+                {onDelete && (
+                  <div className="mt-2 border-t border-[color:var(--border-subtle)] pt-5">
+                    <button
+                      type="button"
+                      onClick={onDelete}
+                      className="app-banner-danger w-full rounded-xl px-4 py-3 font-medium transition duration-200 hover:-translate-y-0.5 hover:shadow-sm"
+                    >
+                      Delete Tournament
+                    </button>
+                  </div>
+                )}
+              </StepSection>
             </form>
           </div>
 
