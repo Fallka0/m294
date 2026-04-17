@@ -30,19 +30,6 @@ export const modeLabel: Record<TournamentMode, string> = {
   both: 'Both',
 }
 
-export const sports = [
-  'Football',
-  'Basketball',
-  'Tennis',
-  'Volleyball',
-  'Cricket',
-  'Baseball',
-  'Hockey',
-  'Badminton',
-  'Table Tennis',
-  'Other',
-] as const
-
 export const modeOptions: Array<{ value: TournamentMode; label: string }> = [
   { value: 'group', label: 'Group Phase' },
   { value: 'knockout', label: 'Knockout' },

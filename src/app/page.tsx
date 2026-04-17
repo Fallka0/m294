@@ -7,7 +7,7 @@ import PageShell from '@/components/layout/PageShell'
 import HomeTournamentCard from '@/components/home/HomeTournamentCard'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { supabase } from '@/lib/supabase'
-import { normalizeTournament, sports } from '@/lib/tournaments'
+import { normalizeTournament } from '@/lib/tournaments'
 import type { Participant, Tournament, TournamentStatus } from '@/lib/types'
 
 type Scope = 'explore' | 'my' | 'joined'
@@ -27,6 +27,7 @@ export default function Home() {
   const [sortBy, setSortBy] = useState<SortKey>('newest')
   const [joinedTournamentIds, setJoinedTournamentIds] = useState<string[]>([])
   const deferredSearchQuery = useDeferredValue(searchQuery.trim().toLowerCase())
+  const sports = [...new Set(tournaments.map((tournament) => tournament.sport).filter(Boolean))].sort((left, right) => left.localeCompare(right))
 
   useEffect(() => {
     if (authLoading) return
@@ -226,19 +227,19 @@ export default function Home() {
             <input
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search by tournament, sport, or description"
+              placeholder="Search by tournament, game, sport, or description"
               className="app-input w-full rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400"
             />
           </label>
 
           <label className="block">
-            <span className="app-text-primary mb-2 block text-sm font-semibold">Sport</span>
+            <span className="app-text-primary mb-2 block text-sm font-semibold">Game / Sport</span>
             <select
               value={sportFilter}
               onChange={(event) => setSportFilter(event.target.value)}
               className="app-input w-full rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400"
             >
-              <option value="all">All sports</option>
+              <option value="all">All games & sports</option>
               {sports.map((sport) => (
                 <option key={sport} value={sport}>
                   {sport}
@@ -280,7 +281,7 @@ export default function Home() {
             Status: {filters.find((item) => item.key === filter)?.label ?? 'All'}
           </span>
           <span className="app-chip rounded-full px-3 py-1">
-            Sport: {sportFilter === 'all' ? 'Any' : sportFilter}
+            Game / Sport: {sportFilter === 'all' ? 'Any' : sportFilter}
           </span>
           <span className="app-chip rounded-full px-3 py-1">
             Sort: {sortBy === 'newest' ? 'Newest' : sortBy === 'soonest' ? 'Soonest' : sortBy === 'popular' ? 'Most joined' : 'Largest'}

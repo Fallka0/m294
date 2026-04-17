@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
+import GameSportIcon from '@/components/game-sports/GameSportIcon'
 import PageShell from '@/components/layout/PageShell'
 import OrganizerProfileCard from '@/components/profile/OrganizerProfileCard'
 import { supabase } from '@/lib/supabase'
@@ -63,8 +64,9 @@ export default function OrganizerPublicPage() {
               className="app-card-elevated block rounded-2xl px-5 py-4 transition duration-200 hover:-translate-y-0.5 hover:shadow-sm"
             >
               <p className="app-text-primary text-lg font-semibold">{tournament.name}</p>
-              <p className="app-text-secondary mt-2 text-sm">
-                {tournament.sport} • {tournament.date}
+              <p className="app-text-secondary mt-2 flex items-center gap-3 text-sm">
+                <GameSportIcon value={tournament.sport} className="h-9 w-9 rounded-xl" iconClassName="h-4 w-4" />
+                <span>{tournament.sport} • {tournament.date}</span>
               </p>
             </Link>
           ))}

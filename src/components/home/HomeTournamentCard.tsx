@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import GameSportIcon from '@/components/game-sports/GameSportIcon'
 import SpotlightCard from '@/components/SpotlightCard'
 import { entryTypeLabel, formatTournamentDate, getDisplayTournamentStatus, modeLabel, statusConfig } from '@/lib/tournaments'
 import type { Tournament } from '@/lib/types'
@@ -58,9 +59,12 @@ export default function HomeTournamentCard({
           </div>
         </div>
 
-        <p className="app-text-primary mb-3 text-sm font-semibold">
-          {tournament.sport}
-          <span className="app-text-muted font-normal"> - {modeLabel[tournament.mode]}</span>
+        <p className="app-text-primary mb-3 flex items-center gap-3 text-sm font-semibold">
+          <GameSportIcon value={tournament.sport} className="h-9 w-9 rounded-xl" iconClassName="h-4 w-4" />
+          <span>
+            {tournament.sport}
+            <span className="app-text-muted font-normal"> - {modeLabel[tournament.mode]}</span>
+          </span>
         </p>
 
         <p className="app-text-secondary mb-4 text-sm">

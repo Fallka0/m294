@@ -82,11 +82,21 @@ export default function EditTournament() {
     setForm((current) => ({ ...current, [name]: nextValue }))
   }
 
+  const handleSportChange = (value: string) => {
+    setMessage('')
+    setForm((current) => ({ ...current, sport: value }))
+  }
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setSaving(true)
     setMessage('')
 
+    if (!form.sport.trim()) {
+      setMessage('Please choose or enter a game or sport.')
+      setSaving(false)
+      return
+    }
     if ((form.mode === 'group' || form.mode === 'both') && Number(form.max_participants) / sanitizeGroupCount(form.group_count, form.mode, Number(form.max_participants)) < 2) {
       setMessage('Groups need at least 2 teams each with the current participant cap.')
       setSaving(false)
@@ -143,6 +153,7 @@ export default function EditTournament() {
       subtitle="Update settings, participant limits, and current tournament status."
       form={form}
       onChange={handleChange}
+      onSportChange={handleSportChange}
       onSubmit={handleSubmit}
       onCancel={() => router.push(`/tournaments/${id}`)}
       onDelete={handleDelete}

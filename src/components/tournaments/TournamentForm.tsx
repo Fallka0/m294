@@ -1,10 +1,12 @@
 'use client'
 
-import type { ChangeEvent, FormEvent } from 'react'
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
+import GameSportIcon from '@/components/game-sports/GameSportIcon'
 import PageShell from '@/components/layout/PageShell'
 import TournamentFormHero from '@/components/tournaments/TournamentFormHero'
-import { entryTypeLabel, matchFormatLabel, modeOptions, sports, statusOptions } from '@/lib/tournaments'
+import { featuredGameOptions, featuredSportOptions, findGameSportOption, otherGameSportOption } from '@/lib/game-sports'
 import { sanitizeGroupCount, sanitizeTeamSize } from '@/lib/tournament-settings'
+import { entryTypeLabel, matchFormatLabel, modeOptions, statusOptions } from '@/lib/tournaments'
 import type { TournamentFormValues } from '@/lib/types'
 
 const fieldClassName =
@@ -18,6 +20,7 @@ interface TournamentFormProps {
   form: TournamentFormValues
   errors?: Partial<Record<'name' | 'sport' | 'mode' | 'group_count' | 'max_participants' | 'date' | 'team_size', string>>
   onChange: (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void
+  onSportChange: (value: string) => void
   onSubmit: (event: FormEvent<HTMLFormElement>) => void
   onCancel: () => void
   onDelete?: () => void
@@ -35,6 +38,7 @@ export default function TournamentForm({
   form,
   errors = {},
   onChange,
+  onSportChange,
   onSubmit,
   onCancel,
   onDelete,
@@ -55,8 +59,10 @@ export default function TournamentForm({
   const sanitizedTeamSize = sanitizeTeamSize(form.team_size, form.entry_type)
   const showGroupControls = form.mode === 'group' || form.mode === 'both'
   const isTeamTournament = form.entry_type === 'team'
+  const presetGameSport = findGameSportOption(form.sport)
+  const [showCustomSportInput, setShowCustomSportInput] = useState(Boolean(form.sport.trim() && !presetGameSport))
   const setupChecklist = [
-    { label: 'Basic details', complete: Boolean(form.name.trim() && form.sport && form.date) },
+    { label: 'Basic details', complete: Boolean(form.name.trim() && form.sport.trim() && form.date) },
     {
       label: 'Structure choices',
       complete: Boolean(
@@ -90,6 +96,22 @@ export default function TournamentForm({
       : feedbackTone === 'success'
         ? 'app-banner-success'
         : 'app-banner-info'
+
+  useEffect(() => {
+    if (presetGameSport) {
+      setShowCustomSportInput(false)
+      return
+    }
+
+    if (form.sport.trim()) {
+      setShowCustomSportInput(true)
+    }
+  }, [form.sport, presetGameSport])
+
+  const selectableCardClassName = (isActive: boolean) =>
+    `rounded-[24px] border px-4 py-4 text-left transition duration-200 ${
+      isActive ? 'app-selectable-card-active' : 'app-selectable-card hover:-translate-y-0.5'
+    }`
 
   return (
     <PageShell>
@@ -201,17 +223,104 @@ export default function TournamentForm({
                 <div className="grid gap-6 md:grid-cols-2">
                   <div>
                     <label className="app-text-primary mb-2 block text-sm font-semibold">
-                      Sport Type <span className="text-red-500">*</span>
+                      Game or Sport <span className="text-red-500">*</span>
                     </label>
-                    <select name="sport" required value={form.sport} onChange={onChange} className={fieldClassName}>
-                      <option value="">Select a sport</option>
-                      {sports.map((sport) => (
-                        <option key={sport} value={sport}>
-                          {sport}
-                        </option>
-                      ))}
-                    </select>
-                    {errors.sport && <p className="mt-2 text-sm text-red-500">{errors.sport}</p>}
+                    <div className="space-y-4">
+                      <div>
+                        <p className="app-eyebrow">Popular Games</p>
+                        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                          {featuredGameOptions.map((option) => {
+                            const isActive = presetGameSport?.value === option.value
+
+                            return (
+                              <button
+                                key={option.value}
+                                type="button"
+                                onClick={() => {
+                                  setShowCustomSportInput(false)
+                                  onSportChange(option.value)
+                                }}
+                                className={selectableCardClassName(isActive)}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <GameSportIcon value={option.value} />
+                                  <div>
+                                    <p className="app-text-primary text-sm font-semibold">{option.label}</p>
+                                    <p className="app-text-secondary text-xs">{option.description}</p>
+                                  </div>
+                                </div>
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className="app-eyebrow">Sports</p>
+                        <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                          {featuredSportOptions.map((option) => {
+                            const isActive = presetGameSport?.value === option.value
+
+                            return (
+                              <button
+                                key={option.value}
+                                type="button"
+                                onClick={() => {
+                                  setShowCustomSportInput(false)
+                                  onSportChange(option.value)
+                                }}
+                                className={selectableCardClassName(isActive)}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <GameSportIcon value={option.value} />
+                                  <div>
+                                    <p className="app-text-primary text-sm font-semibold">{option.label}</p>
+                                    <p className="app-text-secondary text-xs">{option.description}</p>
+                                  </div>
+                                </div>
+                              </button>
+                            )
+                          })}
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowCustomSportInput(true)
+                              if (presetGameSport) {
+                                onSportChange('')
+                              }
+                            }}
+                            className={selectableCardClassName(showCustomSportInput)}
+                          >
+                            <div className="flex items-center gap-3">
+                              <GameSportIcon value={otherGameSportOption.value} />
+                              <div>
+                                <p className="app-text-primary text-sm font-semibold">{otherGameSportOption.label}</p>
+                                <p className="app-text-secondary text-xs">{otherGameSportOption.description}</p>
+                              </div>
+                            </div>
+                          </button>
+                        </div>
+                      </div>
+
+                      {showCustomSportInput && (
+                        <div className="app-muted-panel rounded-[24px] p-4">
+                          <label className="app-text-primary mb-2 block text-sm font-semibold">
+                            Custom game or sport <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            value={presetGameSport ? '' : form.sport}
+                            onChange={(event) => onSportChange(event.target.value)}
+                            placeholder="e.g. Call of Duty, Chess, Handball"
+                            className={fieldClassName}
+                          />
+                          <p className="app-text-secondary mt-2 text-sm">
+                            Use this when the title you need is not in the featured list yet.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                    {errors.sport && <p className="mt-3 text-sm text-red-500">{errors.sport}</p>}
                   </div>
 
                   <div>
@@ -239,7 +348,7 @@ export default function TournamentForm({
                 <div>
                   <p className="app-eyebrow">Step 2</p>
                   <h2 className="app-text-primary mt-2 text-xl font-semibold tracking-tight">Structure</h2>
-                  <p className="app-text-secondary mt-1 text-sm">Choose the bracket shape and player limit before people start joining.</p>
+                  <p className="app-text-secondary mt-1 text-sm">Choose the bracket shape and player limit before players or teams start joining.</p>
                 </div>
 
                 <div>
@@ -472,8 +581,11 @@ export default function TournamentForm({
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="app-text-muted text-sm">Sport</p>
-                    <p className="app-text-primary font-medium">{form.sport || 'Not selected'}</p>
+                    <p className="app-text-muted text-sm">Game / Sport</p>
+                    <p className="app-text-primary inline-flex items-center gap-3 font-medium">
+                      {form.sport ? <GameSportIcon value={form.sport} className="h-9 w-9 rounded-xl" iconClassName="h-4 w-4" /> : null}
+                      <span>{form.sport || 'Not selected'}</span>
+                    </p>
                   </div>
                   <div>
                     <p className="app-text-muted text-sm">Date</p>
