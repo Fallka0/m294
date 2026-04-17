@@ -27,3 +27,38 @@ as $$
       and role = 'admin'
   );
 $$;
+
+drop policy if exists "admins can read all profiles" on public.profiles;
+create policy "admins can read all profiles"
+on public.profiles
+for select
+to authenticated
+using (public.is_admin());
+
+drop policy if exists "admins can read all tournaments" on public.tournaments;
+create policy "admins can read all tournaments"
+on public.tournaments
+for select
+to authenticated
+using (public.is_admin());
+
+drop policy if exists "admins can read all participants" on public.participants;
+create policy "admins can read all participants"
+on public.participants
+for select
+to authenticated
+using (public.is_admin());
+
+drop policy if exists "admins can read all matches" on public.matches;
+create policy "admins can read all matches"
+on public.matches
+for select
+to authenticated
+using (public.is_admin());
+
+drop policy if exists "admins can read all teams" on public.teams;
+create policy "admins can read all teams"
+on public.teams
+for select
+to authenticated
+using (public.is_admin());
