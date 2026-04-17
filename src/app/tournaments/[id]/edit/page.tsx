@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import TournamentForm from '@/components/tournaments/TournamentForm'
 import { useAuth } from '@/components/auth/AuthProvider'
+import { getErrorMessage } from '@/lib/errors'
 import { supabase } from '@/lib/supabase'
 import { encodeTournamentDescription, normalizeTournamentSettings, sanitizeGroupCount, sanitizeTeamSize } from '@/lib/tournament-settings'
 import type { Tournament, TournamentFormValues } from '@/lib/types'
@@ -42,15 +43,25 @@ export default function EditTournament() {
     const currentUser = user
 
     async function fetchTournament() {
-      const { data } = await supabase.from('tournaments').select('*').eq('id', id).single()
-      const tournament = data ? normalizeTournamentSettings(data as Tournament) : null
+      try {
+        setLoading(true)
+        setMessage('')
 
-      if (tournament?.owner_id && tournament.owner_id !== currentUser.id) {
-        router.push(`/tournaments/${id}`)
-        return
-      }
+        const { data, error } = await supabase.from('tournaments').select('*').eq('id', id).single()
+        if (error) throw error
 
-      if (tournament) {
+        const tournament = data ? normalizeTournamentSettings(data as Tournament) : null
+
+        if (!tournament) {
+          setMessage('Tournament not found.')
+          return
+        }
+
+        if (tournament.owner_id && tournament.owner_id !== currentUser.id) {
+          router.push(`/tournaments/${id}`)
+          return
+        }
+
         setForm({
           name: tournament.name,
           sport: tournament.sport,
@@ -65,9 +76,11 @@ export default function EditTournament() {
           description: tournament.description ?? '',
           is_public: tournament.is_public ?? true,
         })
+      } catch (error) {
+        setMessage(getErrorMessage(error, 'Could not load this tournament.'))
+      } finally {
+        setLoading(false)
       }
-
-      setLoading(false)
     }
 
     void fetchTournament()
@@ -127,12 +140,12 @@ export default function EditTournament() {
       is_public: form.is_public,
     }
 
-    const { error } = await supabase.from('tournaments').update(tournamentPayload).eq('id', id)
-
-    if (error) {
-      setMessage(error.message)
-    } else {
+    try {
+      const { error } = await supabase.from('tournaments').update(tournamentPayload).eq('id', id)
+      if (error) throw error
       router.push(`/tournaments/${id}`)
+    } catch (error) {
+      setMessage(getErrorMessage(error, 'Could not save the tournament changes.'))
     }
 
     setSaving(false)
@@ -140,8 +153,16 @@ export default function EditTournament() {
 
   const handleDelete = async () => {
     if (!confirm('Delete this tournament?')) return
-    await supabase.from('tournaments').delete().eq('id', id)
-    router.push('/')
+    try {
+      setSaving(true)
+      setMessage('')
+      const { error } = await supabase.from('tournaments').delete().eq('id', id)
+      if (error) throw error
+      router.push('/')
+    } catch (error) {
+      setMessage(getErrorMessage(error, 'Could not delete this tournament.'))
+      setSaving(false)
+    }
   }
 
   if (authLoading || !isAuthenticated) return <p className="app-text-secondary p-10">Loading...</p>

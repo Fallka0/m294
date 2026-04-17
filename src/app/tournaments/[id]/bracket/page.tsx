@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import GroupStageOverview from '@/components/GroupStageOverview'
 import TournamentBracket from '@/components/TournamentBracket'
+import { getErrorMessage } from '@/lib/errors'
 import { supabase } from '@/lib/supabase'
 import { buildBracketProgressionChanges, createInitialBracketMatches, getScoreValidationMessage, getTournamentStructure } from '@/lib/bracket'
 import { matchFormatLabel, modeLabel, normalizeTournament } from '@/lib/tournaments'
@@ -19,24 +20,35 @@ export default function BracketPage() {
   const [editMatch, setEditMatch] = useState<Match | null>(null)
   const [scores, setScores] = useState<ScoreFormValues>({ score_a: '', score_b: '' })
   const [scoreError, setScoreError] = useState('')
+  const [message, setMessage] = useState('')
+  const [messageTone, setMessageTone] = useState<'error' | 'success' | 'info'>('info')
 
   useEffect(() => {
     void fetchAll()
   }, [id])
 
   const fetchAll = async () => {
-    const { data: tournamentData } = await supabase.from('tournaments').select('*').eq('id', id).single()
-    const { data: participantData } = await supabase.from('participants').select('*').eq('tournament_id', id)
-    const { data: matchData } = await supabase
-      .from('matches')
-      .select('*')
-      .eq('tournament_id', id)
-      .order('round', { ascending: true })
+    try {
+      setLoading(true)
+      const [{ data: tournamentData, error: tournamentError }, { data: participantData, error: participantError }, { data: matchData, error: matchError }] = await Promise.all([
+        supabase.from('tournaments').select('*').eq('id', id).single(),
+        supabase.from('participants').select('*').eq('tournament_id', id),
+        supabase.from('matches').select('*').eq('tournament_id', id).order('round', { ascending: true }),
+      ])
 
-    setTournament(tournamentData ? normalizeTournament(tournamentData as Tournament) : null)
-    setParticipants((participantData as Participant[] | null) ?? [])
-    setMatches((matchData as Match[] | null) ?? [])
-    setLoading(false)
+      if (tournamentError) throw tournamentError
+      if (participantError) throw participantError
+      if (matchError) throw matchError
+
+      setTournament(tournamentData ? normalizeTournament(tournamentData as Tournament) : null)
+      setParticipants((participantData as Participant[] | null) ?? [])
+      setMatches((matchData as Match[] | null) ?? [])
+    } catch (error) {
+      setMessage(getErrorMessage(error, 'Could not load the bracket data.'))
+      setMessageTone('error')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const structure = useMemo(
@@ -48,19 +60,30 @@ export default function BracketPage() {
     if (!tournament) return
     if (!confirm('Generate bracket? Existing matches will be deleted.')) return
 
-    await supabase.from('matches').delete().eq('tournament_id', id)
+    try {
+      setMessage('')
+      const { error: deleteError } = await supabase.from('matches').delete().eq('tournament_id', id)
+      if (deleteError) throw deleteError
 
-    const newMatches = createInitialBracketMatches(
-      id,
-      participants.map((participant) => participant.id),
-      tournament.mode,
-      tournament.group_count ?? 1,
-    )
+      const newMatches = createInitialBracketMatches(
+        id,
+        participants.map((participant) => participant.id),
+        tournament.mode,
+        tournament.group_count ?? 1,
+      )
 
-    if (newMatches.length > 0) {
-      await supabase.from('matches').insert(newMatches)
+      if (newMatches.length > 0) {
+        const { error: insertError } = await supabase.from('matches').insert(newMatches)
+        if (insertError) throw insertError
+      }
+
+      setMessage('Bracket updated.')
+      setMessageTone('success')
+      await fetchAll()
+    } catch (error) {
+      setMessage(getErrorMessage(error, 'Could not generate the bracket.'))
+      setMessageTone('error')
     }
-    await fetchAll()
   }
 
   const getName = (participantId: string | null) => {
@@ -90,51 +113,64 @@ export default function BracketPage() {
     const scoreB = Number.parseInt(scores.score_b, 10)
     const winner = scoreA > scoreB ? editMatch.participant_a : editMatch.participant_b
 
-    await supabase
-      .from('matches')
-      .update({
-        score_a: scoreA,
-        score_b: scoreB,
-        winner,
-      })
-      .eq('id', editMatch.id)
+    try {
+      const { error: updateError } = await supabase
+        .from('matches')
+        .update({
+          score_a: scoreA,
+          score_b: scoreB,
+          winner,
+        })
+        .eq('id', editMatch.id)
+      if (updateError) throw updateError
 
-    const updatedMatches = matches.map((match) =>
-      match.id === editMatch.id ? { ...match, score_a: scoreA, score_b: scoreB, winner } : match,
-    )
-    const { updates, inserts } = buildBracketProgressionChanges(
-      id,
-      updatedMatches,
-      tournament?.mode ?? 'knockout',
-      tournament?.group_count ?? 1,
-      participants,
-    )
+      const updatedMatches = matches.map((match) =>
+        match.id === editMatch.id ? { ...match, score_a: scoreA, score_b: scoreB, winner } : match,
+      )
+      const { updates, inserts } = buildBracketProgressionChanges(
+        id,
+        updatedMatches,
+        tournament?.mode ?? 'knockout',
+        tournament?.group_count ?? 1,
+        participants,
+      )
 
-    await Promise.all(
-      updates.map((match) =>
-        supabase
-          .from('matches')
-          .update({
-            participant_a: match.participant_a,
-            participant_b: match.participant_b,
-            score_a: match.score_a,
-            score_b: match.score_b,
-            winner: match.winner,
-          })
-          .eq('id', match.id),
-      ),
-    )
+      const updateResults = await Promise.all(
+        updates.map((match) =>
+          supabase
+            .from('matches')
+            .update({
+              participant_a: match.participant_a,
+              participant_b: match.participant_b,
+              score_a: match.score_a,
+              score_b: match.score_b,
+              winner: match.winner,
+            })
+            .eq('id', match.id),
+        ),
+      )
 
-    if (inserts.length > 0) {
-      await supabase.from('matches').insert(inserts)
+      const failedUpdate = updateResults.find((result) => result.error)
+      if (failedUpdate?.error) throw failedUpdate.error
+
+      if (inserts.length > 0) {
+        const { error: insertError } = await supabase.from('matches').insert(inserts)
+        if (insertError) throw insertError
+      }
+
+      setEditMatch(null)
+      setScoreError('')
+      setMessage('Result saved.')
+      setMessageTone('success')
+      await fetchAll()
+    } catch (error) {
+      setMessage(getErrorMessage(error, 'Could not save the match result.'))
+      setMessageTone('error')
     }
-
-    setEditMatch(null)
-    setScoreError('')
-    await fetchAll()
   }
 
   if (loading) return <p className="app-text-secondary p-10">Laden...</p>
+  if (!tournament) return <p className="app-text-secondary p-10">{message || 'Tournament not found.'}</p>
 
   const rounds =
     structure ? [...new Set(structure.knockoutMatches.map((match) => match.round))].sort((left, right) => left - right) : []
@@ -171,6 +207,12 @@ export default function BracketPage() {
           {matches.length > 0 ? 'Regenerate' : tournament?.mode === 'knockout' ? 'Generate Bracket' : 'Generate Stage'}
           </button>
         </div>
+
+      {message && (
+        <div className={`mb-6 rounded-2xl px-4 py-3 text-sm ${messageTone === 'error' ? 'app-banner-danger' : messageTone === 'success' ? 'app-banner-success' : 'app-banner-info'}`}>
+          {message}
+        </div>
+      )}
 
       {matches.length === 0 && <p className="app-empty-state rounded-2xl px-5 py-4 text-sm">No stage generated yet.</p>}
 

@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation'
 import GameSportIcon from '@/components/game-sports/GameSportIcon'
 import PageShell from '@/components/layout/PageShell'
 import OrganizerProfileCard from '@/components/profile/OrganizerProfileCard'
+import { getErrorMessage } from '@/lib/errors'
 import { supabase } from '@/lib/supabase'
 import { normalizeTournament } from '@/lib/tournaments'
 import type { Profile, Tournament } from '@/lib/types'
@@ -15,26 +16,54 @@ export default function OrganizerPublicPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [tournaments, setTournaments] = useState<Tournament[]>([])
   const [loading, setLoading] = useState(true)
+  const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
     async function fetchOrganizer() {
-      const { data: profileData } = await supabase.from('profiles').select('*').eq('id', id).maybeSingle()
-      const { data: tournamentData } = await supabase
-        .from('tournaments')
-        .select('*')
-        .eq('owner_id', id)
-        .eq('is_public', true)
-        .order('created_at', { ascending: false })
+      try {
+        setLoading(true)
+        setErrorMessage('')
 
-      setProfile((profileData as Profile | null) ?? null)
-      setTournaments(((tournamentData as Tournament[] | null) ?? []).map(normalizeTournament))
-      setLoading(false)
+        const [{ data: profileData, error: profileError }, { data: tournamentData, error: tournamentError }] = await Promise.all([
+          supabase.from('profiles').select('*').eq('id', id).maybeSingle(),
+          supabase
+            .from('tournaments')
+            .select('*')
+            .eq('owner_id', id)
+            .eq('is_public', true)
+            .order('created_at', { ascending: false }),
+        ])
+
+        if (profileError) throw profileError
+        if (tournamentError) throw tournamentError
+
+        setProfile((profileData as Profile | null) ?? null)
+        setTournaments(((tournamentData as Tournament[] | null) ?? []).map(normalizeTournament))
+      } catch (error) {
+        setProfile(null)
+        setTournaments([])
+        setErrorMessage(getErrorMessage(error, 'Could not load this organizer right now.'))
+      } finally {
+        setLoading(false)
+      }
     }
 
     void fetchOrganizer()
   }, [id])
 
   if (loading) return <p className="app-text-secondary p-10">Loading...</p>
+  if (errorMessage && !profile) {
+    return (
+      <PageShell>
+        <Link href="/" className="app-link-muted text-sm transition duration-200">
+          Back to Dashboard
+        </Link>
+        <div className="app-banner-danger rounded-2xl px-4 py-3 text-sm">
+          {errorMessage}
+        </div>
+      </PageShell>
+    )
+  }
   if (!profile) return <p className="app-text-secondary p-10">Organizer not found.</p>
 
   return (
@@ -42,6 +71,12 @@ export default function OrganizerPublicPage() {
       <Link href="/" className="app-link-muted text-sm transition duration-200">
         Back to Dashboard
       </Link>
+
+      {errorMessage && (
+        <div className="app-banner-danger rounded-2xl px-4 py-3 text-sm">
+          {errorMessage}
+        </div>
+      )}
 
       <OrganizerProfileCard profile={profile} />
 
