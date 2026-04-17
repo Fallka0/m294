@@ -11,7 +11,7 @@ export default function AppBackgroundVeil() {
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
       <div className="absolute inset-0">
         <DarkVeil
-          hueShift={isDark ? 292 : 194}
+          hueShift={isDark ? 0 : 40}
           noiseIntensity={isDark ? 0.024 : 0.012}
           scanlineIntensity={isDark ? 0.065 : 0.022}
           scanlineFrequency={isDark ? 1.18 : 0.72}
