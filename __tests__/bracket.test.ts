@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { buildBracketProgressionChanges, createInitialBracketMatches, getScoreValidationMessage } from '@/lib/bracket'
-import type { Match } from '@/lib/types'
+import { buildBracketProgressionChanges, createInitialBracketMatches, getScoreValidationMessage, orderKnockoutMatches } from '@/lib/bracket'
+import type { Match, Participant } from '@/lib/types'
 
 function createMatch(overrides: Partial<Match>): Match {
   return {
@@ -13,6 +13,16 @@ function createMatch(overrides: Partial<Match>): Match {
     score_b: overrides.score_b ?? null,
     winner: overrides.winner ?? null,
     created_at: overrides.created_at ?? '2026-04-16T08:00:00.000Z',
+  }
+}
+
+function createParticipant(id: string, name: string): Participant {
+  return {
+    id,
+    tournament_id: 'tournament-1',
+    name,
+    user_id: null,
+    created_at: '2026-04-16T08:00:00.000Z',
   }
 }
 
@@ -43,6 +53,70 @@ describe('getScoreValidationMessage', () => {
 })
 
 describe('buildBracketProgressionChanges', () => {
+  it('keeps later-round matches in their visual slot even when fetched in the wrong order', () => {
+    const matches = [
+      createMatch({
+        id: 'qf-1',
+        participant_a: 'p1',
+        participant_b: 'p2',
+        score_a: 1,
+        score_b: 0,
+        winner: 'p1',
+        round: 1,
+        created_at: '2026-04-16T08:00:00.000Z',
+      }),
+      createMatch({
+        id: 'qf-2',
+        participant_a: 'p3',
+        participant_b: 'p4',
+        score_a: 0,
+        score_b: 1,
+        winner: 'p4',
+        round: 1,
+        created_at: '2026-04-16T08:01:00.000Z',
+      }),
+      createMatch({
+        id: 'qf-3',
+        participant_a: 'p5',
+        participant_b: 'p6',
+        score_a: 1,
+        score_b: 0,
+        winner: 'p5',
+        round: 1,
+        created_at: '2026-04-16T08:02:00.000Z',
+      }),
+      createMatch({
+        id: 'qf-4',
+        participant_a: 'p7',
+        participant_b: 'p8',
+        score_a: 0,
+        score_b: 1,
+        winner: 'p8',
+        round: 1,
+        created_at: '2026-04-16T08:03:00.000Z',
+      }),
+      createMatch({
+        id: 'sf-bottom',
+        participant_a: 'p5',
+        participant_b: 'p8',
+        round: 2,
+        created_at: '2026-04-16T08:04:00.000Z',
+      }),
+      createMatch({
+        id: 'sf-top',
+        participant_a: 'p1',
+        participant_b: 'p4',
+        round: 2,
+        created_at: '2026-04-16T08:05:00.000Z',
+      }),
+    ]
+
+    const orderedMatches = orderKnockoutMatches(matches)
+    const semiFinals = orderedMatches.filter((match) => match.round === 2)
+
+    expect(semiFinals.map((match) => match.id)).toEqual(['sf-top', 'sf-bottom'])
+  })
+
   it('creates the next round when all winners in the current round are known', () => {
     const matches = [
       createMatch({
@@ -73,6 +147,44 @@ describe('buildBracketProgressionChanges', () => {
         tournament_id: 't-1',
         participant_a: 'p1',
         participant_b: 'p4',
+        round: 2,
+        score_a: null,
+        score_b: null,
+        winner: null,
+      },
+    ])
+  })
+
+  it('creates the next round as soon as at least one advancing team is known', () => {
+    const matches = [
+      createMatch({
+        id: 'm1',
+        participant_a: 'p1',
+        participant_b: 'p2',
+        score_a: 1,
+        score_b: 0,
+        winner: 'p1',
+        created_at: '2026-04-16T08:00:00.000Z',
+      }),
+      createMatch({
+        id: 'm2',
+        participant_a: 'p3',
+        participant_b: 'p4',
+        score_a: null,
+        score_b: null,
+        winner: null,
+        created_at: '2026-04-16T08:05:00.000Z',
+      }),
+    ]
+
+    const { inserts, updates } = buildBracketProgressionChanges('t-1', matches)
+
+    expect(updates).toEqual([])
+    expect(inserts).toEqual([
+      {
+        tournament_id: 't-1',
+        participant_a: 'p1',
+        participant_b: null,
         round: 2,
         score_a: null,
         score_b: null,
@@ -125,6 +237,47 @@ describe('buildBracketProgressionChanges', () => {
         score_b: null,
         winner: null,
       },
+    ])
+  })
+
+  it('creates the knockout bracket from finished group-stage results in both mode', () => {
+    const participants = [
+      createParticipant('a1', 'Alpha 1'),
+      createParticipant('a2', 'Alpha 2'),
+      createParticipant('b1', 'Beta 1'),
+      createParticipant('b2', 'Beta 2'),
+    ]
+    const matches = [
+      createMatch({
+        id: 'g1',
+        participant_a: 'a1',
+        participant_b: 'a2',
+        score_a: 1,
+        score_b: 0,
+        winner: 'a1',
+        round: 1,
+      }),
+      createMatch({
+        id: 'g2',
+        participant_a: 'b1',
+        participant_b: 'b2',
+        score_a: 1,
+        score_b: 0,
+        winner: 'b1',
+        round: 1,
+      }),
+    ]
+
+    const { updates, inserts } = buildBracketProgressionChanges('t-1', matches, 'both', 2, participants)
+
+    expect(updates).toEqual([])
+    expect(inserts).toHaveLength(2)
+    expect(inserts.every((match) => match.tournament_id === 't-1' && match.round === 2)).toBe(true)
+
+    const seededPairs = inserts.map((match) => [match.participant_a, match.participant_b].filter(Boolean).sort())
+    expect(seededPairs).toEqual([
+      ['a1', 'b1'],
+      ['a2', 'b2'],
     ])
   })
 })

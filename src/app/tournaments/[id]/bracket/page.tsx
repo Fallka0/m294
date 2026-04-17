@@ -55,29 +55,58 @@ export default function BracketPage() {
     () => (tournament ? getTournamentStructure(tournament.mode, tournament.group_count ?? 1, participants, matches) : null),
     [matches, participants, tournament],
   )
+  const canGenerateKnockoutOnly =
+    tournament?.mode === 'both' &&
+    Boolean(structure?.isGroupStageComplete) &&
+    (structure?.knockoutMatches.length ?? 0) === 0 &&
+    matches.length > 0
 
   const generateBracket = async () => {
     if (!tournament) return
-    if (!confirm('Generate bracket? Existing matches will be deleted.')) return
+    const confirmationMessage = canGenerateKnockoutOnly
+      ? `Generate the knockout bracket from the ${structure?.qualifiedParticipantIds.length ?? 0} qualified teams?`
+      : 'Generate bracket? Existing matches will be deleted.'
+    if (!confirm(confirmationMessage)) return
 
     try {
       setMessage('')
-      const { error: deleteError } = await supabase.from('matches').delete().eq('tournament_id', id)
-      if (deleteError) throw deleteError
+      if (canGenerateKnockoutOnly) {
+        const { updates, inserts } = buildBracketProgressionChanges(
+          id,
+          matches,
+          tournament.mode,
+          tournament.group_count ?? 1,
+          participants,
+        )
 
-      const newMatches = createInitialBracketMatches(
-        id,
-        participants.map((participant) => participant.id),
-        tournament.mode,
-        tournament.group_count ?? 1,
-      )
+        if (updates.length > 0) {
+          throw new Error('Unexpected match updates were returned while generating the knockout bracket.')
+        }
 
-      if (newMatches.length > 0) {
-        const { error: insertError } = await supabase.from('matches').insert(newMatches)
+        if (inserts.length === 0) {
+          throw new Error('No knockout matches could be generated from the completed group stage.')
+        }
+
+        const { error: insertError } = await supabase.from('matches').insert(inserts)
         if (insertError) throw insertError
+      } else {
+        const { error: deleteError } = await supabase.from('matches').delete().eq('tournament_id', id)
+        if (deleteError) throw deleteError
+
+        const newMatches = createInitialBracketMatches(
+          id,
+          participants.map((participant) => participant.id),
+          tournament.mode,
+          tournament.group_count ?? 1,
+        )
+
+        if (newMatches.length > 0) {
+          const { error: insertError } = await supabase.from('matches').insert(newMatches)
+          if (insertError) throw insertError
+        }
       }
 
-      setMessage('Bracket updated.')
+      setMessage(canGenerateKnockoutOnly ? 'Knockout bracket generated.' : 'Bracket updated.')
       setMessageTone('success')
       await fetchAll()
     } catch (error) {
@@ -204,7 +233,13 @@ export default function BracketPage() {
             onClick={generateBracket}
             className="app-button-primary rounded-lg px-4 py-2 text-sm font-semibold transition duration-200 hover:-translate-y-0.5 hover:shadow-md"
           >
-          {matches.length > 0 ? 'Regenerate' : tournament?.mode === 'knockout' ? 'Generate Bracket' : 'Generate Stage'}
+          {canGenerateKnockoutOnly
+            ? 'Generate Knockout Bracket'
+            : matches.length > 0
+              ? 'Regenerate'
+              : tournament?.mode === 'knockout'
+                ? 'Generate Bracket'
+                : 'Generate Stage'}
           </button>
         </div>
 
@@ -228,12 +263,20 @@ export default function BracketPage() {
 
           {tournament?.mode !== 'group' &&
             (structure.knockoutMatches.length > 0 ? (
-              <TournamentBracket matches={structure.knockoutMatches} participants={knockoutParticipants} rounds={rounds} onMatchClick={openEdit} />
+              <TournamentBracket
+                matches={structure.knockoutMatches}
+                participants={knockoutParticipants}
+                rounds={rounds}
+                mode={tournament.mode}
+                onMatchClick={openEdit}
+              />
             ) : (
               <div className="app-empty-state rounded-2xl px-5 py-4 text-sm">
-                {structure.isGroupStageComplete
-                  ? 'Knockout matches will appear after the qualifying teams are seeded.'
-                  : 'Finish the group stage to unlock the knockout bracket.'}
+                {tournament.mode === 'both' && structure.isGroupStageComplete
+                  ? `${structure.qualifiedParticipantIds.length} teams qualified from the group stage. Generate the knockout bracket to continue.`
+                  : structure.isGroupStageComplete
+                    ? 'Knockout matches will appear after the qualifying teams are seeded.'
+                    : 'Finish the group stage to unlock the knockout bracket.'}
               </div>
             ))}
         </div>

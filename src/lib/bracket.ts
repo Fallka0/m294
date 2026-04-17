@@ -42,8 +42,103 @@ function sortMatches(matches: Match[]) {
   })
 }
 
+function getSlotMatchScore(match: Match, expectedParticipantA: string | null, expectedParticipantB: string | null) {
+  if (!expectedParticipantA && !expectedParticipantB) return 0
+
+  const expectedParticipants = [expectedParticipantA, expectedParticipantB].filter(Boolean)
+  let score = 0
+
+  if (match.participant_a && expectedParticipants.includes(match.participant_a)) score += 2
+  if (match.participant_b && expectedParticipants.includes(match.participant_b)) score += 2
+
+  const knownParticipants = [match.participant_a, match.participant_b].filter(Boolean)
+  if (expectedParticipants.length === 1 && knownParticipants.length === 1 && knownParticipants[0] === expectedParticipants[0]) {
+    score += 1
+  }
+
+  return score
+}
+
+export function orderKnockoutMatches(matches: Match[], startRound = 1) {
+  const orderedMatches = sortMatches(matches)
+  const roundNumbers = [...new Set(orderedMatches.map((match) => match.round))].sort((left, right) => left - right)
+
+  if (roundNumbers.length === 0) {
+    return []
+  }
+
+  const baselineRounds = orderedMatches.reduce<Map<number, Match[]>>((map, match) => {
+    const current = map.get(match.round) ?? []
+    current.push(match)
+    map.set(match.round, current)
+    return map
+  }, new Map())
+  const orderedRounds = new Map<number, Match[]>()
+
+  roundNumbers.forEach((roundNumber) => {
+    const roundMatches = [...(baselineRounds.get(roundNumber) ?? [])]
+
+    if (roundNumber === startRound) {
+      orderedRounds.set(roundNumber, roundMatches)
+      return
+    }
+
+    const previousRoundMatches = orderedRounds.get(roundNumber - 1) ?? []
+    if (previousRoundMatches.length === 0) {
+      orderedRounds.set(roundNumber, roundMatches)
+      return
+    }
+
+    const expectedSlotCount = Math.max(roundMatches.length, Math.ceil(previousRoundMatches.length / 2))
+    const assignedMatches = new Array<Match | null>(expectedSlotCount).fill(null)
+    const baselineIndex = new Map(roundMatches.map((match, index) => [match.id, index]))
+    const candidates = roundMatches
+      .flatMap((match) =>
+        Array.from({ length: expectedSlotCount }, (_, slotIndex) => {
+          const expectedParticipantA = previousRoundMatches[slotIndex * 2]?.winner ?? null
+          const expectedParticipantB = previousRoundMatches[slotIndex * 2 + 1]?.winner ?? null
+
+          return {
+            match,
+            slotIndex,
+            score: getSlotMatchScore(match, expectedParticipantA, expectedParticipantB),
+            baselinePosition: baselineIndex.get(match.id) ?? Number.MAX_SAFE_INTEGER,
+          }
+        }),
+      )
+      .filter((candidate) => candidate.score > 0)
+      .sort((left, right) => {
+        if (left.score !== right.score) return right.score - left.score
+        if (left.slotIndex !== right.slotIndex) return left.slotIndex - right.slotIndex
+        return left.baselinePosition - right.baselinePosition
+      })
+
+    const usedMatchIds = new Set<string>()
+
+    candidates.forEach((candidate) => {
+      if (assignedMatches[candidate.slotIndex] || usedMatchIds.has(candidate.match.id)) return
+      assignedMatches[candidate.slotIndex] = candidate.match
+      usedMatchIds.add(candidate.match.id)
+    })
+
+    const remainingMatches = roundMatches.filter((match) => !usedMatchIds.has(match.id))
+
+    assignedMatches.forEach((match, slotIndex) => {
+      if (match) return
+      assignedMatches[slotIndex] = remainingMatches.shift() ?? null
+    })
+
+    orderedRounds.set(
+      roundNumber,
+      assignedMatches.filter((match): match is Match => Boolean(match)),
+    )
+  })
+
+  return roundNumbers.flatMap((roundNumber) => orderedRounds.get(roundNumber) ?? [])
+}
+
 function buildRoundMap(matches: Match[]) {
-  return sortMatches(matches).reduce<Map<number, Match[]>>((map, match) => {
+  return matches.reduce<Map<number, Match[]>>((map, match) => {
     const current = map.get(match.round) ?? []
     current.push(match)
     map.set(match.round, current)
@@ -359,7 +454,7 @@ export function getScoreValidationMessage(scoreA: string, scoreB: string, matchF
 }
 
 function buildKnockoutProgressionChanges(tournamentId: string, matches: Match[], startRound = 1) {
-  const orderedMatches = sortMatches(matches)
+  const orderedMatches = orderKnockoutMatches(matches, startRound)
   const rounds = buildRoundMap(orderedMatches)
   const updates: MatchUpdate[] = []
   const inserts: MatchInsert[] = []
@@ -370,17 +465,18 @@ function buildKnockoutProgressionChanges(tournamentId: string, matches: Match[],
     if (currentRoundMatches.length === 0) continue
 
     const nextRoundNumber = round + 1
-    const allWinnersKnown = currentRoundMatches.every((match) => match.winner !== null)
     const expectedNextRoundSize = Math.ceil(currentRoundMatches.length / 2)
     const nextRoundMatches = rounds.get(nextRoundNumber) ?? []
 
     if (nextRoundMatches.length === 0) {
-      if (!allWinnersKnown || currentRoundMatches.length <= 1) continue
+      if (currentRoundMatches.length <= 1) continue
 
       const nextRound = Array.from({ length: expectedNextRoundSize }, (_, index) => {
-        const participantA = currentRoundMatches[index * 2]?.winner ?? null
-        const participantB = currentRoundMatches[index * 2 + 1]?.winner ?? null
-        const hasBye = Boolean(participantA && !participantB)
+        const sourceMatchA = currentRoundMatches[index * 2]
+        const sourceMatchB = currentRoundMatches[index * 2 + 1]
+        const participantA = sourceMatchA?.winner ?? null
+        const participantB = sourceMatchB?.winner ?? null
+        const hasBye = Boolean(participantA && !sourceMatchB)
 
         return {
           tournament_id: tournamentId,
@@ -392,6 +488,9 @@ function buildKnockoutProgressionChanges(tournamentId: string, matches: Match[],
           winner: hasBye ? participantA : null,
         }
       })
+      const hasKnownParticipants = nextRound.some((match) => match.participant_a !== null || match.participant_b !== null)
+
+      if (!hasKnownParticipants) continue
 
       inserts.push(...nextRound)
       rounds.set(
@@ -411,9 +510,11 @@ function buildKnockoutProgressionChanges(tournamentId: string, matches: Match[],
     }
 
     nextRoundMatches.forEach((match, index) => {
-      const expectedParticipantA = currentRoundMatches[index * 2]?.winner ?? null
-      const expectedParticipantB = currentRoundMatches[index * 2 + 1]?.winner ?? null
-      const hasBye = Boolean(expectedParticipantA && !expectedParticipantB)
+      const sourceMatchA = currentRoundMatches[index * 2]
+      const sourceMatchB = currentRoundMatches[index * 2 + 1]
+      const expectedParticipantA = sourceMatchA?.winner ?? null
+      const expectedParticipantB = sourceMatchB?.winner ?? null
+      const hasBye = Boolean(expectedParticipantA && !sourceMatchB)
       // A downstream result only survives if the winner still belongs to the
       // updated pairing after earlier rounds were edited.
       const currentWinnerStillValid = match.winner !== null && [expectedParticipantA, expectedParticipantB].includes(match.winner)
@@ -466,7 +567,7 @@ export function getTournamentStructure(
       groupStageRoundCount: 0,
       knockoutStartRound: 1,
       groupStageMatches: [],
-      knockoutMatches: sortMatches(matches),
+      knockoutMatches: orderKnockoutMatches(matches, 1),
       groups: [],
       qualifiedParticipantIds: [],
       isGroupStageComplete: false,
@@ -476,7 +577,8 @@ export function getTournamentStructure(
   const groupSizes = getGroupSizes(participants.length, requestedGroupCount)
   const groupStageRoundCount = Math.max(...groupSizes.map(getRoundRobinRoundCount), 0)
   const groupStageMatches = sortMatches(matches.filter((match) => match.round <= groupStageRoundCount))
-  const knockoutMatches = mode === 'both' ? sortMatches(matches.filter((match) => match.round > groupStageRoundCount)) : []
+  const knockoutMatches =
+    mode === 'both' ? orderKnockoutMatches(matches.filter((match) => match.round > groupStageRoundCount), groupStageRoundCount + 1) : []
   const connectedGroups = buildConnectedGroups(participants, groupStageMatches)
     .map((participantIds) => [...participantIds].sort((left, right) => getParticipantName(participants, left).localeCompare(getParticipantName(participants, right))))
     .sort((left, right) => getParticipantName(participants, left[0] ?? '').localeCompare(getParticipantName(participants, right[0] ?? '')))

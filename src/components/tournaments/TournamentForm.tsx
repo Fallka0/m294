@@ -337,11 +337,11 @@ export default function TournamentForm({
                   <label className="app-text-primary mb-3 block text-sm font-semibold">
                     Mode <span className="text-red-500">*</span>
                   </label>
-                  <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="grid items-stretch gap-3 sm:grid-cols-3">
                     {modeOptions.map((option) => (
                       <label
                         key={option.value}
-                        className={`rounded-2xl border px-4 py-4 transition duration-200 ${
+                        className={`flex min-h-[96px] items-center justify-center rounded-2xl border px-4 py-4 text-center transition duration-200 ${
                           form.mode === option.value
                             ? 'app-chip-info shadow-sm'
                             : 'app-card-elevated hover:border-[color:var(--border-strong)]'
@@ -355,7 +355,7 @@ export default function TournamentForm({
                           onChange={onChange}
                           className="sr-only"
                         />
-                        <span className="app-text-primary block text-sm font-semibold">{option.label}</span>
+                        <span className="app-text-primary block text-sm font-semibold leading-5">{option.label}</span>
                       </label>
                     ))}
                   </div>
@@ -471,7 +471,7 @@ export default function TournamentForm({
 
                 <div>
                   <label className="app-text-primary mb-3 block text-sm font-semibold">Visibility</label>
-                  <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="grid items-stretch gap-3 sm:grid-cols-2">
                     {[
                       {
                         value: true,
@@ -486,7 +486,7 @@ export default function TournamentForm({
                     ].map((option) => (
                       <label
                         key={String(option.value)}
-                        className={`rounded-2xl border px-4 py-4 transition duration-200 ${
+                        className={`flex min-h-[128px] items-center justify-center rounded-2xl border px-4 py-4 text-center transition duration-200 ${
                           form.is_public === option.value
                             ? 'app-chip-info shadow-sm'
                             : 'app-card-elevated hover:border-[color:var(--border-strong)]'
@@ -500,8 +500,10 @@ export default function TournamentForm({
                           onChange={onChange}
                           className="sr-only"
                         />
-                        <span className="app-text-primary block text-sm font-semibold">{option.title}</span>
-                        <span className="app-text-secondary mt-2 block text-sm leading-6">{option.description}</span>
+                        <span className="flex w-full max-w-[18rem] flex-col items-center justify-center gap-2">
+                          <span className="app-text-primary block text-sm font-semibold">{option.title}</span>
+                          <span className="app-text-secondary block text-sm leading-6">{option.description}</span>
+                        </span>
                       </label>
                     ))}
                   </div>
