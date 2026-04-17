@@ -37,8 +37,8 @@ export default function Header() {
             <Image src="/trophy.svg" alt="" width={20} height={20} className="h-5 w-5" aria-hidden="true" />
           </div>
           <div className="leading-tight">
-            <span className="block text-lg font-semibold tracking-tight">TournamentHub</span>
-            <span className="block text-xs text-[var(--header-subtext)]">Run tournaments with less friction</span>
+            <span className="block text-lg font-semibold tracking-tight">Tournamount</span>
+            <span className="block text-xs text-[var(--header-subtext)]">Run brackets, teams, and events with less friction</span>
           </div>
         </Link>
         <div className="hidden md:flex items-center gap-3">
