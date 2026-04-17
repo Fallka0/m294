@@ -351,7 +351,7 @@ export default function TournamentDetail() {
           <section className="overflow-hidden rounded-[32px] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.16),transparent_34%),linear-gradient(180deg,rgba(17,24,39,0.98)_0%,rgba(8,8,8,0.98)_100%)] px-7 py-8 text-white shadow-[0_24px_80px_rgba(2,8,23,0.35)]">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
               <div className="max-w-2xl">
-                <div className={`inline-flex rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.24em] ${banner.className}`}>
+                <div className={`inline-flex items-center rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.24em] ${banner.className}`}>
                   {banner.label}
                 </div>
                 <BlurText text={tournament.name} delay={25} className="mt-5 text-4xl font-semibold tracking-tight text-white md:text-5xl" />
@@ -374,21 +374,21 @@ export default function TournamentDetail() {
                     <GameSportIcon value={tournament.sport} className="h-8 w-8 rounded-xl border-white/10" iconClassName="h-4 w-4" />
                     <span>{tournament.sport}</span>
                   </span>
-                  <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">{modeLabel[tournament.mode]}</span>
-                  <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">{matchFormatLabel[tournament.match_format ?? 'bo1']}</span>
-                  <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">{entryTypeLabel[tournament.entry_type ?? 'solo']}</span>
+                  <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-4 py-2">{modeLabel[tournament.mode]}</span>
+                  <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-4 py-2">{matchFormatLabel[tournament.match_format ?? 'bo1']}</span>
+                  <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-4 py-2">{entryTypeLabel[tournament.entry_type ?? 'solo']}</span>
                   {isTeamTournament && (
-                    <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">{requiredTeamSize} players per team</span>
+                    <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-4 py-2">{requiredTeamSize} players per team</span>
                   )}
                   {(tournament.mode === 'group' || tournament.mode === 'both') && (
-                    <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">
+                    <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-4 py-2">
                       {tournament.group_count ?? 1} group{(tournament.group_count ?? 1) === 1 ? '' : 's'}
                     </span>
                   )}
-                  <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">
+                  <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-4 py-2">
                     {participants.length}/{tournament.max_participants} {entryCountLabel}
                   </span>
-                  <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">
+                  <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-4 py-2">
                     {tournament.is_public === false ? 'Private' : 'Public'}
                   </span>
                 </div>

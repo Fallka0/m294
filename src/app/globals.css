@@ -208,19 +208,23 @@ body {
     color: var(--text-secondary);
   }
 
-  .app-selectable-card {
+  .app-list-option {
     border: 1px solid var(--border-subtle);
     background: var(--surface-elevated);
     color: var(--text-primary);
   }
 
-  .app-selectable-card:hover {
+  .app-list-option:hover {
     border-color: var(--border-strong);
     background: var(--surface);
     box-shadow: var(--shadow-card-soft);
   }
 
-  .app-selectable-card-active {
+  .app-list-option + .app-list-option {
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .app-list-option-active {
     border: 1px solid var(--accent-border);
     background: var(--accent-soft);
     color: var(--text-primary);
@@ -363,6 +367,22 @@ body {
     border: 1px solid var(--accent-border);
     background: var(--accent-solid);
     color: #ffffff;
+  }
+
+  .app-chip,
+  .app-chip-info,
+  .app-chip-success,
+  .app-chip-warning,
+  .app-chip-danger,
+  .app-chip-selected,
+  .app-status-open,
+  .app-status-live,
+  .app-status-finished {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    vertical-align: middle;
   }
 
   .app-banner-info {
