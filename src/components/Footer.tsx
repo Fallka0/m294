@@ -6,7 +6,7 @@ export default function Footer() {
           <span>created with</span>
           <span
             aria-label="heart"
-            className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.95),rgba(255,255,255,0)_45%),linear-gradient(135deg,#fb7185_0%,#f43f5e_45%,#ec4899_100%)] text-sm shadow-[0_8px_20px_rgba(244,63,94,0.28)]"
+            className="inline-flex items-center justify-center text-base drop-shadow-[0_6px_14px_rgba(244,63,94,0.22)]"
             role="img"
           >
             💖
