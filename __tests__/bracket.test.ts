@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { buildBracketProgressionChanges, createInitialBracketMatches, getScoreValidationMessage, orderKnockoutMatches } from '@/lib/bracket'
-import type { Match } from '@/lib/types'
+import type { Match, Participant } from '@/lib/types'
 
 function createMatch(overrides: Partial<Match>): Match {
   return {
@@ -13,6 +13,16 @@ function createMatch(overrides: Partial<Match>): Match {
     score_b: overrides.score_b ?? null,
     winner: overrides.winner ?? null,
     created_at: overrides.created_at ?? '2026-04-16T08:00:00.000Z',
+  }
+}
+
+function createParticipant(id: string, name: string): Participant {
+  return {
+    id,
+    tournament_id: 'tournament-1',
+    name,
+    user_id: null,
+    created_at: '2026-04-16T08:00:00.000Z',
   }
 }
 
@@ -189,6 +199,47 @@ describe('buildBracketProgressionChanges', () => {
         score_b: null,
         winner: null,
       },
+    ])
+  })
+
+  it('creates the knockout bracket from finished group-stage results in both mode', () => {
+    const participants = [
+      createParticipant('a1', 'Alpha 1'),
+      createParticipant('a2', 'Alpha 2'),
+      createParticipant('b1', 'Beta 1'),
+      createParticipant('b2', 'Beta 2'),
+    ]
+    const matches = [
+      createMatch({
+        id: 'g1',
+        participant_a: 'a1',
+        participant_b: 'a2',
+        score_a: 1,
+        score_b: 0,
+        winner: 'a1',
+        round: 1,
+      }),
+      createMatch({
+        id: 'g2',
+        participant_a: 'b1',
+        participant_b: 'b2',
+        score_a: 1,
+        score_b: 0,
+        winner: 'b1',
+        round: 1,
+      }),
+    ]
+
+    const { updates, inserts } = buildBracketProgressionChanges('t-1', matches, 'both', 2, participants)
+
+    expect(updates).toEqual([])
+    expect(inserts).toHaveLength(2)
+    expect(inserts.every((match) => match.tournament_id === 't-1' && match.round === 2)).toBe(true)
+
+    const seededPairs = inserts.map((match) => [match.participant_a, match.participant_b].filter(Boolean).sort())
+    expect(seededPairs).toEqual([
+      ['a1', 'b1'],
+      ['a2', 'b2'],
     ])
   })
 })

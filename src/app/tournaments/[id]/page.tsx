@@ -148,6 +148,11 @@ export default function TournamentDetail() {
 
     return participants.filter((participant) => participantIds.has(participant.id))
   }, [participants, structure])
+  const canGenerateKnockoutOnly =
+    tournament?.mode === 'both' &&
+    Boolean(structure?.isGroupStageComplete) &&
+    (structure?.knockoutMatches.length ?? 0) === 0 &&
+    matches.length > 0
 
   useEffect(() => {
     if (!isTeamTournament) {
@@ -219,26 +224,50 @@ export default function TournamentDetail() {
 
   const generateBracket = async () => {
     if (!tournament || !isOwner) return
-    if (!confirm('Generate bracket? Existing matches will be deleted.')) return
+    const confirmationMessage = canGenerateKnockoutOnly
+      ? `Generate the knockout bracket from the ${structure?.qualifiedParticipantIds.length ?? 0} qualified teams?`
+      : 'Generate bracket? Existing matches will be deleted.'
+    if (!confirm(confirmationMessage)) return
 
     try {
       setJoinMessage('')
-      const { error: deleteError } = await supabase.from('matches').delete().eq('tournament_id', id)
-      if (deleteError) throw deleteError
+      if (canGenerateKnockoutOnly) {
+        const { updates, inserts } = buildBracketProgressionChanges(
+          id,
+          matches,
+          tournament.mode,
+          tournament.group_count ?? 1,
+          participants,
+        )
 
-      const newMatches = createInitialBracketMatches(
-        id,
-        participants.map((participant) => participant.id),
-        tournament.mode,
-        tournament.group_count ?? 1,
-      )
+        if (updates.length > 0) {
+          throw new Error('Unexpected match updates were returned while generating the knockout bracket.')
+        }
 
-      if (newMatches.length > 0) {
-        const { error: insertError } = await supabase.from('matches').insert(newMatches)
+        if (inserts.length === 0) {
+          throw new Error('No knockout matches could be generated from the completed group stage.')
+        }
+
+        const { error: insertError } = await supabase.from('matches').insert(inserts)
         if (insertError) throw insertError
+      } else {
+        const { error: deleteError } = await supabase.from('matches').delete().eq('tournament_id', id)
+        if (deleteError) throw deleteError
+
+        const newMatches = createInitialBracketMatches(
+          id,
+          participants.map((participant) => participant.id),
+          tournament.mode,
+          tournament.group_count ?? 1,
+        )
+
+        if (newMatches.length > 0) {
+          const { error: insertError } = await supabase.from('matches').insert(newMatches)
+          if (insertError) throw insertError
+        }
       }
 
-      setJoinMessage('Bracket updated.')
+      setJoinMessage(canGenerateKnockoutOnly ? 'Knockout bracket generated.' : 'Bracket updated.')
       setJoinMessageTone('success')
       await fetchData()
     } catch (error) {
@@ -721,7 +750,13 @@ export default function TournamentDetail() {
                   onClick={generateBracket}
                   className="app-button-primary rounded-xl px-4 py-2 text-sm font-semibold transition duration-200 hover:-translate-y-0.5 hover:shadow-md"
                 >
-                  {matches.length > 0 ? 'Regenerate' : tournament.mode === 'knockout' ? 'Generate Bracket' : 'Generate Stage'}
+                  {canGenerateKnockoutOnly
+                    ? 'Generate Knockout Bracket'
+                    : matches.length > 0
+                      ? 'Regenerate'
+                      : tournament.mode === 'knockout'
+                        ? 'Generate Bracket'
+                        : 'Generate Stage'}
                 </button>
               )}
             </div>

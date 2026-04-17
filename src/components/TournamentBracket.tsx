@@ -28,7 +28,12 @@ export default function TournamentBracket({
     return participants.find((participant) => participant.id === participantId)?.name || 'TBD'
   }
 
-  const displayRounds = rounds.length > 0 ? rounds : Array.from({ length: Math.max(1, Math.ceil(Math.log2(Math.max(participants.length, 1)))) }, (_, index) => index + 1)
+  const bracketRoundCount = Math.max(
+    rounds.length,
+    Math.max(1, Math.ceil(Math.log2(Math.max(participants.length, 1)))),
+  )
+  const firstRound = rounds.length > 0 ? Math.min(...rounds) : 1
+  const displayRounds = Array.from({ length: bracketRoundCount }, (_, index) => firstRound + index)
   const totalRounds = displayRounds.length
 
   const getMatchesForRound = (round: number, displayIndex: number): MatchSlot[] => {
