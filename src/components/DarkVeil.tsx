@@ -1,5 +1,7 @@
-import { useRef, useEffect } from 'react';
-import { Renderer, Program, Mesh, Triangle, Vec2 } from 'ogl';
+'use client'
+
+import { useEffect, useRef } from 'react'
+import { Mesh, Program, Renderer, Triangle, Vec2 } from 'ogl'
 
 const vertex = `
 attribute vec2 position;
@@ -74,14 +76,14 @@ void main(){
 `;
 
 type Props = {
-  hueShift?: number;
-  noiseIntensity?: number;
-  scanlineIntensity?: number;
-  speed?: number;
-  scanlineFrequency?: number;
-  warpAmount?: number;
-  resolutionScale?: number;
-};
+  hueShift?: number
+  noiseIntensity?: number
+  scanlineIntensity?: number
+  speed?: number
+  scanlineFrequency?: number
+  warpAmount?: number
+  resolutionScale?: number
+}
 
 export default function DarkVeil({
   hueShift = 0,
@@ -90,20 +92,24 @@ export default function DarkVeil({
   speed = 0.5,
   scanlineFrequency = 0,
   warpAmount = 0,
-  resolutionScale = 1
+  resolutionScale = 1,
 }: Props) {
-  const ref = useRef<HTMLCanvasElement>(null);
+  const ref = useRef<HTMLCanvasElement>(null)
+
   useEffect(() => {
-    const canvas = ref.current as HTMLCanvasElement;
-    const parent = canvas.parentElement as HTMLElement;
+    const canvas = ref.current
+    const parent = canvas?.parentElement
+
+    if (!canvas || !parent) return
 
     const renderer = new Renderer({
       dpr: Math.min(window.devicePixelRatio, 2),
-      canvas
-    });
+      canvas,
+      alpha: true,
+    })
 
-    const gl = renderer.gl;
-    const geometry = new Triangle(gl);
+    const gl = renderer.gl
+    const geometry = new Triangle(gl)
 
     const program = new Program(gl, {
       vertex,
@@ -115,42 +121,45 @@ export default function DarkVeil({
         uNoise: { value: noiseIntensity },
         uScan: { value: scanlineIntensity },
         uScanFreq: { value: scanlineFrequency },
-        uWarp: { value: warpAmount }
-      }
-    });
+        uWarp: { value: warpAmount },
+      },
+    })
 
-    const mesh = new Mesh(gl, { geometry, program });
+    const mesh = new Mesh(gl, { geometry, program })
 
     const resize = () => {
       const w = parent.clientWidth,
-        h = parent.clientHeight;
-      renderer.setSize(w * resolutionScale, h * resolutionScale);
-      program.uniforms.uResolution.value.set(w, h);
-    };
+        h = parent.clientHeight
+      renderer.setSize(w * resolutionScale, h * resolutionScale)
+      canvas.style.width = `${w}px`
+      canvas.style.height = `${h}px`
+      program.uniforms.uResolution.value.set(w, h)
+    }
 
-    window.addEventListener('resize', resize);
-    resize();
+    window.addEventListener('resize', resize)
+    resize()
 
-    const start = performance.now();
-    let frame = 0;
+    const start = performance.now()
+    let frame = 0
 
     const loop = () => {
-      program.uniforms.uTime.value = ((performance.now() - start) / 1000) * speed;
-      program.uniforms.uHueShift.value = hueShift;
-      program.uniforms.uNoise.value = noiseIntensity;
-      program.uniforms.uScan.value = scanlineIntensity;
-      program.uniforms.uScanFreq.value = scanlineFrequency;
-      program.uniforms.uWarp.value = warpAmount;
-      renderer.render({ scene: mesh });
-      frame = requestAnimationFrame(loop);
-    };
+      program.uniforms.uTime.value = ((performance.now() - start) / 1000) * speed
+      program.uniforms.uHueShift.value = hueShift
+      program.uniforms.uNoise.value = noiseIntensity
+      program.uniforms.uScan.value = scanlineIntensity
+      program.uniforms.uScanFreq.value = scanlineFrequency
+      program.uniforms.uWarp.value = warpAmount
+      renderer.render({ scene: mesh })
+      frame = requestAnimationFrame(loop)
+    }
 
-    loop();
+    loop()
 
     return () => {
-      cancelAnimationFrame(frame);
-      window.removeEventListener('resize', resize);
-    };
-  }, [hueShift, noiseIntensity, scanlineIntensity, speed, scanlineFrequency, warpAmount, resolutionScale]);
-  return <canvas ref={ref} className="w-full h-full block" />;
+      cancelAnimationFrame(frame)
+      window.removeEventListener('resize', resize)
+    }
+  }, [hueShift, noiseIntensity, scanlineIntensity, speed, scanlineFrequency, warpAmount, resolutionScale])
+
+  return <canvas ref={ref} className="block h-full w-full" />
 }

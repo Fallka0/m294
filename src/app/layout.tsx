@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
-import { Geist, Geist_Mono } from 'next/font/google'
+import { Geist_Mono, Manrope, Space_Grotesk } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import './globals.css'
@@ -9,13 +9,18 @@ import Header from '@/components/Header'
 import { AuthProvider } from '@/components/auth/AuthProvider'
 import { ThemeProvider } from '@/components/theme/ThemeProvider'
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+const bodyFont = Manrope({
+  variable: '--font-app-body',
   subsets: ['latin'],
 })
 
 const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
+  variable: '--font-app-mono',
+  subsets: ['latin'],
+})
+
+const headingFont = Space_Grotesk({
+  variable: '--font-app-heading',
   subsets: ['latin'],
 })
 
@@ -31,7 +36,7 @@ interface RootLayoutProps {
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="de" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} min-h-screen antialiased`}>
+      <body className={`${bodyFont.variable} ${headingFont.variable} ${geistMono.variable} min-h-screen antialiased`}>
         <ThemeProvider>
           <AuthProvider>
             <AppBackgroundVeil />
