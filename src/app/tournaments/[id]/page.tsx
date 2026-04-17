@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import GameSportIcon from '@/components/game-sports/GameSportIcon'
 import GroupStageOverview from '@/components/GroupStageOverview'
 import TournamentBracket from '@/components/TournamentBracket'
 import FadeContent from '@/components/react-bits/FadeContent'
@@ -369,7 +370,10 @@ export default function TournamentDetail() {
                   )}
                 </div>
                 <div className="mt-4 flex flex-wrap gap-3 text-sm text-white/80">
-                  <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">{tournament.sport}</span>
+                  <span className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-4 py-2">
+                    <GameSportIcon value={tournament.sport} className="h-8 w-8 rounded-xl border-white/10" iconClassName="h-4 w-4" />
+                    <span>{tournament.sport}</span>
+                  </span>
                   <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">{modeLabel[tournament.mode]}</span>
                   <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">{matchFormatLabel[tournament.match_format ?? 'bo1']}</span>
                   <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2">{entryTypeLabel[tournament.entry_type ?? 'solo']}</span>
@@ -438,8 +442,11 @@ export default function TournamentDetail() {
 
             <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
               <div>
-                <p className="app-text-muted text-xs uppercase tracking-[0.2em]">Sport</p>
-                <p className="app-text-primary font-semibold">{tournament.sport}</p>
+                <p className="app-text-muted text-xs uppercase tracking-[0.2em]">Game / Sport</p>
+                <p className="app-text-primary inline-flex items-center gap-3 font-semibold">
+                  <GameSportIcon value={tournament.sport} className="h-9 w-9 rounded-xl" iconClassName="h-4 w-4" />
+                  <span>{tournament.sport}</span>
+                </p>
               </div>
               <div>
                 <p className="app-text-muted text-xs uppercase tracking-[0.2em]">Mode</p>

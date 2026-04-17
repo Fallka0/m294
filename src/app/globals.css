@@ -208,6 +208,31 @@ body {
     color: var(--text-secondary);
   }
 
+  .app-selectable-card {
+    border: 1px solid var(--border-subtle);
+    background: var(--surface-elevated);
+    color: var(--text-primary);
+  }
+
+  .app-selectable-card:hover {
+    border-color: var(--border-strong);
+    background: var(--surface);
+    box-shadow: var(--shadow-card-soft);
+  }
+
+  .app-selectable-card-active {
+    border: 1px solid var(--accent-border);
+    background: var(--accent-soft);
+    color: var(--text-primary);
+    box-shadow: var(--shadow-card-soft);
+  }
+
+  .app-icon-token {
+    border: 1px solid var(--border-subtle);
+    background: var(--surface);
+    color: var(--text-primary);
+  }
+
   .app-input {
     border: 1px solid var(--border-subtle);
     background: var(--surface);

@@ -48,11 +48,17 @@ export default function NewTournament() {
     setForm((current) => ({ ...current, [name]: nextValue }))
   }
 
+  const handleSportChange = (value: string) => {
+    setMessage('')
+    setErrors((current) => ({ ...current, sport: undefined }))
+    setForm((current) => ({ ...current, sport: value }))
+  }
+
   const validateForm = () => {
     const nextErrors: TournamentFormErrors = {}
 
     if (!form.name.trim()) nextErrors.name = 'Tournament name is required.'
-    if (!form.sport) nextErrors.sport = 'Please select a sport.'
+    if (!form.sport.trim()) nextErrors.sport = 'Please choose or enter a game or sport.'
     if (!form.mode) nextErrors.mode = 'Please choose a mode.'
     if (!form.date) nextErrors.date = 'Tournament date is required.'
     if (!Number(form.max_participants) || Number(form.max_participants) < 2) {
@@ -124,6 +130,7 @@ export default function NewTournament() {
       form={form}
       errors={errors}
       onChange={handleChange}
+      onSportChange={handleSportChange}
       onSubmit={handleSubmit}
       onCancel={() => router.push('/')}
       submitting={loading}
