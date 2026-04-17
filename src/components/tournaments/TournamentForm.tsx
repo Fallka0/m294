@@ -127,7 +127,6 @@ export default function TournamentForm({
   const [sportPickerQuery, setSportPickerQuery] = useState('')
   const [customSportDraft, setCustomSportDraft] = useState(isCustomGameSport ? form.sport : '')
   const [activeStep, setActiveStep] = useState<FormStep>(1)
-  const [visibilityConfirmed, setVisibilityConfirmed] = useState(showStatus)
   const previousCompletionRef = useRef({
     step1Complete: false,
     step2Complete: false,
@@ -142,7 +141,6 @@ export default function TournamentForm({
   )
   const step3Complete = Boolean(
     typeof form.is_public === 'boolean' &&
-      visibilityConfirmed &&
       (!showStatus || Boolean(form.status)),
   )
   const step4Complete = form.description.trim().length >= 12
@@ -382,7 +380,7 @@ export default function TournamentForm({
                         </div>
 
                         {form.sport.trim() && (
-                          <span className={`rounded-full px-3 py-1 text-xs font-semibold ${presetGameSport ? 'app-chip-info' : 'app-chip'}`}>
+                          <span className={`inline-flex min-h-[74px] items-center justify-center rounded-full px-3 py-1 text-center text-xs font-semibold leading-5 ${presetGameSport ? 'app-chip-info' : 'app-chip'}`}>
                             {presetGameSport ? (presetGameSport.category === 'game' ? 'PC Game' : 'Real Sport') : 'Custom'}
                           </span>
                         )}
@@ -599,10 +597,7 @@ export default function TournamentForm({
                           name="is_public"
                           value={String(option.value)}
                           checked={form.is_public === option.value}
-                          onChange={(event) => {
-                            setVisibilityConfirmed(true)
-                            onChange(event)
-                          }}
+                          onChange={onChange}
                           className="sr-only"
                         />
                         <span className="flex w-full max-w-[18rem] flex-col items-center justify-center gap-2">
@@ -620,10 +615,7 @@ export default function TournamentForm({
                     <select
                       name="status"
                       value={form.status}
-                      onChange={(event) => {
-                        setVisibilityConfirmed(true)
-                        onChange(event)
-                      }}
+                      onChange={onChange}
                       className={fieldClassName}
                     >
                       {statusOptions.map((option) => (

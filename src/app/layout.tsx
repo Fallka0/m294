@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import './globals.css'
+import AppBackgroundVeil from '@/components/AppBackgroundVeil'
 import Header from '@/components/Header'
 import { AuthProvider } from '@/components/auth/AuthProvider'
 import { ThemeProvider } from '@/components/theme/ThemeProvider'
@@ -33,8 +34,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body className={`${geistSans.variable} ${geistMono.variable} min-h-screen antialiased`}>
         <ThemeProvider>
           <AuthProvider>
+            <AppBackgroundVeil />
             <Header />
-            {children}
+            <div className="relative z-10">{children}</div>
             <Analytics />
             <SpeedInsights />
           </AuthProvider>
