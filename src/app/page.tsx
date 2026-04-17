@@ -6,6 +6,7 @@ import HomeHero from '@/components/home/HomeHero'
 import PageShell from '@/components/layout/PageShell'
 import HomeTournamentCard from '@/components/home/HomeTournamentCard'
 import { useAuth } from '@/components/auth/AuthProvider'
+import { getErrorMessage } from '@/lib/errors'
 import { supabase } from '@/lib/supabase'
 import { normalizeTournament } from '@/lib/tournaments'
 import type { Participant, Tournament, TournamentStatus } from '@/lib/types'
@@ -26,6 +27,7 @@ export default function Home() {
   const [sportFilter, setSportFilter] = useState('all')
   const [sortBy, setSortBy] = useState<SortKey>('newest')
   const [joinedTournamentIds, setJoinedTournamentIds] = useState<string[]>([])
+  const [errorMessage, setErrorMessage] = useState('')
   const deferredSearchQuery = useDeferredValue(searchQuery.trim().toLowerCase())
   const sports = [...new Set(tournaments.map((tournament) => tournament.sport).filter(Boolean))].sort((left, right) => left.localeCompare(right))
 
@@ -33,74 +35,70 @@ export default function Home() {
     if (authLoading) return
 
     async function fetchTournaments() {
-      setLoading(true)
+      try {
+        setLoading(true)
+        setErrorMessage('')
 
-      let tournamentQuery = supabase.from('tournaments').select('*').order('created_at', { ascending: false })
+        let tournamentQuery = supabase.from('tournaments').select('*').order('created_at', { ascending: false })
 
-      if (user) {
-        tournamentQuery = tournamentQuery.or(`is_public.eq.true,owner_id.eq.${user.id}`)
-      } else {
-        tournamentQuery = tournamentQuery.eq('is_public', true)
-      }
-
-      const { data, error } = await tournamentQuery
-
-      if (error) {
-        console.error('fetchTournaments error:', error)
-        setLoading(false)
-        return
-      }
-
-      const safeTournaments = ((data ?? []) as Tournament[]).map(normalizeTournament)
-      const tournamentIds = safeTournaments.map((tournament) => tournament.id)
-      const ownerIds = [...new Set(safeTournaments.map((tournament) => tournament.owner_id).filter(Boolean))] as string[]
-
-      const [{ data: participantData, error: participantError }, { data: profileData, error: profileError }] = await Promise.all([
-        supabase
-          .from('participants')
-          .select('tournament_id, user_id')
-          .in('tournament_id', tournamentIds.length > 0 ? tournamentIds : [EMPTY_UUID]),
-        ownerIds.length > 0
-          ? supabase.from('profiles').select('id, username, full_name').in('id', ownerIds)
-          : Promise.resolve({ data: [], error: null }),
-      ])
-
-      if (participantError) {
-        console.error('fetch participants error:', participantError)
-        setLoading(false)
-        return
-      }
-
-      if (profileError) {
-        console.error('fetch owner profiles error:', profileError)
-      }
-
-      const counts: Record<string, number> = {}
-      const joinedIds: string[] = []
-      const ownerNames = new Map(
-        ((profileData ?? []) as Array<{ id: string; username: string | null; full_name: string | null }>).map((profile) => [
-          profile.id,
-          profile.full_name || profile.username || 'Organizer',
-        ]),
-      )
-
-      ;((participantData ?? []) as Pick<Participant, 'tournament_id' | 'user_id'>[]).forEach((participant) => {
-        counts[participant.tournament_id] = (counts[participant.tournament_id] ?? 0) + 1
-
-        if (user && participant.user_id === user.id) {
-          joinedIds.push(participant.tournament_id)
+        if (user) {
+          tournamentQuery = tournamentQuery.or(`is_public.eq.true,owner_id.eq.${user.id}`)
+        } else {
+          tournamentQuery = tournamentQuery.eq('is_public', true)
         }
-      })
 
-      setJoinedTournamentIds(joinedIds)
-      setTournaments(
-        safeTournaments.map((tournament) => ({
-          ...tournament,
-          current_participants: counts[tournament.id] ?? 0,
-          owner_name: tournament.owner_id ? ownerNames.get(tournament.owner_id) ?? tournament.owner_name ?? 'Organizer' : 'Community organizer',
-        })),
-      )
-      setLoading(false)
+        const { data, error } = await tournamentQuery
+        if (error) throw error
+
+        const safeTournaments = ((data ?? []) as Tournament[]).map(normalizeTournament)
+        const tournamentIds = safeTournaments.map((tournament) => tournament.id)
+        const ownerIds = [...new Set(safeTournaments.map((tournament) => tournament.owner_id).filter(Boolean))] as string[]
+
+        const [{ data: participantData, error: participantError }, { data: profileData, error: profileError }] = await Promise.all([
+          supabase
+            .from('participants')
+            .select('tournament_id, user_id')
+            .in('tournament_id', tournamentIds.length > 0 ? tournamentIds : [EMPTY_UUID]),
+          ownerIds.length > 0
+            ? supabase.from('profiles').select('id, username, full_name').in('id', ownerIds)
+            : Promise.resolve({ data: [], error: null }),
+        ])
+
+        if (participantError) throw participantError
+        if (profileError) throw profileError
+
+        const counts: Record<string, number> = {}
+        const joinedIds: string[] = []
+        const ownerNames = new Map(
+          ((profileData ?? []) as Array<{ id: string; username: string | null; full_name: string | null }>).map((profile) => [
+            profile.id,
+            profile.full_name || profile.username || 'Organizer',
+          ]),
+        )
+
+        ;((participantData ?? []) as Pick<Participant, 'tournament_id' | 'user_id'>[]).forEach((participant) => {
+          counts[participant.tournament_id] = (counts[participant.tournament_id] ?? 0) + 1
+
+          if (user && participant.user_id === user.id) {
+            joinedIds.push(participant.tournament_id)
+          }
+        })
+
+        setJoinedTournamentIds(joinedIds)
+        setTournaments(
+          safeTournaments.map((tournament) => ({
+            ...tournament,
+            current_participants: counts[tournament.id] ?? 0,
+            owner_name: tournament.owner_id ? ownerNames.get(tournament.owner_id) ?? tournament.owner_name ?? 'Organizer' : 'Community organizer',
+          })),
+        )
+      } catch (error) {
+        setTournaments([])
+        setJoinedTournamentIds([])
+        setErrorMessage(getErrorMessage(error, 'Could not load tournaments right now.'))
+      } finally {
+        setLoading(false)
+      }
     }
 
     void fetchTournaments()
@@ -174,6 +172,12 @@ export default function Home() {
   return (
     <PageShell contentClassName="max-w-6xl gap-0">
       <HomeHero tournaments={tournaments} />
+
+      {errorMessage && (
+        <div className="app-banner-danger mt-8 rounded-2xl px-4 py-3 text-sm">
+          {errorMessage}
+        </div>
+      )}
 
       <div className="mt-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>

@@ -10,6 +10,7 @@ import TournamentBracket from '@/components/TournamentBracket'
 import FadeContent from '@/components/react-bits/FadeContent'
 import BlurText from '@/components/react-bits/BlurText'
 import { useAuth } from '@/components/auth/AuthProvider'
+import { getErrorMessage } from '@/lib/errors'
 import { supabase } from '@/lib/supabase'
 import { buildBracketProgressionChanges, createInitialBracketMatches, getScoreValidationMessage, getTournamentStructure } from '@/lib/bracket'
 import { detailStatusBanner, entryTypeLabel, getDisplayTournamentStatus, matchFormatLabel, modeLabel, normalizeTournament } from '@/lib/tournaments'
@@ -31,6 +32,8 @@ export default function TournamentDetail() {
   const [joining, setJoining] = useState(false)
   const [leaving, setLeaving] = useState(false)
   const [joinMessage, setJoinMessage] = useState('')
+  const [joinMessageTone, setJoinMessageTone] = useState<'error' | 'success' | 'info'>('info')
+  const [pageError, setPageError] = useState('')
   const [availableTeams, setAvailableTeams] = useState<Team[]>([])
   const [selectedTeamId, setSelectedTeamId] = useState('')
 
@@ -46,58 +49,70 @@ export default function TournamentDetail() {
         return
       }
 
-      const { data, error } = await supabase
-        .from('teams')
-        .select('*')
-        .eq('owner_id', user.id)
-        .order('created_at', { ascending: false })
+      try {
+        const { data, error } = await supabase
+          .from('teams')
+          .select('*')
+          .eq('owner_id', user.id)
+          .order('created_at', { ascending: false })
 
-      if (error) {
-        setJoinMessage(error.message)
+        if (error) throw error
+        setAvailableTeams(((data ?? []) as Team[]))
+      } catch (error) {
+        setJoinMessage(getErrorMessage(error, 'Could not load your teams.'))
+        setJoinMessageTone('error')
         setAvailableTeams([])
-        return
       }
-
-      setAvailableTeams(((data ?? []) as Team[]))
     }
 
     void fetchTeams()
   }, [tournament?.entry_type, user])
 
   const fetchData = async () => {
-    const { data: tournamentData } = await supabase.from('tournaments').select('*').eq('id', id).single()
-    const { data: participantData } = await supabase
-      .from('participants')
-      .select('*')
-      .eq('tournament_id', id)
-      .order('created_at', { ascending: true })
-    const { data: matchData } = await supabase
-      .from('matches')
-      .select('*')
-      .eq('tournament_id', id)
-      .order('round', { ascending: true })
-      .order('created_at', { ascending: true })
+    try {
+      setLoading(true)
+      setPageError('')
 
-    const baseTournament = tournamentData ? normalizeTournament(tournamentData as Tournament) : null
-    let ownerName = baseTournament?.owner_name ?? null
+      const [{ data: tournamentData, error: tournamentError }, { data: participantData, error: participantError }, { data: matchData, error: matchError }] =
+        await Promise.all([
+          supabase.from('tournaments').select('*').eq('id', id).single(),
+          supabase.from('participants').select('*').eq('tournament_id', id).order('created_at', { ascending: true }),
+          supabase.from('matches').select('*').eq('tournament_id', id).order('round', { ascending: true }).order('created_at', { ascending: true }),
+        ])
 
-    if (baseTournament?.owner_id) {
-      const { data: ownerProfile } = await supabase
-        .from('profiles')
-        .select('username, full_name')
-        .eq('id', baseTournament.owner_id)
-        .maybeSingle()
+      if (tournamentError) throw tournamentError
+      if (participantError) throw participantError
+      if (matchError) throw matchError
 
-      ownerName =
-        (ownerProfile as { username?: string | null; full_name?: string | null } | null)?.full_name ||
-        (ownerProfile as { username?: string | null; full_name?: string | null } | null)?.username ||
-        ownerName
+      const baseTournament = tournamentData ? normalizeTournament(tournamentData as Tournament) : null
+      let ownerName = baseTournament?.owner_name ?? null
+
+      if (baseTournament?.owner_id) {
+        const { data: ownerProfile, error: ownerProfileError } = await supabase
+          .from('profiles')
+          .select('username, full_name')
+          .eq('id', baseTournament.owner_id)
+          .maybeSingle()
+
+        if (ownerProfileError) throw ownerProfileError
+
+        ownerName =
+          (ownerProfile as { username?: string | null; full_name?: string | null } | null)?.full_name ||
+          (ownerProfile as { username?: string | null; full_name?: string | null } | null)?.username ||
+          ownerName
+      }
+
+      setTournament(baseTournament ? { ...baseTournament, owner_name: ownerName ?? 'Community organizer' } : null)
+      setParticipants((participantData as Participant[] | null) ?? [])
+      setMatches((matchData as Match[] | null) ?? [])
+    } catch (error) {
+      setPageError(getErrorMessage(error, 'Could not load this tournament right now.'))
+      setTournament(null)
+      setParticipants([])
+      setMatches([])
+    } finally {
+      setLoading(false)
     }
-
-    setTournament(baseTournament ? { ...baseTournament, owner_name: ownerName ?? 'Community organizer' } : null)
-    setParticipants((participantData as Participant[] | null) ?? [])
-    setMatches((matchData as Match[] | null) ?? [])
-    setLoading(false)
   }
 
   const currentStatus = getDisplayTournamentStatus(tournament?.status ?? 'open')
@@ -153,48 +168,83 @@ export default function TournamentDetail() {
   const addParticipant = async () => {
     if (!tournament || !isOwner || !newName.trim()) return
     if (participants.length >= tournament.max_participants) {
-      alert('Max participants reached.')
+      setJoinMessage('Max participants reached.')
+      setJoinMessageTone('error')
       return
     }
 
-    const { error } = await supabase.from('participants').insert([{ tournament_id: id, name: newName.trim() }])
+    try {
+      setJoinMessage('')
+      const { error } = await supabase.from('participants').insert([{ tournament_id: id, name: newName.trim() }])
+      if (error) throw error
 
-    if (!error) {
       setNewName('')
+      setJoinMessage(`Added ${isTeamTournament ? 'team' : 'participant'}.`)
+      setJoinMessageTone('success')
       await fetchData()
+    } catch (error) {
+      setJoinMessage(getErrorMessage(error, 'Could not add the participant.'))
+      setJoinMessageTone('error')
     }
   }
 
   const removeParticipant = async (participantId: string) => {
     if (!isOwner) return
-    await supabase.from('participants').delete().eq('id', participantId)
-    await fetchData()
+    try {
+      setJoinMessage('')
+      const { error } = await supabase.from('participants').delete().eq('id', participantId)
+      if (error) throw error
+      setJoinMessage(`Removed ${isTeamTournament ? 'team' : 'participant'}.`)
+      setJoinMessageTone('success')
+      await fetchData()
+    } catch (error) {
+      setJoinMessage(getErrorMessage(error, 'Could not remove the participant.'))
+      setJoinMessageTone('error')
+    }
   }
 
   const deleteTournament = async () => {
     if (!isOwner) return
     if (!confirm('Delete this tournament?')) return
-    await supabase.from('tournaments').delete().eq('id', id)
-    router.push('/')
+    try {
+      setJoinMessage('')
+      const { error } = await supabase.from('tournaments').delete().eq('id', id)
+      if (error) throw error
+      router.push('/')
+    } catch (error) {
+      setJoinMessage(getErrorMessage(error, 'Could not delete this tournament.'))
+      setJoinMessageTone('error')
+    }
   }
 
   const generateBracket = async () => {
     if (!tournament || !isOwner) return
     if (!confirm('Generate bracket? Existing matches will be deleted.')) return
 
-    await supabase.from('matches').delete().eq('tournament_id', id)
+    try {
+      setJoinMessage('')
+      const { error: deleteError } = await supabase.from('matches').delete().eq('tournament_id', id)
+      if (deleteError) throw deleteError
 
-    const newMatches = createInitialBracketMatches(
-      id,
-      participants.map((participant) => participant.id),
-      tournament.mode,
-      tournament.group_count ?? 1,
-    )
+      const newMatches = createInitialBracketMatches(
+        id,
+        participants.map((participant) => participant.id),
+        tournament.mode,
+        tournament.group_count ?? 1,
+      )
 
-    if (newMatches.length > 0) {
-      await supabase.from('matches').insert(newMatches)
+      if (newMatches.length > 0) {
+        const { error: insertError } = await supabase.from('matches').insert(newMatches)
+        if (insertError) throw insertError
+      }
+
+      setJoinMessage('Bracket updated.')
+      setJoinMessageTone('success')
+      await fetchData()
+    } catch (error) {
+      setJoinMessage(getErrorMessage(error, 'Could not generate the bracket.'))
+      setJoinMessageTone('error')
     }
-    await fetchData()
   }
 
   const openEdit = (match: Match) => {
@@ -219,48 +269,61 @@ export default function TournamentDetail() {
     const scoreB = Number.parseInt(scores.score_b, 10)
     const winner = scoreA > scoreB ? editMatch.participant_a : editMatch.participant_b
 
-    await supabase.from('matches').update({ score_a: scoreA, score_b: scoreB, winner }).eq('id', editMatch.id)
+    try {
+      const { error: updateError } = await supabase.from('matches').update({ score_a: scoreA, score_b: scoreB, winner }).eq('id', editMatch.id)
+      if (updateError) throw updateError
 
-    const updatedMatches = matches.map((match) =>
-      match.id === editMatch.id ? { ...match, score_a: scoreA, score_b: scoreB, winner } : match,
-    )
-    const { updates, inserts } = buildBracketProgressionChanges(
-      id,
-      updatedMatches,
-      tournament.mode,
-      tournament.group_count ?? 1,
-      participants,
-    )
+      const updatedMatches = matches.map((match) =>
+        match.id === editMatch.id ? { ...match, score_a: scoreA, score_b: scoreB, winner } : match,
+      )
+      const { updates, inserts } = buildBracketProgressionChanges(
+        id,
+        updatedMatches,
+        tournament.mode,
+        tournament.group_count ?? 1,
+        participants,
+      )
 
-    await Promise.all(
-      updates.map((match) =>
-        supabase
-          .from('matches')
-          .update({
-            participant_a: match.participant_a,
-            participant_b: match.participant_b,
-            score_a: match.score_a,
-            score_b: match.score_b,
-            winner: match.winner,
-          })
-          .eq('id', match.id),
-      ),
-    )
+      const updateResults = await Promise.all(
+        updates.map((match) =>
+          supabase
+            .from('matches')
+            .update({
+              participant_a: match.participant_a,
+              participant_b: match.participant_b,
+              score_a: match.score_a,
+              score_b: match.score_b,
+              winner: match.winner,
+            })
+            .eq('id', match.id),
+        ),
+      )
 
-    if (inserts.length > 0) {
-      await supabase.from('matches').insert(inserts)
+      const failedUpdate = updateResults.find((result) => result.error)
+      if (failedUpdate?.error) throw failedUpdate.error
+
+      if (inserts.length > 0) {
+        const { error: insertError } = await supabase.from('matches').insert(inserts)
+        if (insertError) throw insertError
+      }
+
+      setEditMatch(null)
+      setScoreError('')
+      setJoinMessage('Result saved.')
+      setJoinMessageTone('success')
+      const { data: matchData, error: matchError } = await supabase
+        .from('matches')
+        .select('*')
+        .eq('tournament_id', id)
+        .order('round', { ascending: true })
+        .order('created_at', { ascending: true })
+      if (matchError) throw matchError
+
+      setMatches((matchData as Match[] | null) ?? [])
+    } catch (error) {
+      setJoinMessage(getErrorMessage(error, 'Could not save the result.'))
+      setJoinMessageTone('error')
     }
-
-    setEditMatch(null)
-    setScoreError('')
-    const { data: matchData } = await supabase
-      .from('matches')
-      .select('*')
-      .eq('tournament_id', id)
-      .order('round', { ascending: true })
-      .order('created_at', { ascending: true })
-
-    setMatches((matchData as Match[] | null) ?? [])
   }
 
   const getName = (participantId: string | null) => {
@@ -280,27 +343,33 @@ export default function TournamentDetail() {
     if (!canJoin || !user) return
     if (isTeamTournament && !selectedTeam) {
       setJoinMessage(`Choose a team with exactly ${requiredTeamSize} players before registering.`)
+      setJoinMessageTone('error')
       return
     }
 
     setJoining(true)
     const displayName = profile?.username || profile?.full_name || user.email?.split('@')[0] || 'Player'
-    const { error } = await supabase.from('participants').insert([
-      {
-        tournament_id: id,
-        name: isTeamTournament ? selectedTeam?.name ?? 'Team' : displayName,
-        user_id: user.id,
-        team_id: isTeamTournament ? selectedTeam?.id ?? null : null,
-      },
-    ])
 
-    if (!error) {
+    try {
+      const { error } = await supabase.from('participants').insert([
+        {
+          tournament_id: id,
+          name: isTeamTournament ? selectedTeam?.name ?? 'Team' : displayName,
+          user_id: user.id,
+          team_id: isTeamTournament ? selectedTeam?.id ?? null : null,
+        },
+      ])
+      if (error) throw error
+
       await fetchData()
       setJoinMessage('You joined the tournament.')
-    } else {
-      setJoinMessage(error.message)
+      setJoinMessageTone('success')
+    } catch (error) {
+      setJoinMessage(getErrorMessage(error, 'Could not join this tournament.'))
+      setJoinMessageTone('error')
+    } finally {
+      setJoining(false)
     }
-    setJoining(false)
   }
 
   const leaveTournament = async () => {
@@ -310,23 +379,27 @@ export default function TournamentDetail() {
     setJoinMessage('')
     setLeaving(true)
 
-    const { error } = await supabase
-      .from('participants')
-      .delete()
-      .eq('tournament_id', id)
-      .eq('user_id', user.id)
+    try {
+      const { error } = await supabase
+        .from('participants')
+        .delete()
+        .eq('tournament_id', id)
+        .eq('user_id', user.id)
+      if (error) throw error
 
-    if (!error) {
       await fetchData()
       setJoinMessage('You left the tournament.')
-    } else {
-      setJoinMessage(error.message)
+      setJoinMessageTone('success')
+    } catch (error) {
+      setJoinMessage(getErrorMessage(error, 'Could not leave this tournament.'))
+      setJoinMessageTone('error')
+    } finally {
+      setLeaving(false)
     }
-
-    setLeaving(false)
   }
 
   if (loading) return <p className="app-text-secondary p-10">Loading...</p>
+  if (pageError) return <p className="app-text-secondary p-10">{pageError}</p>
   if (!tournament) return <p className="app-text-secondary p-10">Tournament not found.</p>
 
   const banner = detailStatusBanner[currentStatus]
@@ -605,7 +678,13 @@ export default function TournamentDetail() {
                   </div>
                 )}
                 {joinMessage && (
-                  <div className="app-banner-info rounded-2xl px-4 py-3 text-sm font-medium">
+                  <div className={`rounded-2xl px-4 py-3 text-sm font-medium ${
+                    joinMessageTone === 'error'
+                      ? 'app-banner-danger'
+                      : joinMessageTone === 'success'
+                        ? 'app-banner-success'
+                        : 'app-banner-info'
+                  }`}>
                     {joinMessage}
                   </div>
                 )}

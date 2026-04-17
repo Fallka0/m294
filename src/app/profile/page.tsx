@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import OrganizerProfileCard from '@/components/profile/OrganizerProfileCard'
 import { useAuth } from '@/components/auth/AuthProvider'
 import PageShell from '@/components/layout/PageShell'
+import { getErrorMessage } from '@/lib/errors'
 import { getProfileMediaHelper, removeProfileMedia, uploadProfileMedia, validateProfileMedia } from '@/lib/profile-media'
 import { supabase } from '@/lib/supabase'
 import type { Profile } from '@/lib/types'
@@ -59,20 +60,29 @@ export default function ProfilePage() {
     const currentUser = user
 
     async function fetchProfile() {
-      const { data } = await supabase.from('profiles').select('*').eq('id', currentUser.id).maybeSingle()
-      const currentProfile = (data as Profile | null) ?? profile
+      try {
+        setLoading(true)
+        const { data, error } = await supabase.from('profiles').select('*').eq('id', currentUser.id).maybeSingle()
+        if (error) throw error
 
-      setForm({
-        username: currentProfile?.username ?? '',
-        full_name: currentProfile?.full_name ?? '',
-        bio: currentProfile?.bio ?? '',
-        avatar_url: currentProfile?.avatar_url ?? '',
-        banner_url: currentProfile?.banner_url ?? '',
-        website_url: currentProfile?.website_url ?? '',
-        x_url: currentProfile?.x_url ?? '',
-        github_url: currentProfile?.github_url ?? '',
-      })
-      setLoading(false)
+        const currentProfile = (data as Profile | null) ?? profile
+
+        setForm({
+          username: currentProfile?.username ?? '',
+          full_name: currentProfile?.full_name ?? '',
+          bio: currentProfile?.bio ?? '',
+          avatar_url: currentProfile?.avatar_url ?? '',
+          banner_url: currentProfile?.banner_url ?? '',
+          website_url: currentProfile?.website_url ?? '',
+          x_url: currentProfile?.x_url ?? '',
+          github_url: currentProfile?.github_url ?? '',
+        })
+      } catch (error) {
+        setMessage(getErrorMessage(error, 'Could not load your profile.'))
+        setMessageTone('error')
+      } finally {
+        setLoading(false)
+      }
     }
 
     void fetchProfile()
@@ -145,15 +155,16 @@ export default function ProfilePage() {
       ...form,
     }
 
-    const { error } = await supabase.from('profiles').upsert(payload)
+    try {
+      const { error } = await supabase.from('profiles').upsert(payload)
+      if (error) throw error
 
-    if (error) {
-      setMessage(error.message)
-      setMessageTone('error')
-    } else {
       await refreshProfile()
       setMessage('Profile updated.')
       setMessageTone('success')
+    } catch (error) {
+      setMessage(getErrorMessage(error, 'Could not save your profile.'))
+      setMessageTone('error')
     }
 
     setSaving(false)
