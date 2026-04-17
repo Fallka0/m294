@@ -5,6 +5,7 @@ import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import './globals.css'
 import AppBackgroundVeil from '@/components/AppBackgroundVeil'
+import Footer from '@/components/Footer'
 import Header from '@/components/Header'
 import { AuthProvider } from '@/components/auth/AuthProvider'
 import { ThemeProvider } from '@/components/theme/ThemeProvider'
@@ -40,8 +41,11 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <ThemeProvider>
           <AuthProvider>
             <AppBackgroundVeil />
-            <Header />
-            <div className="relative z-10">{children}</div>
+            <div className="flex min-h-screen flex-col">
+              <Header />
+              <div className="relative z-10 flex-1">{children}</div>
+              <Footer />
+            </div>
             <Analytics />
             <SpeedInsights />
           </AuthProvider>
