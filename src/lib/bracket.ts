@@ -461,17 +461,18 @@ function buildKnockoutProgressionChanges(tournamentId: string, matches: Match[],
     if (currentRoundMatches.length === 0) continue
 
     const nextRoundNumber = round + 1
-    const allWinnersKnown = currentRoundMatches.every((match) => match.winner !== null)
     const expectedNextRoundSize = Math.ceil(currentRoundMatches.length / 2)
     const nextRoundMatches = rounds.get(nextRoundNumber) ?? []
 
     if (nextRoundMatches.length === 0) {
-      if (!allWinnersKnown || currentRoundMatches.length <= 1) continue
+      if (currentRoundMatches.length <= 1) continue
 
       const nextRound = Array.from({ length: expectedNextRoundSize }, (_, index) => {
-        const participantA = currentRoundMatches[index * 2]?.winner ?? null
-        const participantB = currentRoundMatches[index * 2 + 1]?.winner ?? null
-        const hasBye = Boolean(participantA && !participantB)
+        const sourceMatchA = currentRoundMatches[index * 2]
+        const sourceMatchB = currentRoundMatches[index * 2 + 1]
+        const participantA = sourceMatchA?.winner ?? null
+        const participantB = sourceMatchB?.winner ?? null
+        const hasBye = Boolean(participantA && !sourceMatchB)
 
         return {
           tournament_id: tournamentId,
@@ -483,6 +484,9 @@ function buildKnockoutProgressionChanges(tournamentId: string, matches: Match[],
           winner: hasBye ? participantA : null,
         }
       })
+      const hasKnownParticipants = nextRound.some((match) => match.participant_a !== null || match.participant_b !== null)
+
+      if (!hasKnownParticipants) continue
 
       inserts.push(...nextRound)
       rounds.set(
@@ -502,9 +506,11 @@ function buildKnockoutProgressionChanges(tournamentId: string, matches: Match[],
     }
 
     nextRoundMatches.forEach((match, index) => {
-      const expectedParticipantA = currentRoundMatches[index * 2]?.winner ?? null
-      const expectedParticipantB = currentRoundMatches[index * 2 + 1]?.winner ?? null
-      const hasBye = Boolean(expectedParticipantA && !expectedParticipantB)
+      const sourceMatchA = currentRoundMatches[index * 2]
+      const sourceMatchB = currentRoundMatches[index * 2 + 1]
+      const expectedParticipantA = sourceMatchA?.winner ?? null
+      const expectedParticipantB = sourceMatchB?.winner ?? null
+      const hasBye = Boolean(expectedParticipantA && !sourceMatchB)
       const currentWinnerStillValid = match.winner !== null && [expectedParticipantA, expectedParticipantB].includes(match.winner)
 
       const scoreA = hasBye ? 1 : currentWinnerStillValid ? match.score_a : null

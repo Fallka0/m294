@@ -155,6 +155,44 @@ describe('buildBracketProgressionChanges', () => {
     ])
   })
 
+  it('creates the next round as soon as at least one advancing team is known', () => {
+    const matches = [
+      createMatch({
+        id: 'm1',
+        participant_a: 'p1',
+        participant_b: 'p2',
+        score_a: 1,
+        score_b: 0,
+        winner: 'p1',
+        created_at: '2026-04-16T08:00:00.000Z',
+      }),
+      createMatch({
+        id: 'm2',
+        participant_a: 'p3',
+        participant_b: 'p4',
+        score_a: null,
+        score_b: null,
+        winner: null,
+        created_at: '2026-04-16T08:05:00.000Z',
+      }),
+    ]
+
+    const { inserts, updates } = buildBracketProgressionChanges('t-1', matches)
+
+    expect(updates).toEqual([])
+    expect(inserts).toEqual([
+      {
+        tournament_id: 't-1',
+        participant_a: 'p1',
+        participant_b: null,
+        round: 2,
+        score_a: null,
+        score_b: null,
+        winner: null,
+      },
+    ])
+  })
+
   it('updates downstream rounds and clears invalid saved winners when an earlier winner changes', () => {
     const matches = [
       createMatch({
