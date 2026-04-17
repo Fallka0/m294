@@ -4,12 +4,14 @@ export type TournamentStatus = 'open' | 'live' | 'finished'
 export type TournamentMode = 'group' | 'knockout' | 'both'
 export type MatchFormat = 'bo1' | 'bo3' | 'bo5'
 export type TournamentEntryType = 'solo' | 'team'
+export type UserRole = 'user' | 'admin'
 
 export interface Profile {
   id: string
   email?: string | null
   username: string | null
   full_name: string | null
+  role?: UserRole | null
   bio?: string | null
   avatar_url?: string | null
   banner_url?: string | null
@@ -102,6 +104,7 @@ export interface AuthContextValue {
   profile: Profile | null
   loading: boolean
   isAuthenticated: boolean
+  isAdmin: boolean
   refreshProfile: () => Promise<Profile | null>
   signOut: () => Promise<void>
 }

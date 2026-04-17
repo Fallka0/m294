@@ -63,6 +63,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     profile,
     loading,
     isAuthenticated: Boolean(user),
+    isAdmin: profile?.role === 'admin',
     refreshProfile: async () => {
       if (!user) return null
 
