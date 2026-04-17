@@ -4,6 +4,12 @@ Tournamount is a Next.js + Supabase tournament platform focused on gaming first,
 
 It gives organizers a cleaner way to create events, manage participants or teams, generate brackets, and present a public organizer profile. Players can browse public tournaments, join open events, and track bracket progress from the same app.
 
+## Online Version
+
+The deployed web application is available here:
+
+- [https://m294-d5ns.vercel.app/](https://m294-d5ns.vercel.app/)
+
 ## What Tournamount Includes
 
 - Game-first tournament creation with a visual selector for popular PC games
@@ -126,7 +132,6 @@ These endpoints are not written manually inside the project as classic controlle
 
 - Node.js
 - npm
-- a Supabase project
 
 ### Install dependencies
 
@@ -166,6 +171,7 @@ Supporting docs:
 - `docs/lb2-testfaelle.md`
 - `docs/lb2-testprotokoll.md`
 
+
 ### Start the app
 
 ```bash
@@ -173,6 +179,8 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+This README serves as the startup guide for the project. The application can either be started locally with `npm install` and `npm run dev`, or opened directly via the deployed version on Vercel.
 
 ## Scripts
 
@@ -265,6 +273,7 @@ Instead, the app is made up of:
   Database access for tournaments, participants, profiles, teams, and matches
 - `https://YOUR_PROJECT_REF.supabase.co/storage/v1/*`
   Profile and team media uploads/removals
+
 
 ### Main data areas used through Supabase
 
@@ -378,6 +387,24 @@ Guidelines:
 - avoid mixing unrelated refactors into one branch
 - document environment or SQL changes clearly
 - preserve the existing visual direction unless the task calls for a redesign
+
+## Submission Note
+
+For the module submission, the relevant project state is the latest commit on the `master` branch of the group GitLab repository before the submission deadline. The source code is therefore not submitted as a separate archive, but via the GitLab repository history.
+
+## AI Usage Reflection
+
+AI was used during this project as a supporting tool for implementation, debugging, refactoring, documentation, and wording improvements. The generated suggestions were not copied blindly into the project. Instead, they were reviewed, adapted, tested, and integrated into the existing codebase where they made sense.
+
+Examples of AI-supported work in this project include:
+
+- improving UI text and documentation wording
+- debugging Git, environment, and dependency issues
+- restructuring React and Next.js components
+- refining bracket logic, validation, and team tournament features
+- preparing README and project documentation sections
+
+The final responsibility for the submitted solution, the architecture decisions, the testing, and the integrated code remains with the project team. AI-generated code and text were treated as drafts and then revised to match the project's requirements and implementation.
 
 ## License
 
