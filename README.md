@@ -59,6 +59,94 @@ With TournamentHub, users can:
 - Supabase
 - Framer Motion
 
+## Frontend and Backend
+
+### Frontend
+
+The frontend is built with Next.js, React, and TypeScript.
+
+It is responsible for:
+
+- rendering the dashboard, auth, profile, team, and tournament pages
+- handling user interactions such as form input, filtering, joining tournaments, and entering results
+- managing theme behavior, responsive layouts, and client-side UI state
+- calling Supabase from the application to load and update data
+
+The main frontend code lives in:
+
+- `src/app`
+- `src/components`
+- `src/lib`
+
+### Backend
+
+TournamentHub does not use a separate custom Express or Node backend. Instead, it uses Supabase as the backend platform.
+
+Supabase handles:
+
+- database storage
+- authentication
+- row level security
+- public and protected data access
+- storage for profile and team media
+
+The backend-related setup is defined mainly through:
+
+- SQL files in `supabase/`
+- the Supabase client in `src/lib/supabase.ts`
+
+In practice, the frontend talks directly to Supabase. This keeps the architecture simpler and reduces the amount of custom server code that has to be maintained.
+
+## Endpoints and Routes
+
+TournamentHub mainly uses App Router pages instead of a large custom REST API. The important endpoints in this project are therefore the application routes and the Supabase endpoints used behind the scenes.
+
+### Main application routes
+
+- `/`
+  Dashboard with tournament browsing, filtering, and overview cards
+
+- `/auth`
+  Sign in, sign up, remember-me login, and OAuth entry point
+
+- `/profile`
+  Private page where a logged-in user edits their own profile
+
+- `/organizers/[id]`
+  Public organizer profile page
+
+- `/teams`
+  Private page where a logged-in user creates and manages reusable teams
+
+- `/tournaments/new`
+  Tournament creation form
+
+- `/tournaments/[id]`
+  Tournament detail page with participants or teams, status, bracket generation, and result handling
+
+- `/tournaments/[id]/edit`
+  Tournament editing page
+
+- `/tournaments/[id]/bracket`
+  Bracket-focused tournament view
+
+### Supabase endpoints used indirectly
+
+The app also communicates with Supabase through the configured project URL.
+
+This includes:
+
+- Auth endpoints for login, signup, session handling, and OAuth
+- Database access for tables such as:
+  - `profiles`
+  - `tournaments`
+  - `participants`
+  - `matches`
+  - `teams`
+- Storage access for uploaded profile and team media
+
+These endpoints are not written manually inside the project as classic controller routes. They are provided by Supabase and accessed through the Supabase client SDK.
+
 ## Getting Started
 
 ### Prerequisites
