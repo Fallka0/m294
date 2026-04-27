@@ -28,15 +28,15 @@ const legalSections = [
   {
     title: 'Hinweis zur Organisation',
     content: [
-      'Es besteht keine eingetragene Gesellschaft oder Handelsregistereintragung fuer dieses Projekt.',
-      'Die Website Tournament wird organisatorisch unter dem Namen Planary gefuehrt.',
+      'Es besteht keine eingetragene Gesellschaft oder Handelsregistereintragung für dieses Projekt.',
+      'Die Website Tournament wird organisatorisch unter dem Namen Planary geführt.',
     ],
   },
   {
     title: 'Haftungshinweis',
     content: [
-      'Die Inhalte dieser Website wurden mit Sorgfalt erstellt. Fuer die Richtigkeit, Vollstaendigkeit und Aktualitaet der Inhalte wird jedoch keine Gewaehr uebernommen.',
-      'Trotz sorgfaeltiger inhaltlicher Kontrolle uebernehmen wir keine Haftung fuer die Inhalte externer Links. Fuer den Inhalt der verlinkten Seiten sind ausschliesslich deren Betreiber verantwortlich.',
+      'Die Inhalte dieser Website wurden mit Sorgfalt erstellt. Für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte wird jedoch keine Gewähr übernommen.',
+      'Trotz sorgfältiger inhaltlicher Kontrolle übernehmen wir keine Haftung für die Inhalte externer Links. Für den Inhalt der verlinkten Seiten sind ausschließlich deren Betreiber verantwortlich.',
     ],
   },
 ]
@@ -49,7 +49,7 @@ export default function ImpressumPage() {
         title={<h1 className="text-4xl font-semibold tracking-tight md:text-5xl">Impressum</h1>}
         description={
           <p>
-            Diese Seite stellt die Anbieterkennzeichnung fuer <strong>Tournament</strong> bereit. Das Projekt gehoert organisatorisch zu <strong>Planary</strong>, wird jedoch nicht von einer eingetragenen Firma betrieben.
+            Diese Seite stellt die Anbieterkennzeichnung für <strong>Tournament</strong> bereit. Das Projekt gehört organisatorisch zu <strong>Planary</strong>, wird jedoch nicht von einer eingetragenen Firma betrieben.
           </p>
         }
       />
