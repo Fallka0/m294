@@ -223,7 +223,7 @@ export default function AdminPage() {
             <p className="app-eyebrow">Admin</p>
             <h1 className="app-text-primary mt-3 text-3xl font-semibold tracking-tight">Admin dashboard</h1>
             <p className="app-text-secondary mt-3 max-w-3xl text-sm">
-              Global platform overview for Tournamount. This page now surfaces real app stats and recent records;
+              Global platform overview for Tournament. This page now surfaces real app stats and recent records;
               destructive moderation actions can be added next.
             </p>
           </div>
