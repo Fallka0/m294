@@ -1,6 +1,3 @@
--- Run this if public tournaments exist without an owner_id and players
--- cannot join them through the "Join Tournament" button.
-
 drop policy if exists "users can join public tournaments" on public.participants;
 
 create policy "users can join public tournaments"

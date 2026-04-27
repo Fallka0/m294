@@ -1,7 +1,3 @@
--- Run this in the Supabase SQL editor before using the social auth MVP.
--- It adds profiles, tournament ownership, public/private visibility,
--- and player self-join support based on JWT-authenticated users.
-
 create extension if not exists pgcrypto;
 
 create table if not exists public.profiles (

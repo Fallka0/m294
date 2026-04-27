@@ -26,8 +26,11 @@ const headingFont = Space_Grotesk({
 })
 
 export const metadata: Metadata = {
-  title: 'Tournamount',
-  description: 'Manage gaming and sports tournaments without the chaos.',
+  title: {
+    default: 'Tournament',
+    template: '%s | Tournament',
+  },
+  description: 'Tournament by Planary helps you manage gaming and sports tournaments without the chaos.',
 }
 
 interface RootLayoutProps {
