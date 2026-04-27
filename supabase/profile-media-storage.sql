@@ -1,7 +1,3 @@
--- Run this in the Supabase SQL editor to enable optimized profile media uploads.
--- The app uploads avatar and banner images into the `profile-media` bucket
--- and only stores the resulting public URL in `public.profiles`.
-
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (
   'profile-media',

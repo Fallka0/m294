@@ -13,17 +13,16 @@ const legalSections = [
     content: [
       'Tournament',
       'Privates Projekt innerhalb von Planary',
-      '[Strasse und Hausnummer ergaenzen]',
-      '[PLZ, Ort, Land ergaenzen]',
+      'Meienstrasse 4',
+      '3052, Zollikofen, BE, Schweiz',
     ],
   },
   {
     title: 'Kontakt',
     content: [
       'Verantwortliche Kontaktperson: Mykyta Pantelei',
-      'E-Mail: [Kontaktadresse ergaenzen]',
-      'Telefon: [Telefonnummer optional ergaenzen]',
-      'Website: [Domain ergaenzen]',
+      'E-Mail: mykytapantelei@gmail.com',
+      'Website: planary.ch',
     ],
   },
   {
@@ -56,9 +55,6 @@ export default function ImpressumPage() {
       />
 
       <section className="app-card rounded-[32px] p-8 md:p-10">
-        <div className="app-banner-danger rounded-2xl px-4 py-3 text-sm">
-          Einige Angaben sind noch als Platzhalter markiert und sollten vor dem Livegang mit den korrekten oeffentlichen Kontakt- und Adressdaten ersetzt werden.
-        </div>
 
         <div className="mt-8 grid gap-4">
           {legalSections.map((section) => (
