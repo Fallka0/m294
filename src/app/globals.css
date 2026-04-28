@@ -241,69 +241,94 @@
 }
 
 @layer components {
-  .app-header {
+  .app-title-font {
+    font-family: var(--font-app-heading), Arial, Helvetica, sans-serif;
+  }
+
+  .site-header,
+  .page-shell > div,
+  .site-footer {
+    width: min(1180px, calc(100% - 32px));
+    margin: 0 auto;
+  }
+
+  .site-header {
+    min-height: 88px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
     border-bottom: 1px solid var(--header-border);
     background: var(--header-bg);
     backdrop-filter: blur(16px);
-    transition: background-color 0.3s ease, border-color 0.3s ease;
   }
 
-  .brand-lockup {
+  .brand {
     display: inline-flex;
     align-items: center;
-    gap: 0.9rem;
+    gap: 12px;
     text-decoration: none;
+    color: var(--text-primary);
   }
 
-  .brand-mark {
-    display: inline-flex;
-    height: 2.75rem;
-    width: 2.75rem;
-    align-items: center;
-    justify-content: center;
+  .brand-logo-shell {
+    width: 46px;
+    height: 46px;
     border-radius: 999px;
     border: 1px solid var(--header-border);
     background: var(--header-pill);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
   }
 
-  .header-nav {
+  .brand-wordmark {
+    font-family: var(--font-app-heading), Arial, Helvetica, sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+
+  .site-nav {
     display: flex;
     align-items: center;
-    gap: 1.1rem;
+    gap: 18px;
   }
 
-  .header-nav a {
-    color: var(--header-text-muted);
+  .site-nav a,
+  .site-nav-button {
+    color: var(--text-muted);
     text-decoration: none;
     font-size: 0.95rem;
-    transition: color 0.2s ease;
-  }
-
-  .header-nav a:hover {
-    color: var(--header-text);
-  }
-
-  .theme-toggle-shell {
-    border: 1px solid var(--header-border);
     background: transparent;
-    color: var(--header-text-muted);
+    border: 0;
+    padding: 0;
     cursor: pointer;
-    padding: 0.625rem;
+  }
+
+  .site-nav a:hover,
+  .site-nav-button:hover,
+  .footer-links a:hover {
+    color: var(--accent-strong);
+  }
+
+  .theme-toggle-btn {
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+    cursor: pointer;
+    padding: 8px;
     border-radius: 999px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+    transition: transform 0.2s ease, border-color 0.2s ease;
   }
 
-  .theme-toggle-shell:hover {
-    transform: scale(1.05);
-    border-color: var(--header-text-muted);
-    background: var(--header-pill);
-  }
-
-  .app-title-font {
-    font-family: var(--font-app-heading), Arial, Helvetica, sans-serif;
+  .theme-toggle-btn:hover {
+    transform: scale(1.06);
+    border-color: var(--accent-strong);
   }
 
   .page-shell {
@@ -351,27 +376,25 @@
   }
 
   .site-footer {
-    width: min(1180px, calc(100% - 32px));
-    margin: 0 auto;
-    padding-bottom: 24px;
+    padding: 20px 0 28px;
   }
 
   .footer-content {
-    border-top: 1px solid var(--border-subtle);
+    border-top: 1px solid var(--border-strong);
+    box-shadow: 0 -10px 20px -18px var(--accent-solid);
     display: flex;
-    align-items: center;
     justify-content: space-between;
+    align-items: center;
     gap: 18px;
-    padding: 22px 0 0;
+    padding-top: 18px;
     color: var(--text-secondary);
-    font-size: 0.95rem;
   }
 
-  .copyright a,
+  .copyright,
   .footer-links a {
-    color: var(--text-primary);
+    color: var(--text-muted);
+    font-size: 0.92rem;
     text-decoration: none;
-    transition: color 0.2s ease;
   }
 
   .copyright a:hover,
@@ -390,22 +413,18 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 38px;
-    height: 38px;
-    border-radius: 999px;
-    border: 1px solid var(--border-subtle);
-    background: var(--surface-elevated);
-    transition: transform 0.2s ease, border-color 0.2s ease;
+    transition: transform 0.2s ease;
   }
 
   .social-link:hover {
-    transform: translateY(-1px);
-    border-color: var(--border-strong);
+    transform: translateY(-3px);
   }
 
   .social-link img {
     width: 20px;
     height: 20px;
+    display: block;
+    filter: grayscale(1) brightness(0.8);
   }
 
   .app-card {
@@ -841,9 +860,14 @@
 }
 
 @media (max-width: 768px) {
+  .site-header,
   .footer-content {
     flex-direction: column;
-    text-align: center;
+    align-items: flex-start;
+  }
+
+  .site-nav {
+    flex-wrap: wrap;
   }
 }
 

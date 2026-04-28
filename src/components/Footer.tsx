@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 export default function Footer() {
   return (
-    <footer className="site-footer">
+    <footer id="footer" className="site-footer">
       <div className="footer-content">
         <span className="copyright">
           &copy; {new Date().getFullYear()} Tournament. Built by{' '}
@@ -19,7 +19,8 @@ export default function Footer() {
         </div>
 
         <div className="footer-links">
-          <Link href="/">Home</Link>
+          <Link href="/">Top</Link>
+          <Link href="/teams">Teams</Link>
           <Link href="/impressum">Impressum</Link>
         </div>
       </div>
