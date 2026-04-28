@@ -23,16 +23,16 @@ export default function HomeHero({ tournaments }: HomeHeroProps) {
       <div className="grid gap-8 lg:grid-cols-[1.45fr_0.95fr] lg:items-stretch">
         <div>
           <span className="inline-flex items-center rounded-full border border-[color:var(--accent-border)] bg-[color:var(--accent-soft)] px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[color:var(--accent-text-strong)]">
-            Planary product family
+            Tournament control
           </span>
           <BlurText
-            text="Tournament operations with the same clear, polished feel as Planary."
+            text="Tournament operations with a clear, polished interface."
             delay={40}
             className="hero-title mt-5 text-4xl font-semibold tracking-tight text-[color:var(--text-primary)] md:text-5xl"
           />
           <p className="hero-copy mt-4 max-w-2xl text-base leading-7 text-[color:var(--text-secondary)]">
             Organize brackets, participants, teams, and match flow in one place with a lighter interface,
-            calmer hierarchy, and a visual system that now sits naturally beside Planary and Planary Wishlist.
+            calmer hierarchy, and faster access to everything needed on tournament day.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <span className="app-chip rounded-full px-4 py-2 text-sm font-medium">Live brackets</span>

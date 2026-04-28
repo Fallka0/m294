@@ -15,9 +15,8 @@
   --text-secondary: #4f6175;
   --text-muted: #8897a8;
   --text-soft: #64758a;
-  --svg-icon-filter: brightness(0) saturate(100%);
+  --svg-icon-filter: none;
   --svg-icon-color: #152235;
-  --svg-header-icon-filter: brightness(0) saturate(100%);
   --accent-solid: #74c9ff;
   --accent-strong: #4daee8;
   --accent-border: rgba(116, 201, 255, 0.32);
@@ -151,7 +150,7 @@
   --text-secondary: #d1c4f7;
   --text-muted: #a78bfa;
   --text-soft: rgba(209, 196, 247, 0.74);
-  --svg-icon-filter: brightness(0) saturate(100%) invert(1);
+  --svg-icon-filter: invert(1);
   --svg-icon-color: #f5f3ff;
   --accent-solid: #8b5cf6;
   --accent-strong: #7c3aed;
@@ -218,11 +217,6 @@
     font-family: var(--font-app-heading), Arial, Helvetica, sans-serif;
   }
 
-  img[src$='.svg'],
-  img[src*='.svg?'] {
-    filter: var(--svg-icon-filter);
-  }
-
   button,
   input[type='button'],
   input[type='submit'],
@@ -247,13 +241,65 @@
 }
 
 @layer components {
-  .app-header img[src$='.svg'],
-  .app-header img[src*='.svg?'] {
-    filter: var(--svg-header-icon-filter) !important;
+  .app-header {
+    border-bottom: 1px solid var(--header-border);
+    background: var(--header-bg);
+    backdrop-filter: blur(16px);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
   }
 
-  .theme-inline-icon {
-    color: var(--svg-icon-color);
+  .brand-lockup {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.9rem;
+    text-decoration: none;
+  }
+
+  .brand-mark {
+    display: inline-flex;
+    height: 2.75rem;
+    width: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    border: 1px solid var(--header-border);
+    background: var(--header-pill);
+  }
+
+  .header-nav {
+    display: flex;
+    align-items: center;
+    gap: 1.1rem;
+  }
+
+  .header-nav a {
+    color: var(--header-text-muted);
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: color 0.2s ease;
+  }
+
+  .header-nav a:hover {
+    color: var(--header-text);
+  }
+
+  .theme-toggle-shell {
+    border: 1px solid var(--header-border);
+    background: transparent;
+    color: var(--header-text-muted);
+    cursor: pointer;
+    padding: 0.625rem;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+  }
+
+  .theme-toggle-shell:hover {
+    transform: scale(1.05);
+    border-color: var(--header-text-muted);
+    background: var(--header-pill);
   }
 
   .app-title-font {
@@ -302,6 +348,64 @@
     width: 252px;
     height: 252px;
     background: rgba(139, 92, 246, 0.12);
+  }
+
+  .site-footer {
+    width: min(1180px, calc(100% - 32px));
+    margin: 0 auto;
+    padding-bottom: 24px;
+  }
+
+  .footer-content {
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 22px 0 0;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+  }
+
+  .copyright a,
+  .footer-links a {
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .copyright a:hover,
+  .footer-links a:hover {
+    color: var(--accent-strong);
+  }
+
+  .footer-socials,
+  .footer-links {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .social-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 999px;
+    border: 1px solid var(--border-subtle);
+    background: var(--surface-elevated);
+    transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+
+  .social-link:hover {
+    transform: translateY(-1px);
+    border-color: var(--border-strong);
+  }
+
+  .social-link img {
+    width: 20px;
+    height: 20px;
   }
 
   .app-card {
@@ -734,6 +838,13 @@
 
 .theme-icon {
   filter: var(--svg-icon-filter);
+}
+
+@media (max-width: 768px) {
+  .footer-content {
+    flex-direction: column;
+    text-align: center;
+  }
 }
 
 .dark {
