@@ -44,7 +44,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <ThemeProvider>
           <AuthProvider>
             <AppBackgroundVeil />
-            <div className="flex min-h-screen flex-col">
+            <div className="app-shell flex min-h-screen flex-col">
               <Header />
               <div className="relative z-10 flex-1">{children}</div>
               <Footer />

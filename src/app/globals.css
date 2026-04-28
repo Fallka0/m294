@@ -252,15 +252,22 @@
     margin: 0 auto;
   }
 
+  .site-header-bar {
+    width: 100%;
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    border-bottom: 1px solid var(--header-border);
+    background: var(--header-bg);
+    backdrop-filter: blur(16px);
+  }
+
   .site-header {
     min-height: 88px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    border-bottom: 1px solid var(--header-border);
-    background: var(--header-bg);
-    backdrop-filter: blur(16px);
   }
 
   .brand {
@@ -377,6 +384,12 @@
 
   .site-footer {
     padding: 20px 0 28px;
+  }
+
+  .site-footer-bar {
+    width: 100%;
+    margin-top: auto;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.06));
   }
 
   .footer-content {
