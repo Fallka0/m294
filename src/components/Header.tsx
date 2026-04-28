@@ -42,6 +42,22 @@ export default function Header() {
           </div>
         </Link>
         <div className="hidden md:flex items-center gap-3">
+          <a
+            href="https://planary.ch"
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-full border border-[color:var(--header-border)] px-4 py-2 text-sm font-medium text-[var(--header-text-muted)] transition duration-200 hover:border-[color:var(--header-text-muted)] hover:bg-[var(--header-pill)]"
+          >
+            Planary
+          </a>
+          <a
+            href="https://wishlist.planary.ch"
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-full border border-[color:var(--header-border)] px-4 py-2 text-sm font-medium text-[var(--header-text-muted)] transition duration-200 hover:border-[color:var(--header-text-muted)] hover:bg-[var(--header-pill)]"
+          >
+            Wishlist
+          </a>
           <button
             type="button"
             onClick={handleThemeToggle}
@@ -141,6 +157,22 @@ export default function Header() {
               </button>
               {isAuthenticated ? (
                 <>
+                  <a
+                    href="https://planary.ch"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-2xl border border-[color:var(--header-border)] px-4 py-3 text-sm font-medium text-[var(--header-text-muted)] transition duration-200 hover:border-[color:var(--header-text-muted)] hover:bg-[var(--header-pill)]"
+                  >
+                    Planary
+                  </a>
+                  <a
+                    href="https://wishlist.planary.ch"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-2xl border border-[color:var(--header-border)] px-4 py-3 text-sm font-medium text-[var(--header-text-muted)] transition duration-200 hover:border-[color:var(--header-text-muted)] hover:bg-[var(--header-pill)]"
+                  >
+                    Wishlist
+                  </a>
                   <Link
                     href="/tournaments/new"
                     onClick={closeMobileMenu}
@@ -181,6 +213,22 @@ export default function Header() {
                 </>
               ) : (
                 <>
+                  <a
+                    href="https://planary.ch"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-2xl border border-[color:var(--header-border)] px-4 py-3 text-sm font-medium text-[var(--header-text-muted)] transition duration-200 hover:border-[color:var(--header-text-muted)] hover:bg-[var(--header-pill)]"
+                  >
+                    Planary
+                  </a>
+                  <a
+                    href="https://wishlist.planary.ch"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-2xl border border-[color:var(--header-border)] px-4 py-3 text-sm font-medium text-[var(--header-text-muted)] transition duration-200 hover:border-[color:var(--header-text-muted)] hover:bg-[var(--header-pill)]"
+                  >
+                    Wishlist
+                  </a>
                   <Link
                     href="/auth"
                     onClick={closeMobileMenu}
