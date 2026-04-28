@@ -19,21 +19,29 @@ export default function HomeHero({ tournaments }: HomeHeroProps) {
   ]
 
   return (
-    <section className="hero-surface relative overflow-hidden rounded-[32px] border border-[color:var(--border-subtle)] bg-[radial-gradient(circle_at_top_right,rgba(116,201,255,0.18),transparent_32%),radial-gradient(circle_at_left,rgba(139,92,246,0.08),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.96)_0%,rgba(244,248,252,0.98)_100%)] px-7 py-8 shadow-[0_20px_60px_rgba(116,201,255,0.12)]">
-      <div className="grid gap-8 lg:grid-cols-[1.6fr_0.9fr] lg:items-end">
+    <section className="hero-surface relative overflow-hidden rounded-[34px] border border-[color:var(--border-subtle)] bg-[radial-gradient(circle_at_top_right,rgba(116,201,255,0.2),transparent_30%),radial-gradient(circle_at_left,rgba(139,92,246,0.1),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.96)_0%,rgba(244,248,252,0.98)_100%)] px-7 py-8 shadow-[0_24px_60px_rgba(116,201,255,0.14)] md:px-9 md:py-9">
+      <div className="grid gap-8 lg:grid-cols-[1.45fr_0.95fr] lg:items-stretch">
         <div>
+          <span className="inline-flex items-center rounded-full border border-[color:var(--accent-border)] bg-[color:var(--accent-soft)] px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[color:var(--accent-text-strong)]">
+            Planary product family
+          </span>
           <BlurText
-            text="Tournament control, with the same calm clarity as the rest of Planary."
+            text="Tournament operations with the same clear, polished feel as Planary."
             delay={40}
-            className="hero-title text-4xl font-semibold tracking-tight text-[color:var(--text-primary)] md:text-5xl"
+            className="hero-title mt-5 text-4xl font-semibold tracking-tight text-[color:var(--text-primary)] md:text-5xl"
           />
           <p className="hero-copy mt-4 max-w-2xl text-base leading-7 text-[color:var(--text-secondary)]">
-            Run tournaments with clearer status tracking, faster access to brackets and participants,
-            and a visual language that now feels more clearly connected to Planary and Planary Wishlist.
+            Organize brackets, participants, teams, and match flow in one place with a lighter interface,
+            calmer hierarchy, and a visual system that now sits naturally beside Planary and Planary Wishlist.
           </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <span className="app-chip rounded-full px-4 py-2 text-sm font-medium">Live brackets</span>
+            <span className="app-chip rounded-full px-4 py-2 text-sm font-medium">Team management</span>
+            <span className="app-chip rounded-full px-4 py-2 text-sm font-medium">Public and private events</span>
+          </div>
           <div className="mt-5 text-sm font-medium text-[color:var(--text-secondary)]">
             <ShinyText
-              text="Built for smooth handovers, quick edits, and less messy tournament admin."
+              text="Built for faster setup, cleaner handovers, and a less stressful match-day workflow."
               speed={3}
               className="hero-shiny text-sm"
               color={theme === 'dark' ? 'rgba(209, 196, 247, 0.74)' : '#64758a'}
@@ -42,13 +50,25 @@ export default function HomeHero({ tournaments }: HomeHeroProps) {
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
-          {stats.map((stat) => (
-            <div key={stat.label} className="app-hero-stat-card rounded-2xl px-4 py-5 text-center">
-              <p className="hero-stat-value text-2xl font-semibold tracking-tight text-[color:var(--text-primary)]">{stat.value}</p>
-              <p className="hero-stat-label mt-1 text-xs uppercase tracking-[0.24em] text-[color:var(--text-muted)]">{stat.label}</p>
-            </div>
-          ))}
+        <div className="app-card-strong flex flex-col justify-between rounded-[30px] p-6">
+          <div>
+            <p className="app-eyebrow">Overview</p>
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-[color:var(--text-primary)]">
+              Tournament activity at a glance
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-[color:var(--text-secondary)]">
+              Keep an instant view of how many tournaments are active, open for signups, or already running.
+            </p>
+          </div>
+
+          <div className="mt-6 grid grid-cols-3 gap-3">
+            {stats.map((stat) => (
+              <div key={stat.label} className="app-hero-stat-card rounded-[24px] px-4 py-5 text-center">
+                <p className="hero-stat-value text-2xl font-semibold tracking-tight text-[color:var(--text-primary)]">{stat.value}</p>
+                <p className="hero-stat-label mt-1 text-xs uppercase tracking-[0.24em] text-[color:var(--text-muted)]">{stat.label}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>
