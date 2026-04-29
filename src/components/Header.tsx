@@ -27,6 +27,10 @@ export default function Header() {
           className="brand-logo"
           priority
         />
+        <span className="brand-copy">
+          <span className="brand-title">Tournamount</span>
+          <span className="brand-subtitle">By Planary</span>
+        </span>
       </Link>
 
       <div className="header-actions">
