@@ -273,6 +273,8 @@
     align-items: center;
     justify-content: space-between;
     gap: 16px;
+    position: relative;
+    z-index: 30;
   }
 
   .brand {
@@ -299,6 +301,8 @@
     display: flex;
     align-items: center;
     gap: 18px;
+    position: relative;
+    z-index: 31;
   }
 
   .site-nav a,
@@ -371,6 +375,8 @@
     align-items: center;
     justify-content: center;
     transition: transform 0.2s ease, border-color 0.2s ease;
+    position: relative;
+    z-index: 31;
   }
 
   .theme-toggle-btn:hover {
@@ -944,6 +950,8 @@ img.theme-icon,
 
   .menu-toggle-btn {
     display: inline-flex;
+    position: relative;
+    z-index: 31;
   }
 
   .site-nav {
@@ -960,7 +968,7 @@ img.theme-icon,
     border: 1px solid var(--border-subtle);
     background: var(--surface-panel);
     box-shadow: var(--shadow-card);
-    z-index: 20;
+    z-index: 40;
   }
 
   .site-nav.is-open {
