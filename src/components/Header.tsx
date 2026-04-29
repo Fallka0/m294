@@ -5,7 +5,6 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/components/auth/AuthProvider'
-import HeaderAction from '@/components/header/HeaderAction'
 import { useTheme } from '@/components/theme/ThemeProvider'
 
 export default function Header() {
@@ -20,76 +19,81 @@ export default function Header() {
   }, [pathname])
 
   return (
-    <header className="app-header sticky top-0 z-40 transition-colors duration-300">
-      <div className="mx-auto flex min-h-[88px] flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
-        <Link href="/" className="flex items-center gap-3 text-[var(--header-text)]">
-          <div className="flex h-11 w-11 items-center justify-center rounded-full border border-[color:var(--header-border)] bg-[var(--header-pill)] transition-colors duration-300">
-            <Image src="/trophy.svg" alt="" width={20} height={20} className="theme-icon h-5 w-5" aria-hidden="true" />
-          </div>
-          <div className="leading-tight">
-            <span className="block text-lg font-semibold tracking-tight">Tournament</span>
-            <span className="block text-xs text-[var(--header-subtext)]">Planary tournaments, brackets, teams and events</span>
-          </div>
-        </Link>
+    <header className="site-header">
+      <Link className="brand" href="/" aria-label="Planary Home">
+        <Image
+          src={theme === 'dark' ? '/violetteOH.png' : '/blauOH.png'}
+          alt="Planary"
+          width={160}
+          height={58}
+          className="brand-logo"
+          priority
+        />
+      </Link>
 
-        <div className="header-actions">
-          <button
-            type="button"
-            className={`menu-toggle-btn${isMenuOpen ? ' is-open' : ''}`}
-            onClick={() => setIsMenuOpen((value) => !value)}
-            aria-expanded={isMenuOpen}
-            aria-controls="primary-navigation"
-            aria-label="Toggle Navigation Menu"
-          >
-            <span />
-            <span />
-            <span />
-          </button>
+      <div className="header-actions">
+        <button
+          type="button"
+          className={`menu-toggle-btn${isMenuOpen ? ' is-open' : ''}`}
+          onClick={() => setIsMenuOpen((value) => !value)}
+          aria-expanded={isMenuOpen}
+          aria-controls="primary-navigation"
+          aria-label="Toggle Navigation Menu"
+        >
+          <span />
+          <span />
+          <span />
+        </button>
 
-          <nav
-            id="primary-navigation"
-            className={`site-nav${isMenuOpen ? ' is-open' : ''}`}
-            aria-label="Primary Navigation"
-          >
-            <HeaderAction href="/" className="mobile-nav-action">Home</HeaderAction>
-            <HeaderAction href="/teams" className="mobile-nav-action">Teams</HeaderAction>
-            {isAuthenticated ? (
-              <HeaderAction href="/profile" className="mobile-nav-action">Profile</HeaderAction>
-            ) : (
-              <HeaderAction href="/auth" className="mobile-nav-action">Sign in</HeaderAction>
-            )}
-            {isAuthenticated ? (
-              <HeaderAction
-                onClick={() => {
-                  setIsMenuOpen(false)
-                  signOut()
-                }}
-                className="mobile-nav-action"
-              >
-                Log out
-              </HeaderAction>
-            ) : (
-              <HeaderAction href="/tournaments/new" variant="primary" className="mobile-nav-action">
-                Create
-              </HeaderAction>
-            )}
-          </nav>
+        <nav
+          id="primary-navigation"
+          className={`site-nav${isMenuOpen ? ' is-open' : ''}`}
+          aria-label="Primary Navigation"
+        >
+          <Link href="/" onClick={() => setIsMenuOpen(false)}>Home</Link>
+          <Link href="/teams" onClick={() => setIsMenuOpen(false)}>Teams</Link>
+          {isAuthenticated ? (
+            <Link href="/profile" onClick={() => setIsMenuOpen(false)}>Profile</Link>
+          ) : (
+            <Link href="/auth" onClick={() => setIsMenuOpen(false)}>Sign in</Link>
+          )}
+          {isAuthenticated ? (
+            <button
+              type="button"
+              className="site-nav-button"
+              onClick={() => {
+                setIsMenuOpen(false)
+                signOut()
+              }}
+            >
+              Log out
+            </button>
+          ) : (
+            <Link href="/tournaments/new" onClick={() => setIsMenuOpen(false)}>Create</Link>
+          )}
+        </nav>
 
-          <button
-            type="button"
-            onClick={toggleTheme}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-            className="rounded-full border border-[color:var(--header-border)] bg-[var(--header-pill)] p-2.5 text-[var(--header-text-muted)] transition duration-200 hover:scale-[1.04] hover:border-[color:var(--accent-border)]"
-          >
-            {theme === 'dark' ? (
-              <Image src="/sun.svg" alt="" width={20} height={20} className={`theme-icon h-5 w-5${isHovered ? ' is-hovered' : ''}`} aria-hidden="true" />
-            ) : (
-              <Image src="/moon.svg" alt="" width={20} height={20} className={`theme-icon h-5 w-5${isHovered ? ' is-hovered' : ''}`} aria-hidden="true" />
-            )}
-          </button>
-        </div>
+        <button
+          type="button"
+          className="theme-toggle-btn"
+          onClick={toggleTheme}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          <Image
+            src={
+              theme === 'dark'
+                ? (isHovered ? '/sunFull.svg' : '/sunEmpty.svg')
+                : (isHovered ? '/moonFull.svg' : '/moonEmpty.svg')
+            }
+            alt=""
+            width={24}
+            height={24}
+            className="theme-icon"
+            aria-hidden="true"
+          />
+        </button>
       </div>
     </header>
   )
