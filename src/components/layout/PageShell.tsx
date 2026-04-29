@@ -12,8 +12,8 @@ function joinClasses(...classes: Array<string | undefined>) {
 
 export default function PageShell({ children, className, contentClassName }: PageShellProps) {
   return (
-    <main className={joinClasses('page-shell min-h-screen px-6 py-10 transition-colors duration-300', className)}>
-      <div className={joinClasses('mx-auto flex max-w-6xl flex-col gap-8', contentClassName)}>
+    <main className={joinClasses('page-shell min-h-screen px-4 py-8 sm:px-6 sm:py-10 transition-colors duration-300', className)}>
+      <div className={joinClasses('mx-auto flex max-w-[1180px] flex-col gap-8', contentClassName)}>
         {children}
       </div>
     </main>

@@ -17,9 +17,9 @@ function joinClasses(...classes: Array<string | undefined>) {
 
 const variantClassNames = {
   primary:
-    'rounded-full border border-[color:var(--accent-border)] bg-[var(--accent-solid)] px-5 py-2.5 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:shadow-[var(--accent-glow)]',
+    'rounded-[14px] border border-[color:var(--accent-border)] bg-[var(--accent-solid)] px-5 py-2.5 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-[var(--accent-strong)] hover:shadow-[var(--accent-glow)]',
   secondary:
-    'rounded-full border border-[color:var(--header-border)] px-4 py-2 text-sm font-medium text-[var(--header-text-muted)] transition duration-200 hover:border-[color:var(--header-text-muted)] hover:bg-[var(--header-pill)]',
+    'rounded-[14px] border border-[color:var(--header-border)] bg-[var(--header-pill)] px-4 py-2.5 text-sm font-medium text-[var(--header-text-muted)] transition duration-200 hover:-translate-y-0.5 hover:border-[color:var(--accent-border)] hover:text-[var(--header-text)]',
 }
 
 export default function HeaderAction(props: HeaderActionProps) {

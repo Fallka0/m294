@@ -26,12 +26,12 @@ export default function HomeTournamentCard({
         className="home-tournament-card app-card-elevated h-full cursor-pointer rounded-[28px] p-6 transition duration-200 hover:-translate-y-1.5"
         spotlightColor="rgba(116, 201, 255, 0.16)"
       >
-        <div className="mb-3 flex items-start justify-between">
+        <div className="mb-4 flex items-start justify-between">
           <div className="pr-2">
             <h2 className="app-text-primary text-xl font-semibold leading-tight tracking-tight">
               {tournament.name}
             </h2>
-            <div className="mt-2 flex flex-wrap gap-2">
+            <div className="mt-3 flex flex-wrap gap-2">
               <span className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${status.className}`}>
                 {status.label}
               </span>
@@ -72,11 +72,11 @@ export default function HomeTournamentCard({
           </span>
         </p>
 
-        <p className="app-text-secondary mb-4 text-sm">
+        <p className="app-text-secondary mb-5 text-sm leading-6">
           Created by <span className="app-text-primary font-medium">{isOwner ? 'you' : tournament.owner_name || 'Community organizer'}</span>
         </p>
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 border-t border-[color:var(--border-subtle)] pt-4">
           <div className="app-text-secondary flex items-center gap-2 text-sm">
             <Image src="/calendar.svg" alt="" width={18} height={18} className="theme-icon h-[18px] w-[18px]" aria-hidden="true" />
             <span>{formatTournamentDate(tournament.date)}</span>

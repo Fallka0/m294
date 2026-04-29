@@ -39,8 +39,8 @@ interface RootLayoutProps {
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="de" suppressHydrationWarning>
-      <body className={`${bodyFont.variable} ${headingFont.variable} ${geistMono.variable} min-h-screen antialiased`}>
+    <html lang="de" suppressHydrationWarning className={`${bodyFont.variable} ${headingFont.variable} ${geistMono.variable}`}>
+      <body className="min-h-screen antialiased">
         <ThemeProvider>
           <AuthProvider>
             <AppBackgroundVeil />

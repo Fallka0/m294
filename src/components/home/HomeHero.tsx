@@ -19,12 +19,10 @@ export default function HomeHero({ tournaments }: HomeHeroProps) {
   ]
 
   return (
-    <section className="hero-surface relative overflow-hidden rounded-[34px] border border-[color:var(--border-subtle)] bg-[radial-gradient(circle_at_top_right,rgba(116,201,255,0.2),transparent_30%),radial-gradient(circle_at_left,rgba(139,92,246,0.1),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.96)_0%,rgba(244,248,252,0.98)_100%)] px-7 py-8 shadow-[0_24px_60px_rgba(116,201,255,0.14)] md:px-9 md:py-9">
+    <section className="hero-surface relative overflow-hidden rounded-[34px] border border-[color:var(--border-subtle)] px-7 py-8 shadow-[0_24px_60px_rgba(116,201,255,0.14)] md:px-9 md:py-9">
       <div className="grid gap-8 lg:grid-cols-[1.45fr_0.95fr] lg:items-stretch">
         <div>
-          <span className="inline-flex items-center rounded-full border border-[color:var(--accent-border)] bg-[color:var(--accent-soft)] px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[color:var(--accent-text-strong)]">
-            Tournament control
-          </span>
+          <span className="eyebrow-like">Tournament control</span>
           <BlurText
             text="Tournament operations with a clear, polished interface."
             delay={40}
@@ -44,7 +42,7 @@ export default function HomeHero({ tournaments }: HomeHeroProps) {
               text="Built for faster setup, cleaner handovers, and a less stressful match-day workflow."
               speed={3}
               className="hero-shiny text-sm"
-              color={theme === 'dark' ? 'rgba(209, 196, 247, 0.74)' : '#64758a'}
+              color={theme === 'dark' ? 'rgba(200, 208, 220, 0.78)' : '#64758a'}
               shineColor={theme === 'dark' ? '#f5f3ff' : '#152235'}
             />
           </div>
