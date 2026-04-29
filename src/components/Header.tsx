@@ -20,9 +20,9 @@ export default function Header() {
     <header className="site-header">
       <Link className="brand" href="/" aria-label="Planary Home">
         <Image
-          src={theme === 'dark' ? '/violetteOH.png' : '/blauOH.png'}
-          alt="Planary"
-          width={160}
+          src="/brand-icon.svg"
+          alt="Tournamount"
+          width={58}
           height={58}
           className="brand-logo"
           priority

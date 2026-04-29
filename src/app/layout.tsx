@@ -31,6 +31,10 @@ export const metadata: Metadata = {
     template: '%s | Tournament',
   },
   description: 'Tournament by Planary helps you manage gaming and sports tournaments without the chaos.',
+  icons: {
+    icon: '/favicon.svg',
+    apple: '/apple-touch-icon.png',
+  },
 }
 
 interface RootLayoutProps {
