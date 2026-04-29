@@ -17,7 +17,7 @@ const EXPLICIT_CHOICE_KEY = 'tournamenthub-theme-explicit'
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 
 function getPreferredTheme(): Theme {
-  if (typeof window === 'undefined') return 'light'
+  if (typeof window === 'undefined') return 'dark'
 
   const stored = window.localStorage.getItem(STORAGE_KEY)
   const hasExplicitChoice = window.localStorage.getItem(EXPLICIT_CHOICE_KEY) === 'true'
@@ -25,13 +25,13 @@ function getPreferredTheme(): Theme {
 
   if (stored === 'light' || stored === 'dark') {
     if (!hasExplicitChoice && isLocalhost) {
-      return 'light'
+      return 'dark'
     }
 
     return stored
   }
 
-  return 'light'
+  return 'dark'
 }
 
 interface ThemeProviderProps {
@@ -39,7 +39,7 @@ interface ThemeProviderProps {
 }
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
-  const [theme, setThemeState] = useState<Theme>('light')
+  const [theme, setThemeState] = useState<Theme>('dark')
 
   useEffect(() => {
     const nextTheme = getPreferredTheme()
