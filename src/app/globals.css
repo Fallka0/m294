@@ -64,7 +64,7 @@
   --bracket-card-subtext: #6b7280;
   --bracket-card-score: #22d3ee;
   --date-color-scheme: light;
-  --background: oklch(1 0 0);
+  --background: #f7fbff;
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
@@ -156,7 +156,7 @@
   --text-secondary: #c8d0dc;
   --text-muted: #a4abb8;
   --text-soft: rgba(200, 208, 220, 0.78);
-  --svg-icon-filter: invert(1);
+  --svg-icon-filter: brightness(0) saturate(100%) invert(1);
   --svg-icon-color: #f5f3ff;
   --accent-solid: #8b5cf6;
   --accent-strong: #7747ef;
@@ -215,9 +215,10 @@
   body {
     font-family: "Manrope", Arial, Helvetica, sans-serif;
     background:
-      radial-gradient(circle at top right, rgba(116, 201, 255, 0.18), transparent 28%),
-      radial-gradient(circle at left 20%, rgba(139, 92, 246, 0.12), transparent 32%),
-      linear-gradient(180deg, #f7fbff 0%, #eef5fb 100%);
+      radial-gradient(circle at top right, rgba(116, 201, 255, 0.26), transparent 30%),
+      radial-gradient(circle at left 18%, rgba(139, 92, 246, 0.14), transparent 34%),
+      radial-gradient(circle at bottom left, rgba(255, 214, 153, 0.18), transparent 28%),
+      linear-gradient(180deg, #fcfeff 0%, #f3f9ff 52%, #edf6ff 100%);
   }
 
   h1,
@@ -354,12 +355,13 @@
 
   .page-shell {
     background:
-      radial-gradient(circle at top right, rgba(116, 201, 255, 0.14), transparent 26%),
-      radial-gradient(circle at left 22%, rgba(139, 92, 246, 0.08), transparent 30%),
+      radial-gradient(circle at top right, rgba(116, 201, 255, 0.2), transparent 28%),
+      radial-gradient(circle at left 22%, rgba(139, 92, 246, 0.1), transparent 32%),
+      radial-gradient(circle at bottom left, rgba(255, 214, 153, 0.12), transparent 24%),
       linear-gradient(
         180deg,
-        rgba(255, 255, 255, 0.92) 0px,
-        rgba(255, 255, 255, 0.92) 104px,
+        rgba(252, 254, 255, 0.94) 0px,
+        rgba(252, 254, 255, 0.94) 104px,
         var(--background) 104px,
         var(--background) 100%
       );
@@ -457,9 +459,10 @@
   .hero-surface {
     border: 1px solid var(--border-subtle);
     background:
-      radial-gradient(circle at top right, rgba(116, 201, 255, 0.18), transparent 28%),
+      radial-gradient(circle at top right, rgba(116, 201, 255, 0.22), transparent 28%),
       radial-gradient(circle at left 20%, rgba(139, 92, 246, 0.12), transparent 32%),
-      linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(247, 251, 255, 0.96) 100%);
+      radial-gradient(circle at bottom left, rgba(255, 214, 153, 0.12), transparent 24%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(245, 251, 255, 0.98) 100%);
     box-shadow: var(--shadow-card);
   }
 
@@ -905,7 +908,9 @@
   box-shadow: var(--shadow-card-hover), inset 0 1px 0 rgba(167, 139, 250, 0.06);
 }
 
-.theme-icon {
+.theme-icon,
+img.theme-icon,
+.theme-icon img {
   filter: var(--svg-icon-filter);
 }
 
