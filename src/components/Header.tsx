@@ -4,11 +4,9 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useAuth } from '@/components/auth/AuthProvider'
 import { useTheme } from '@/components/theme/ThemeProvider'
 
 export default function Header() {
-  const { isAuthenticated, signOut } = useAuth()
   const { theme, toggleTheme } = useTheme()
   const [isHovered, setIsHovered] = useState(false)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -50,27 +48,9 @@ export default function Header() {
           className={`site-nav${isMenuOpen ? ' is-open' : ''}`}
           aria-label="Primary Navigation"
         >
-          <Link href="/" onClick={() => setIsMenuOpen(false)}>Home</Link>
-          <Link href="/teams" onClick={() => setIsMenuOpen(false)}>Teams</Link>
-          {isAuthenticated ? (
-            <Link href="/profile" onClick={() => setIsMenuOpen(false)}>Profile</Link>
-          ) : (
-            <Link href="/auth" onClick={() => setIsMenuOpen(false)}>Sign in</Link>
-          )}
-          {isAuthenticated ? (
-            <button
-              type="button"
-              className="site-nav-button"
-              onClick={() => {
-                setIsMenuOpen(false)
-                signOut()
-              }}
-            >
-              Log out
-            </button>
-          ) : (
-            <Link href="/tournaments/new" onClick={() => setIsMenuOpen(false)}>Create</Link>
-          )}
+          <Link href="/" onClick={() => setIsMenuOpen(false)}>Projects</Link>
+          <Link href="/teams" onClick={() => setIsMenuOpen(false)}>Team</Link>
+          <a href="#footer" onClick={() => setIsMenuOpen(false)}>Contact</a>
         </nav>
 
         <button

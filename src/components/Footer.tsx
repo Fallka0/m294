@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 export default function Footer() {
   return (
-    <footer className="relative z-10 mt-auto">
+    <footer id="footer" className="relative z-10 mt-auto">
       <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-4 border-t border-[color:var(--footer-border)] px-4 py-6 text-sm text-[color:var(--text-muted)] sm:px-6 md:flex-row md:items-center md:justify-between">
         <p className="text-center md:text-left">
           &copy; {new Date().getFullYear()} Tournament. Built by{' '}
