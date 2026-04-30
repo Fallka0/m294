@@ -23,8 +23,8 @@ export default function AppBackgroundVeil() {
       <div
         className={`absolute inset-0 transition-colors duration-500 ${
           isDark
-            ? 'bg-[radial-gradient(circle_at_top_right,rgba(139,92,246,0.14),transparent_40%),radial-gradient(circle_at_left,rgba(116,201,255,0.08),transparent_36%),linear-gradient(180deg,rgba(9,5,15,0.03),rgba(9,5,15,0.14))]'
-            : 'bg-[radial-gradient(circle_at_top_right,rgba(116,201,255,0.14),transparent_40%),radial-gradient(circle_at_left,rgba(139,92,246,0.08),transparent_36%),radial-gradient(circle_at_bottom_left,rgba(255,214,153,0.12),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.12),rgba(245,250,255,0.16))]'
+            ? 'bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.16),transparent_40%),radial-gradient(circle_at_left,rgba(110,231,183,0.1),transparent_36%),linear-gradient(180deg,rgba(9,17,22,0.03),rgba(9,17,22,0.14))]'
+            : 'bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.14),transparent_40%),radial-gradient(circle_at_left,rgba(110,231,183,0.12),transparent_36%),radial-gradient(circle_at_bottom_left,rgba(167,243,208,0.12),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.1),rgba(244,252,248,0.14))]'
         }`}
       />
     </div>
