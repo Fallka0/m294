@@ -9,22 +9,26 @@ export default function AppBackgroundVeil() {
 
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-      <div className="absolute inset-0">
-        <DarkVeil
-          hueShift={isDark ? 0 : 40}
-          noiseIntensity={isDark ? 0.022 : 0.006}
-          scanlineIntensity={isDark ? 0.06 : 0.01}
-          scanlineFrequency={isDark ? 1.16 : 0.55}
-          speed={isDark ? 0.42 : 0.18}
-          warpAmount={isDark ? 0.22 : 0.06}
-          resolutionScale={1}
-        />
-      </div>
+      {isDark ? (
+        <div className="absolute inset-0 opacity-90">
+          <DarkVeil
+            hueShift={118}
+            noiseIntensity={0.018}
+            scanlineIntensity={0.045}
+            scanlineFrequency={0.92}
+            speed={0.34}
+            warpAmount={0.14}
+            resolutionScale={1}
+          />
+        </div>
+      ) : (
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.08),transparent_34%),radial-gradient(circle_at_left,rgba(110,231,183,0.08),transparent_30%),linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.04))]" />
+      )}
       <div
         className={`absolute inset-0 transition-colors duration-500 ${
           isDark
-            ? 'bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.16),transparent_40%),radial-gradient(circle_at_left,rgba(110,231,183,0.1),transparent_36%),linear-gradient(180deg,rgba(9,17,22,0.03),rgba(9,17,22,0.14))]'
-            : 'bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.14),transparent_40%),radial-gradient(circle_at_left,rgba(110,231,183,0.12),transparent_36%),radial-gradient(circle_at_bottom_left,rgba(167,243,208,0.12),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.1),rgba(244,252,248,0.14))]'
+            ? 'bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.18),transparent_40%),radial-gradient(circle_at_left,rgba(110,231,183,0.12),transparent_36%),radial-gradient(circle_at_bottom_left,rgba(52,211,153,0.08),transparent_24%),linear-gradient(180deg,rgba(8,20,17,0.02),rgba(8,20,17,0.1))]'
+            : 'bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.12),transparent_40%),radial-gradient(circle_at_left,rgba(110,231,183,0.1),transparent_36%),radial-gradient(circle_at_bottom_left,rgba(167,243,208,0.1),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.04),rgba(244,252,248,0.08))]'
         }`}
       />
     </div>
